@@ -30,7 +30,16 @@
               }
             ],
             "styles": [
-              "src/styles.scss"
+              "src/styles.scss",
+              "node_modules/@ionic/angular/css/core.css",
+              "node_modules/@ionic/angular/css/normalize.css",
+              "node_modules/@ionic/angular/css/structure.css",
+              "node_modules/@ionic/angular/css/typography.css",
+              "node_modules/@ionic/angular/css/padding.css",
+              "node_modules/@ionic/angular/css/float-elements.css",
+              "node_modules/@ionic/angular/css/text-alignment.css",
+              "node_modules/@ionic/angular/css/text-transformation.css",
+              "node_modules/@ionic/angular/css/flex-utils.css"
             ]
           },
           "configurations": {
@@ -95,5 +104,8 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": "e36b128b-2644-4877-8d88-8fe5d067641c"
   }
 }

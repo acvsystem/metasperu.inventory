@@ -1,12 +1,30 @@
 import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { IonRouterOutlet, IonApp } from '@ionic/angular/standalone';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
   templateUrl: './app.html',
-  styleUrl: './app.scss'
+  styleUrl: './app.scss',
+  imports: [
+    IonRouterOutlet, IonApp
+  ],
 })
 export class App {
+
+
+
+  showPass = 'password';
+
   protected readonly title = signal('metasperu.inventory');
+
+
+  showPassword = false;
+
+  constructor() {
+    console.log("APP");
+  }
+
+  togglePassword() {
+    this.showPassword = !this.showPassword;
+  }
 }
