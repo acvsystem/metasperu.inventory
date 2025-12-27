@@ -1,0 +1,59 @@
+<ion-content class="login-bg">
+  <div class="flex-center">
+    <ion-card class="login-card">
+      <ion-grid class="ion-no-padding">
+        <ion-row>
+          <ion-col size="12" size-md="6" class="form-col">
+            <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="form-wrapper">
+              
+              <h1 class="title">Login</h1>
+              
+              <div class="input-group">
+                <div class="label-split">
+                  <ion-label class="custom-label">Username</ion-label>
+                </div>
+                <ion-item lines="none" class="custom-input">
+                  <ion-input type="text" formControlName="username" placeholder="Ingrese su usuario"></ion-input>
+                </ion-item>
+
+                <div class="label-split" style="margin-top: 15px;">
+                  <ion-label class="custom-label">Password</ion-label>
+                </div>
+                <ion-item lines="none" class="custom-input">
+                  <ion-input [type]="showPassword ? 'text' : 'password'" 
+                             formControlName="password"
+                             placeholder="••••••••"></ion-input>
+                  <ion-icon slot="end" 
+                            [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"
+                            (click)="togglePassword()" 
+                            class="password-icon">
+                  </ion-icon>
+                </ion-item>
+              </div>
+
+              <ion-button expand="block" 
+                          class="login-btn" 
+                          mode="ios" 
+                          type="submit"
+                          [disabled]="loginForm.invalid || isLoading()">
+                <ion-spinner *ngIf="isLoading()" name="crescent"></ion-spinner>
+                <span *ngIf="!isLoading()">Login</span>
+              </ion-button>
+
+            </form>
+          </ion-col>
+
+          <ion-col size="12" size-md="6" class="image-col ion-hide-md-down">
+            <div class="image-content">
+              <img class="app-log" src="assets/logo_almacen.png" alt="logo">
+              <h3>Metas Perú Inventario</h3>
+              <div class="slider-dots">
+                <span class="dot active"></span>
+              </div>
+            </div>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </ion-card>
+  </div>
+</ion-content>

@@ -1,1 +1,27 @@
 /* You can add global styles to this file, and also import other style files */
+/* From Uiverse.io by catraco */
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type=number] {
+    -moz-appearance: textfield;
+}
+
+.mat-mdc-form-field-flex {
+    height: 37px !important;
+}
+
+.no-line .mat-form-field-underline {
+    display: none;
+}
+
+.item-has-focus {
+    border: 1px solid #40a9ff !important;
+    outline: 0 !important;
+    box-shadow: 0 0 0 2px #1890ff33 !important;
+    border-radius: 4px !important;
+}

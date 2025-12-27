@@ -7,7 +7,7 @@ $text-light: #6b7280;
 
 .login-bg {
     // Un degradado suave azulado para el fondo general de la página
-    --background: linear-gradient(135deg, #4f90ff 0%, #5c80b3 100%);
+    --background: linear-gradient(135deg, #797979 0%, #12151a 100%);
 }
 
 .flex-center {
@@ -20,7 +20,7 @@ $text-light: #6b7280;
 
 .login-card {
     width: 100%;
-    max-width: 900px; // Ancho máximo similar a la imagen
+    max-width: 700px; // Ancho máximo similar a la imagen
     border-radius: 30px; // Bordes muy redondeados
     box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.1);
     overflow: hidden;

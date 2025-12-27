@@ -1,15 +1,34 @@
 import { Routes } from '@angular/router';
+import { authGuard } from './core/auth/auth.guard';
 
 export const routes: Routes = [
+  { path: 'login', loadComponent: () => import('./features/auth/login/login') },
+  {
+    path: 'inventory',
+    canActivate: [authGuard], // <--- Protección aquí
+    loadComponent: () => import('./features/inventory/pages/main/main'),
+    children: [
+      {
+        path: 'dashboard',
+        loadComponent: () => import('./features/inventory/pages/dashboard/dashboard')
+      },
+      {
+        path: 'session',
+        loadComponent: () => import('./features/inventory/pages/inventory-session/inventory-session')
+      },
+            {
+        path: 'pocket',
+        loadComponent: () => import('./features/inventory/pages/pocket/pocket')
+      }
+    ]
+  },
   {
     path: '',
     redirectTo: 'login',
-    pathMatch: 'full',
+    pathMatch: 'full'
   },
   {
-    path: 'login',
-    // Usamos el lazy loading (carga perezosa) para la página de login
-    loadChildren: () => import('./pages/login/login.routes').then(m => m.LoginRoutes),
-  },
-  // Aquí se agregarán más rutas, como '/home'
+    path: '**',
+    redirectTo: 'login'
+  }
 ];
