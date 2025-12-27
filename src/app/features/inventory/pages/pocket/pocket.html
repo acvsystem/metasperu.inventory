@@ -1,1 +1,31 @@
-<p>pocket works!</p>
+<ion-content class="ion-padding ion-text-center">
+  <div class="status-badge" [class.online]="isOnline()" [class.offline]="!isOnline()">
+    {{ isOnline() ? 'Conectado' : 'Modo Offline' }}
+  </div>
+
+  <h2>Sesión: {{ sessionCode() }}</h2>
+
+  <ion-item fill="outline" class="ion-margin-bottom">
+    <ion-label position="floating">Escanear SKU</ion-label>
+    <ion-input 
+      [(ngModel)]="skuInput" 
+      (keyup.enter)="handleScan()" 
+      placeholder="Use el lector o escriba"
+      type="text"
+      autofocus="true">
+    </ion-input>
+  </ion-item>
+
+  <ion-button expand="block" (click)="handleScan()" color="primary">
+    Registrar Producto
+  </ion-button>
+
+  <div class="sync-info ion-margin-top">
+    <ion-chip color="warning" *ngIf="pendingCount() > 0">
+      <ion-label>{{ pendingCount() }} escaneos pendientes de subir</ion-label>
+    </ion-chip>
+    <ion-chip color="success" *ngIf="pendingCount() === 0">
+      <ion-label>Todo sincronizado</ion-label>
+    </ion-chip>
+  </div>
+</ion-content>
