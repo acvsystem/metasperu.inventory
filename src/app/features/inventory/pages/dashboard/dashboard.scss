@@ -1,0 +1,49 @@
+.stat-card {
+  margin: 0;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  
+  .stat-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    
+    ion-icon {
+      font-size: 2.5rem;
+    }
+    
+    p {
+      margin: 0;
+      color: var(--ion-color-medium);
+      font-size: 0.9rem;
+    }
+    
+    h2 {
+      margin: 0;
+      font-weight: bold;
+      font-size: 1.8rem;
+    }
+  }
+}
+
+.sku-text {
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.qty-badge {
+  font-size: 1rem;
+  padding: 6px 12px;
+}
+
+.text-muted {
+  color: var(--ion-color-medium);
+}
+
+// Ocultar cabecera en móviles
+@media (max-width: 576px) {
+  .hide-sm {
+    display: none;
+  }
+}

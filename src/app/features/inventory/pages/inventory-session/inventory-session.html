@@ -1,1 +1,41 @@
-<p>inventory-session works!</p>
+<ion-header>
+    <ion-toolbar color="primary">
+        <ion-title>Nueva Sesión de Inventario</ion-title>
+    </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+    <div *ngIf="!generatedCode()">
+        <p>Ingrese el nombre de la sucursal o tienda para iniciar el conteo.</p>
+
+        <ion-item fill="outline" class="ion-margin-bottom">
+            <ion-label position="floating">Seleccionar Tienda</ion-label>
+            <ion-select [(ngModel)]="selectedStoreId" placeholder="Seleccione una sucursal">
+                <ion-select-option *ngFor="let tienda of stores()" [value]="tienda.id">
+                    {{ tienda.nombre_tienda }}
+                </ion-select-option>
+            </ion-select>
+        </ion-item>
+
+        <ion-button expand="block" (click)="startInventory()" [disabled]="!selectedStoreId || isLoading()">
+            {{ isLoading() ? 'Generando...' : 'Iniciar Inventario' }}
+        </ion-button>
+    </div>
+
+    <ion-card *ngIf="generatedCode()" color="light">
+        <ion-card-header class="ion-text-center">
+            <ion-card-title>¡Sesión Iniciada!</ion-card-title>
+        </ion-card-header>
+        <ion-card-content class="ion-text-center">
+            <p>Comparta este código con los operarios:</p>
+            <h1 style="font-size: 3rem; font-weight: bold; letter-spacing: 5px; color: var(--ion-color-primary);">
+                {{ generatedCode() }}
+            </h1>
+            <p class="ion-margin-vertical">Los escaneos aparecerán en tiempo real en el panel de control.</p>
+
+            <ion-button expand="block" color="success" (click)="goToDashboard()">
+                Ir al Monitor en Vivo
+            </ion-button>
+        </ion-card-content>
+    </ion-card>
+</ion-content>

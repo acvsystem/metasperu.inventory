@@ -9,7 +9,7 @@ export const routes: Routes = [
     loadComponent: () => import('./features/inventory/pages/main/main'),
     children: [
       {
-        path: 'dashboard',
+        path: 'dashboard/:code',
         loadComponent: () => import('./features/inventory/pages/dashboard/dashboard')
       },
       {

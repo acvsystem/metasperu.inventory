@@ -1,0 +1,22 @@
+<ion-header>
+    <ion-toolbar color="primary">
+        <ion-title>Retomar Inventario</ion-title>
+    </ion-toolbar>
+</ion-header>
+<ion-content>
+    <ion-list>
+        <ion-item *ngFor="let s of activeSessions()" (click)="selectSession(s.session_code)" button>
+            <ion-label>
+                <h2>{{ s.store_name }}</h2>
+                <p>Código: <strong>{{ s.session_code }}</strong></p>
+                <p>Iniciado: {{ s.created_at | date:'short' }}</p>
+            </ion-label>
+            <ion-badge slot="end" color="tertiary">{{ s.total_skus }} SKUs</ion-badge>
+        </ion-item>
+    </ion-list>
+
+    <div *ngIf="activeSessions().length === 0" class="ion-padding ion-text-center">
+        <p>No hay sesiones activas.</p>
+        <ion-button routerLink="/admin/create-session">Crear Nueva</ion-button>
+    </div>
+</ion-content>
