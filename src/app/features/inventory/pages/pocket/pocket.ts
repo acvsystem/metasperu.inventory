@@ -35,7 +35,7 @@ import {
 })
 export default class Pocket {
 
-  sessionCode = signal('MET-ABC'); // Esto vendría de la ruta o un input inicial
+  sessionCode = signal('KBS79J'); // Esto vendría de la ruta o un input inicial
   skuInput = signal('');
   pendingCount = signal(0);
   isOnline = signal(navigator.onLine);

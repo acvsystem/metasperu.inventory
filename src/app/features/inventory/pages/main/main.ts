@@ -26,7 +26,7 @@ export default class MainComponent {
   // Datos del usuario desde el Signal de tu servicio
   user = this.authService.currentUser;
   arMenuList = [
-    { nombre_menu: 'DASHBOARD', ruta: 'inventory/dashboard/:code' },
+    { nombre_menu: 'DASHBOARD', ruta: 'inventory/dashboard' },
     { nombre_menu: 'SESIONES', ruta: 'inventory/session' },
     { nombre_menu: 'POCKET', ruta: 'inventory/pocket' }
   ]
@@ -53,6 +53,11 @@ export default class MainComponent {
 
   onNavigatorRoute(route: string) {
     this.menuCtrl.close();
-    this.router.navigate([`/${route}`]);
+    if (route == 'inventory/dashboard') {
+      this.router.navigate([`/${route}`, 'KBS79J']);
+    } else {
+      this.router.navigate([`/${route}`]);
+    }
+
   }
 }

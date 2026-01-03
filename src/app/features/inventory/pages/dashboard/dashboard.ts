@@ -1,9 +1,9 @@
 import { Component, OnInit, inject, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { 
-  IonHeader, IonToolbar, IonTitle, IonContent, IonGrid, IonRow, 
-  IonCol, IonCard, IonList, IonItem, IonLabel, IonBadge, 
+import {
+  IonHeader, IonToolbar, IonTitle, IonContent, IonGrid, IonRow,
+  IonCol, IonCard, IonList, IonItem, IonLabel, IonBadge,
   IonButtons, IonBackButton, IonButton, IonIcon, IonChip,
   AlertController, ToastController, IonListHeader, IonCardContent
 } from '@ionic/angular/standalone';
@@ -18,7 +18,7 @@ import { InventorySocketService } from '../../../../shared/services/inventory-so
   standalone: true,
   imports: [
     CommonModule, RouterModule,
-    IonHeader, IonToolbar, IonTitle, IonContent, IonGrid, IonRow, 
+    IonHeader, IonToolbar, IonTitle, IonContent, IonGrid, IonRow,
     IonCol, IonCard, IonList, IonItem, IonLabel, IonBadge, IonListHeader,
     IonButtons, IonBackButton, IonButton, IonIcon, IonChip, IonCardContent
   ],
@@ -40,7 +40,7 @@ export default class DashboardComponent implements OnInit {
   isLoading = signal(false);
 
   // Signals computados (se actualizan solos cuando 'products' cambia)
-  totalUnidades = computed(() => 
+  totalUnidades = computed(() =>
     this.products().reduce((acc, curr) => acc + Number(curr.total_qty), 0)
   );
 
@@ -50,9 +50,14 @@ export default class DashboardComponent implements OnInit {
 
     // Efecto reactivo: Cuando el socket reciba una actualización, refrescamos los datos
     effect(() => {
-      const update = this.socketService.lastScanUpdate();
-      if (update && update.session_code === this.sessionCode) {
+      const notification = this.socketService.syncNotification();
+
+      if (notification) {
+        // 1. Recargamos la tabla principal para ver los nuevos totales
         this.loadData();
+
+        // 2. Opcional: Mostrar un Toast rápido informando cuántos productos llegaron
+        this.presentToast(`Se sincronizaron ${notification.count} productos nuevos.`);
       }
     });
   }
@@ -60,13 +65,12 @@ export default class DashboardComponent implements OnInit {
   ngOnInit() {
     // Obtener el código de la URL: /admin/dashboard/XYZ123
     this.sessionCode = this.route.snapshot.paramMap.get('code') || '';
-    
+
     if (!this.sessionCode) {
       this.router.navigate(['/admin/sessions']);
       return;
     }
 
-    this.loadData();
     // Unirse a la sala de socket para recibir actualizaciones en tiempo real
     this.socketService.joinSession(this.sessionCode);
   }
@@ -97,9 +101,9 @@ export default class DashboardComponent implements OnInit {
       message: '¿Estás seguro de finalizar esta sesión? Los operarios ya no podrán enviar más escaneos.',
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
-        { 
-          text: 'Sí, Finalizar', 
-          handler: () => this.closeSession() 
+        {
+          text: 'Sí, Finalizar',
+          handler: () => this.closeSession()
         }
       ]
     });
@@ -109,7 +113,7 @@ export default class DashboardComponent implements OnInit {
   private closeSession() {
     // Aquí llamarías a un método en el service para cambiar status a 'CLOSED'
     // this.invService.closeSession(this.sessionCode).subscribe(...)
-    
+
     this.presentToast('Sesión de inventario cerrada correctamente.');
     this.router.navigate(['/admin/sessions']);
   }
