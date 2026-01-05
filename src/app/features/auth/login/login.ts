@@ -6,18 +6,6 @@ import { AuthService } from '../../../core/auth/auth.service';
 import { FormsModule } from '@angular/forms';
 import { addIcons } from 'ionicons'; // Para registrar iconos
 import { eyeOutline, eyeOffOutline } from 'ionicons/icons';
-import {
-  IonContent,
-  IonGrid,
-  IonRow,
-  IonCol,
-  IonCard,
-  IonLabel,
-  IonItem,
-  IonInput,
-  IonIcon,
-  IonButton
-} from '@ionic/angular/standalone';
 
 @Component({
   selector: 'mt-login',
