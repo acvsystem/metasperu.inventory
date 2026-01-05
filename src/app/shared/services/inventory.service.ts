@@ -29,7 +29,7 @@ export class InventoryService {
     private http = inject(HttpClient);
 
     // Cambia esta URL según tu entorno de desarrollo/producción
-    private readonly API_URL = 'http://localhost:3001/inventory';
+    private readonly API_URL = 'https://api.metasperu.net.pe/inventory';
 
     // Estado reactivo de la sesión actual
     public activeSession = signal<SessionResponse | null>(null);

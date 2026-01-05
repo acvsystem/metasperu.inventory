@@ -17,7 +17,7 @@ export interface User {
 export class AuthService {
     private http = inject(HttpClient);
     private router = inject(Router);
-    private readonly API_URL = 'http://localhost:3000/security'; // Ajusta a tu URL
+    private readonly API_URL = 'https://api.metasperu.net.pe/security'; // Ajusta a tu URL
 
     // 1. Estado reactivo con Signals
     #user = signal<User | null>(null);
