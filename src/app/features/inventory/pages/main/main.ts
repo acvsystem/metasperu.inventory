@@ -9,12 +9,20 @@ import {
   settingsOutline,
   logOutOutline
 } from 'ionicons/icons';
+import {
+  IonContent, IonHeader, IonTitle, IonToolbar, IonItem,
+  IonLabel, IonButton  
+} from '@ionic/angular/standalone';
+
 import { addIcons } from 'ionicons';
 
 @Component({
   selector: 'main-layout',
   standalone: true,
-  imports: [CommonModule, IonicModule, RouterOutlet],
+  imports: [
+    CommonModule, IonContent, IonHeader, IonTitle,
+    IonToolbar, IonItem, IonLabel, IonButton, 
+    CommonModule, IonicModule, RouterOutlet],
   templateUrl: './main.html',
   styleUrl: './main.scss'
 })
