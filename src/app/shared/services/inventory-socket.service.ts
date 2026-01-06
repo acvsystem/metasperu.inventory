@@ -11,9 +11,10 @@ export class InventorySocketService {
     private pendingSessionCode: string | null = null;
 
     constructor() {
-        this.socket = io('https://api.metasperu.net.pe/inventory-socket', {
-            withCredentials: true,
-            transports: ['websocket']
+        this.socket = io('https://api.metasperu.net.pe', {
+            path: '/s3/socket/', // <--- IMPORTANTE: Nginx redirige esto al puerto 3001
+            transports: ['websocket', 'polling'],
+            withCredentials: true
         });
 
         // Evento cuando conectamos con el servidor
