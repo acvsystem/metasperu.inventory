@@ -16,7 +16,7 @@ import { addIcons } from 'ionicons';
   standalone: true,
   imports: [CommonModule, IonicModule, RouterOutlet],
   templateUrl: './main.html',
-  styleUrls: ['./main.scss']
+  styleUrl: './main.scss'
 })
 export default class MainComponent {
   private authService = inject(AuthService);

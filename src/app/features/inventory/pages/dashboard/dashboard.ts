@@ -23,7 +23,7 @@ import { InventorySocketService } from '../../../../shared/services/inventory-so
     IonButtons, IonBackButton, IonButton, IonIcon, IonChip, IonCardContent
   ],
   templateUrl: './dashboard.html',
-  styleUrls: ['./dashboard.scss']
+  styleUrl: './dashboard.scss'
 })
 export default class DashboardComponent implements OnInit {
   // Inyecciones de dependencias
