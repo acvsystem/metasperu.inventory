@@ -11,7 +11,7 @@ import {
 } from 'ionicons/icons';
 import {
   IonContent, IonHeader, IonTitle, IonToolbar, IonItem,
-  IonLabel, IonButton  
+  IonLabel, IonButton, IonMenu, IonMenuButton
 } from '@ionic/angular/standalone';
 
 import { addIcons } from 'ionicons';
@@ -20,8 +20,8 @@ import { addIcons } from 'ionicons';
   selector: 'main-layout',
   standalone: true,
   imports: [
-    CommonModule, IonContent, IonHeader, IonTitle,
-    IonToolbar, IonItem, IonLabel, IonButton, 
+    CommonModule, IonContent, IonHeader, IonTitle, IonMenuButton,
+    IonToolbar, IonItem, IonLabel, IonButton, IonMenu,
     CommonModule, IonicModule, RouterOutlet],
   templateUrl: './main.html',
   styleUrl: './main.scss'
