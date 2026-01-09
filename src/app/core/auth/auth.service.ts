@@ -30,7 +30,7 @@ export class AuthService {
      * Intenta recuperar la sesión al cargar la PWA (evita logout al refrescar)
      */
     checkSession(): Observable<boolean> {
-        return this.http.get<User>(`${this.API_URL}/check-session`, { withCredentials: true }).pipe(
+        return this.http.get<User>(`${this.API_URL}/check-session`).pipe(
             tap(user => this.#user.set(user)), // Guardamos el usuario en el Signal
             map(() => true),                   // <--- Transformamos el flujo a boolean (ÉXITO)
             catchError((err) => {
@@ -40,28 +40,26 @@ export class AuthService {
         );
     }
 
-    login(credentials: any): Observable<User> {
-        return this.http.post<User>(`${this.API_URL}/login`, credentials, { withCredentials: true }).pipe(
-            tap(user => {
-                this.#user.set(user);
+    login(credentials: any): Observable<any> {
+        // 1. Eliminamos withCredentials porque ya no usaremos cookies para la sesión
+        return this.http.post<any>(`${this.API_URL}/login`, credentials).pipe(
+            tap(response => {
+                // 2. Guardamos el token en localStorage para que el Interceptor lo use
+                if (response.token) {
+                    localStorage.setItem('auth_token', response.token);
+                }
+
+                // 3. Actualizamos el estado del usuario y navegamos
+                // Nota: Ajusta 'response.user' según cómo devuelva los datos tu API
+                this.#user.set(response.user || response);
                 this.router.navigate(['/inventory']);
             })
         );
     }
 
     logout() {
-        // RETORNA el observable, no te suscribas aquí
-        return this.http.post(`${this.API_URL}/logout`, {}, { withCredentials: true }).pipe(
-            tap({
-                next: () => {
-                    this.#user.set(null);
-                    this.currentUser.set(null);
-                },
-                error: () => {
-                    this.#user.set(null);
-                    this.currentUser.set(null);
-                }
-            })
-        );
+        localStorage.removeItem('auth_token'); // Limpiar el token
+        this.#user.set(null);                  // Limpiar el estado
+        this.router.navigate(['/login']);      // Redirigir
     }
 }

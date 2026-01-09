@@ -20,8 +20,6 @@ import { addIcons } from 'ionicons';
   selector: 'main-layout',
   standalone: true,
   imports: [
-    CommonModule, IonContent, IonHeader, IonTitle, IonMenuButton,
-    IonToolbar, IonItem, IonLabel, IonButton, IonMenu,
     CommonModule, IonicModule, RouterOutlet],
   templateUrl: './main.html',
   styleUrl: './main.scss'
@@ -48,15 +46,7 @@ export default class MainComponent {
   }
 
   logout() {
-    this.authService.logout().subscribe({
-      next: () => {
-        this.router.navigate(['/login']);
-      },
-      error: (err) => {
-        console.error('Error en logout', err);
-        this.router.navigate(['/login']);
-      }
-    });
+    this.authService.logout();
   }
 
   onNavigatorRoute(route: string) {

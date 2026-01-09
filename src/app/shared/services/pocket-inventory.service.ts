@@ -6,7 +6,7 @@ import { firstValueFrom } from 'rxjs';
 @Injectable({ providedIn: 'root' })
 export class PocketInventoryService {
   private http = inject(HttpClient);
-  private apiUrl = 'https://api.metasperu.net.pe/inventory';
+  private apiUrl = 'https://api.metasperu.net.pe/s3/inventory';
 
   // Guardar escaneo en LocalStorage (IndexedDB)
   async saveScanLocally(sessionCode: string, sku: string) {
@@ -34,7 +34,7 @@ export class PocketInventoryService {
         this.http.post(`${this.apiUrl}/sync-bulk`, { 
           session_code: sessionCode, 
           scans: pending 
-        }, { withCredentials: true })
+        })
       );
 
       // Si el servidor responde OK, marcamos como sincronizados localmente
