@@ -85,6 +85,14 @@ export class InventoryService {
         );
     }
 
+    getSessions(): Observable<any> {
+        return this.http.get(
+            `${this.API_URL}/sessions`
+        ).pipe(
+            catchError(this.handleError)
+        );
+    }
+
     /**
      * Manejo centralizado de errores de HTTP
      */

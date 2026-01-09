@@ -20,8 +20,7 @@ import { addIcons } from 'ionicons';
   selector: 'main-layout',
   standalone: true,
   imports: [
-    CommonModule, IonContent, IonHeader, IonTitle, IonMenuButton,
-    IonToolbar, IonItem, IonLabel, IonButton, IonMenu,
+    
     CommonModule, IonicModule, RouterOutlet],
   templateUrl: './main.html',
   styleUrl: './main.scss'

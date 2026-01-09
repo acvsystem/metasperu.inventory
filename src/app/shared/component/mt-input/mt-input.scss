@@ -1,0 +1,78 @@
+/* 1. Contenedor con borde y altura de 39px */
+.custom-filter-internal {
+    width: 100%;
+    height: 39px !important;
+    border: 1px solid #d1d1d1;
+    /* Gris de la imagen */
+    border-radius: 4px;
+    background-color: white;
+    overflow: hidden;
+    display: block;
+}
+
+/* 2. Quitar estilos nativos de Material (fondo gris y línea de abajo) */
+::ng-deep .custom-filter-internal .mat-mdc-text-field-wrapper {
+    background-color: transparent !important;
+    height: 39px !important;
+    padding: 0 12px !important;
+}
+
+::ng-deep .custom-filter-internal .mat-mdc-form-field-focus-indicator {
+    display: none;
+    /* Quita la línea gruesa de abajo */
+}
+
+/* 3. CENTRADO: Acomodar el texto y el label uno sobre otro */
+::ng-deep .custom-filter-internal .mat-mdc-form-field-infix {
+    padding-top: 4px !important;
+    /* Espacio para el label flotante */
+    padding-bottom: 4px !important;
+    min-height: 39px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+}
+
+/* 4. El Label cuando está flotando (dentro del input, arriba) */
+::ng-deep .custom-filter-internal.mat-form-field-should-float .mat-mdc-floating-label {
+    transform: translateY(-4px) scale(0.75) !important;
+    /* Lo sube apenas un poco */
+    color: #777 !important;
+    font-weight: 500;
+    top: calc(var(--mat-form-field-container-height, 50px) / 2) !important;
+}
+
+/* 5. El texto que escribes */
+::ng-deep .custom-filter-internal input.mat-mdc-input-element {
+    margin-top: 10px !important;
+    /* Lo baja para que no choque con el label */
+    font-size: 14px;
+}
+
+/* 6. ESTADO FOCUS (Imagen 38875f: Borde azul) */
+.custom-filter-internal:focus-within {
+   border-color: #3880ff !important;
+    padding: -1px;
+    /* Compensa el grosor del borde para que no salte */
+}
+
+::ng-deep .custom-filter-internal.mat-focused .mat-mdc-floating-label {
+    /* Label azul en focus */
+    top: calc(var(--mat-form-field-container-height, 45px) / 2) !important;
+}
+
+/* Esconder mensajes de error/ayuda */
+::ng-deep .custom-filter-internal .mat-mdc-form-field-subscript-wrapper {
+    display: none !important;
+}
+
+::ng-deep .mat-mdc-text-field-wrapper .mdc-floating-label {
+    top: calc(var(--mat-form-field-container-height, 45px) / 2) !important;
+}
+
+
+
+/* Eliminar la línea de validación inferior de Material */
+::ng-deep .custom-filter-internal .mat-mdc-form-field-subscript-wrapper {
+  display: none !important;
+}
