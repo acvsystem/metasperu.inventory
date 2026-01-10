@@ -32,7 +32,7 @@ export interface PeriodicElement {
   imports: [MatDialogModule, MatButtonModule, MatIconModule, MatInputModule, MatFormFieldModule, MatTableModule, IonCol,
     CommonModule, FormsModule, IonContent, IonHeader, IonTitle, IonRow,
     IonToolbar, IonButton,
-    IonCard, IonCardHeader, IonCardTitle, IonCardContent,
+    IonCard,   
     MtSelect, MtInput
   ],
   templateUrl: './inventory-session.html',
