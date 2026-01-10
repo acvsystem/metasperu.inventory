@@ -1,0 +1,26 @@
+<div class="verification-container">
+    <div class="icon-circle">
+        <mat-icon>mark_email_read</mat-icon>
+    </div>
+
+    <h2 mat-dialog-title>Código de Verificación</h2>
+    <p class="subtitle">Ingresa el código de 6 dígitos enviado a su dispositivo.</p>
+
+    <div class="code-inputs">
+        @for (slot of [0,1,2,3,4,5]; track slot) {
+        <input #inputBox type="text" maxlength="1" pattern="\d*" (input)="onInput($event, slot)"
+            (keydown)="onKeyDown($event, slot)" (paste)="onPaste($event)">
+        }
+    </div>
+
+    <p class="resend-text">
+        ¿No recibiste el código? <span class="link">Reenviar</span>
+    </p>
+
+    <mat-dialog-actions>
+        <button mat-stroked-button (click)="onCancel()">Cancelar</button>
+        <button mat-flat-button color="primary" [disabled]="!isComplete" (click)="onVerify()">
+            Verificar
+        </button>
+    </mat-dialog-actions>
+</div>

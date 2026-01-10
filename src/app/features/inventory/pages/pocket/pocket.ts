@@ -16,6 +16,9 @@ import {
   IonChip,
   IonIcon
 } from '@ionic/angular/standalone';
+import { MtVerificationModal } from '@metasperu/component/mt-verification-modal/mt-verification-modal'
+import { MatDialog } from '@angular/material/dialog';
+import { StorageService } from '@metasperu/services/store.service';
 
 @Component({
   selector: 'pocket-scanner',
@@ -35,12 +38,21 @@ import {
 })
 export default class Pocket {
 
-  sessionCode = signal('KBS79J'); // Esto vendría de la ruta o un input inicial
+  sessionCode = signal(''); // Esto vendría de la ruta o un input inicial
   skuInput = signal('');
   pendingCount = signal(0);
   isOnline = signal(navigator.onLine);
 
-  constructor(private pocketService: PocketInventoryService) {
+  constructor(private dialog: MatDialog, private pocketService: PocketInventoryService, private store: StorageService) {
+    const codePocket = this.store.getStore('pocketCode');
+    const valueCode = codePocket?.value;
+
+    if (!valueCode?.length) {
+      this.openVerification();
+    } else {
+      this.sessionCode = signal(valueCode);
+    }
+
     this.updatePendingCount();
 
     // Escuchar cambios de red
@@ -51,6 +63,20 @@ export default class Pocket {
   async onNetworkChange(status: boolean) {
     this.isOnline.set(status);
     if (status) await this.sync();
+  }
+
+
+  openVerification() {
+    const dialogRef = this.dialog.open(MtVerificationModal, {
+      width: '420px',
+      panelClass: 'custom-notification-panel' // La clase que configuramos antes para bordes redondos
+    });
+
+    dialogRef.afterClosed().subscribe(code => {
+      this.sessionCode = signal(code);
+      this.store.setStore('pocketCode', code);
+      if (code) console.log('Código ingresado:', code);
+    });
   }
 
   async handleScan() {

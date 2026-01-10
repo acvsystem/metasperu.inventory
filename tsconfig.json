@@ -3,6 +3,11 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
+    "baseUrl": "./", // Asegúrate de que esto esté presente
+    "paths": {
+      "@metasperu/*": ["src/app/shared/*"],
+      "@metasperu/component/*": ["src/app/shared/component/*"]
+    },
     "strict": true,
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,

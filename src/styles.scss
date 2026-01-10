@@ -69,3 +69,21 @@ body {
   margin: 0;
   font-family: Roboto, "Helvetica Neue", sans-serif;
 }
+
+.custom-notification-panel .mat-mdc-dialog-container .mdc-dialog__surface {
+  border-radius: 16px !important;
+  padding: 0 !important;
+}
+
+.custom-notification-panel {
+
+  /* Apuntamos al contenedor interno de Material */
+  .mat-mdc-dialog-container .mdc-dialog__surface {
+    border-radius: 20px !important;
+    /* Aquí controlas qué tan redondo es */
+    background-color: white !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    /* Asegura que el contenido no se salga de las esquinas */
+  }
+}

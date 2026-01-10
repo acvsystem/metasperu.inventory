@@ -41,7 +41,7 @@ export default class DashboardComponent implements OnInit {
 
   // Signals computados (se actualizan solos cuando 'products' cambia)
   totalUnidades = computed(() =>
-    this.products().reduce((acc, curr) => acc + Number(curr.total_qty), 0)
+    this.products().reduce((acc, curr) => acc + Number(curr.total_cantidad), 0)
   );
 
   constructor() {
@@ -82,6 +82,7 @@ export default class DashboardComponent implements OnInit {
     this.isLoading.set(true);
     this.invService.getSessionSummary(this.sessionCode).subscribe({
       next: (res) => {
+        console.log(res);
         this.products.set(res.products);
         this.isLoading.set(false);
       },

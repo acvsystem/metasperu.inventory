@@ -15,13 +15,14 @@ import {
 } from '@ionic/angular/standalone';
 
 import { addIcons } from 'ionicons';
+import { StorageService } from '@metasperu/services/store.service';
 
 @Component({
   selector: 'main-layout',
   standalone: true,
   imports: [
-    CommonModule, IonContent, IonHeader, IonTitle, IonMenuButton,
-    IonToolbar, IonItem, IonLabel, IonButton, IonMenu,
+    IonContent, IonHeader, IonTitle, IonToolbar, IonItem,
+    IonLabel, IonButton, IonMenu, IonMenuButton,
     CommonModule, IonicModule, RouterOutlet],
   templateUrl: './main.html',
   styleUrl: './main.scss'
@@ -38,7 +39,7 @@ export default class MainComponent {
     { nombre_menu: 'SESIONES', ruta: 'inventory/session' },
     { nombre_menu: 'POCKET', ruta: 'inventory/pocket' }
   ]
-  constructor() {
+  constructor(private store: StorageService) {
     addIcons({
       chevronDownOutline,
       notificationsOutline,
@@ -54,7 +55,8 @@ export default class MainComponent {
   onNavigatorRoute(route: string) {
     this.menuCtrl.close();
     if (route == 'inventory/dashboard') {
-      this.router.navigate([`/${route}`, 'KBS79J']);
+      const codeSession = this.store.getStore('codeSession');
+      this.router.navigate([`/${route}`, codeSession?.value]);
     } else {
       this.router.navigate([`/${route}`]);
     }

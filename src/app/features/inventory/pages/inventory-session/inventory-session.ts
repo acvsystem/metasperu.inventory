@@ -2,7 +2,7 @@ import { Component, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { InventoryService, Store } from '../../../../shared/services/inventory.service';
+import { InventoryService } from '../../../../shared/services/inventory.service';
 import {
   IonContent, IonHeader, IonTitle, IonToolbar, IonItem,
   IonLabel, IonButton, IonCard, IonCardHeader, IonRow, IonCol,
@@ -13,6 +13,12 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MtSelect } from '../../../../shared/component/mt-select/mt-select';
 import { MtInput } from '../../../../shared/component/mt-input/mt-input';
+import { MtNotificationModal } from '@metasperu/component/mt-notification-modal/mt-notification-modal';
+import { MatDialog } from '@angular/material/dialog';
+import { MatDialogModule } from '@angular/material/dialog'; // Para mat-dialog-actions, title y content
+import { MatButtonModule } from '@angular/material/button'; // Para los botones de acción
+import { MatIconModule } from '@angular/material/icon';
+import { StorageService } from '@metasperu/services/store.service';
 export interface PeriodicElement {
   codigo_sesion: string;
   nombre_tienda: string;
@@ -23,7 +29,7 @@ export interface PeriodicElement {
 
 @Component({
   selector: 'app-inventory-session',
-  imports: [MatInputModule, MatFormFieldModule, MatTableModule, IonCol,
+  imports: [MatDialogModule, MatButtonModule, MatIconModule, MatInputModule, MatFormFieldModule, MatTableModule, IonCol,
     CommonModule, FormsModule, IonContent, IonHeader, IonTitle, IonRow,
     IonToolbar, IonButton,
     IonCard, IonCardHeader, IonCardTitle, IonCardContent,
@@ -45,9 +51,22 @@ export default class InventorySession {
   sessions: Array<any> = [];
   dataSource = new MatTableDataSource(this.sessions);
 
+  constructor(private dialog: MatDialog, private store: StorageService) { }
+
   ngOnInit() {
     this.loadStores();
     this.loeadSessions();
+  }
+
+  showNotification() {
+    this.dialog.open(MtNotificationModal, {
+      width: '350px',
+      panelClass: 'custom-notification-panel',
+      data: {
+        isSession: true,
+        inCodeGen: this.generatedCode()
+      }
+    });
   }
 
   applyFilter(event: Event) {
@@ -83,17 +102,19 @@ export default class InventorySession {
   }
 
   async startInventory() {
-   
+
     if (!this.selectedStoreId) return;
 
     this.isLoading.set(true);
     // Buscamos el nombre de la tienda basado en el ID para enviarlo al backend
     const store = this.stores.find(s => s.key === +this.selectedStoreId);
- console.log(this.selectedStoreId)
+
     this.inventoryService.createSession(store!.key).subscribe({
       next: (res) => {
         this.generatedCode.set(res.session_code);
+        this.store.setStore("codeSession", res.session_code);
         this.isLoading.set(false);
+        this.showNotification();
       },
       error: (err) => { this.isLoading.set(false); }
     });

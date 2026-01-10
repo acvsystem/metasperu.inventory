@@ -66,7 +66,6 @@
             <ion-row class="ion-text-bold">
               <ion-col size="5">Código SKU</ion-col>
               <ion-col size="3" class="ion-text-center">Cantidad</ion-col>
-              <ion-col size="4" class="ion-text-end">Último Escaneo</ion-col>
             </ion-row>
           </ion-grid>
         </ion-item>
@@ -80,11 +79,8 @@
                 </ion-col>
                 <ion-col size="3" class="ion-text-center">
                   <ion-badge color="primary" class="qty-badge">
-                    {{ product.total_qty }}
+                    {{ product.total_cantidad }}
                   </ion-badge>
-                </ion-col>
-                <ion-col size="4" class="ion-text-end text-muted">
-                  <small>{{ product.last_scan | date:'HH:mm:ss' }}</small>
                 </ion-col>
               </ion-row>
             </ion-grid>

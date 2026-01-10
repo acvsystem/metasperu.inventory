@@ -1,0 +1,26 @@
+<div class="modal-container">
+    <div class="status-icon success">
+        <mat-icon>check_circle</mat-icon>
+    </div>
+
+    <h2 mat-dialog-title *ngIf="!data.isSession">{{inTitle}}</h2>
+    <h2 mat-dialog-title *ngIf="data.isSession">¡Sesión Iniciada!</h2>
+
+    @if(data.isSession){
+    <mat-dialog-content>
+        <p>Comparta este código con los operarios:</p>
+        <h1 style="font-size: 3rem; font-weight: bold; letter-spacing: 5px; color: #005cbb;">
+            {{ data.inCodeGen }}
+        </h1>
+        <p class="ion-margin-vertical">Los escaneos aparecerán en tiempo real en el panel de control.</p>
+    </mat-dialog-content>
+    }
+
+    <mat-dialog-content *ngIf="!isSession">
+        <p>{{inTextContent}}</p>
+    </mat-dialog-content>
+
+    <mat-dialog-actions align="center">
+        <button mat-flat-button color="primary" (click)="close()">Aceptar</button>
+    </mat-dialog-actions>
+</div>

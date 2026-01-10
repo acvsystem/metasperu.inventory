@@ -54,7 +54,7 @@ $text-light: #6b7280;
 
 .input-group {
     margin-bottom: 20px;
-
+    display: block !important;
     .custom-label {
         font-size: 14px;
         color: $text-light;
