@@ -60,6 +60,7 @@ export class AuthService {
     logout() {
         localStorage.removeItem('auth_token'); // Limpiar el token
         localStorage.removeItem('codeSession');
+        localStorage.removeItem('pocketCode');
         this.#user.set(null);                  // Limpiar el estado
         this.router.navigate(['/login']);      // Redirigir
     }
