@@ -53,21 +53,20 @@ export default class MainComponent {
   }
 
   async onNavigatorRoute(route: string) {
+    // 1. Cerramos el menú primero
     try {
-      // 1. Forzamos el cierre del menú específico por su ID
-      await this.menuCtrl.close('main-menu');
-
-      // 2. Navegación
-      if (route === 'inventory/dashboard') {
-        const codeSession = this.store.getStore('codeSession');
-        this.router.navigate([`/${route}`, codeSession?.value]);
-      } else {
-        this.router.navigate([`/${route}`]);
-      }
-    } catch (error) {
-      console.error('Error al cerrar menú:', error);
-      // Si falla el cierre, navegamos de todos modos
-      this.router.navigate([`/${route}`]);
+      await this.menuCtrl.close();
+    } catch (e) {
+      console.log('Menú ya estaba cerrado');
     }
+
+    // 2. Navegamos después de un pequeño respiro para el navegador
+    setTimeout(() => {
+      const url = route === 'inventory/dashboard'
+        ? `/${route}/${this.store.getStore('codeSession')?.value}`
+        : `/${route}`;
+
+      this.router.navigateByUrl(url);
+    }, 50);
   }
 }
