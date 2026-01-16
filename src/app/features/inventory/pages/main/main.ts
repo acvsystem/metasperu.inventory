@@ -21,7 +21,8 @@ import { StorageService } from '@metasperu/services/store.service';
   selector: 'main-layout',
   standalone: true,
   imports: [
-    
+    IonContent, IonHeader, IonTitle, IonToolbar, IonItem,
+    IonLabel, IonButton, IonMenu, IonMenuButton,
     CommonModule, IonicModule, RouterOutlet],
   templateUrl: './main.html',
   styleUrl: './main.scss'
