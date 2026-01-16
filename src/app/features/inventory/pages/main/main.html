@@ -5,11 +5,11 @@
         </ion-toolbar>
     </ion-header>
     <ion-content class="ion-padding">
-        <div *ngFor="let menu of arMenuList">
+        <div *ngFor="let menu of arMenuList" class="menu-container">
 
-            <ion-menu-toggle auto-hide="false">
+            <ion-menu-toggle [autoHide]="false">
                 <button class="menu-item" (click)="onNavigatorRoute(menu.ruta)">
-                    <span>{{menu.nombre_menu}}</span>
+                    <span>{{ menu.nombre_menu }}</span>
                 </button>
             </ion-menu-toggle>
 
