@@ -21,8 +21,7 @@ import { StorageService } from '@metasperu/services/store.service';
   selector: 'main-layout',
   standalone: true,
   imports: [
-    IonContent, IonHeader, IonTitle, IonToolbar, IonItem,
-    IonLabel, IonButton, IonMenu, IonMenuButton,
+    
     CommonModule, IonicModule, RouterOutlet],
   templateUrl: './main.html',
   styleUrl: './main.scss'
@@ -53,15 +52,20 @@ export default class MainComponent {
   }
 
   async onNavigatorRoute(route: string) {
-    // 1. Forzamos el cierre y esperamos la confirmación
-    await this.menuCtrl.close();
+    // 1. Cerramos el menú explícitamente antes de navegar
+    // 'first' debe coincidir con el menuId de tu HTML
+    await this.menuCtrl.enable(true, 'first');
+    await this.menuCtrl.close('first');
 
-    // 2. Ejecutamos la navegación
-    if (route == 'inventory/dashboard') {
-      const codeSession = this.store.getStore('codeSession');
-      this.router.navigate([`/${route}`, codeSession?.value]);
-    } else {
-      this.router.navigate([`/${route}`]);
-    }
+    // 2. Pequeña pausa para asegurar que la animación de Ionic inició
+    // Esto evita que el cambio de ruta de Angular bloquee el cierre
+    setTimeout(() => {
+      if (route == 'inventory/dashboard') {
+        const codeSession = this.store.getStore('codeSession');
+        this.router.navigate([`/${route}`, codeSession?.value]);
+      } else {
+        this.router.navigate([`/${route}`]);
+      }
+    }, 100);
   }
 }
