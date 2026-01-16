@@ -21,8 +21,6 @@ import { StorageService } from '@metasperu/services/store.service';
   selector: 'main-layout',
   standalone: true,
   imports: [
-    IonContent, IonHeader, IonTitle, IonToolbar, IonItem,
-    IonLabel, IonButton, IonMenu, IonMenuButton,
     CommonModule, IonicModule, RouterOutlet],
   templateUrl: './main.html',
   styleUrl: './main.scss'
@@ -52,14 +50,16 @@ export default class MainComponent {
     this.authService.logout()
   }
 
-  onNavigatorRoute(route: string) {
-    this.menuCtrl.close();
+  async onNavigatorRoute(route: string) {
+    // 1. Forzamos el cierre y esperamos la confirmación
+    await this.menuCtrl.close();
+
+    // 2. Ejecutamos la navegación
     if (route == 'inventory/dashboard') {
       const codeSession = this.store.getStore('codeSession');
       this.router.navigate([`/${route}`, codeSession?.value]);
     } else {
       this.router.navigate([`/${route}`]);
     }
-
   }
 }

@@ -8,7 +8,7 @@
         <div class="example-menu" *ngFor="let menu of arMenuList" cdkMenu>
 
             <ion-menu-toggle class="example-menu" auto-hide="false">
-                <button class="menu-item" (click)="onNavigatorRoute(menu.ruta)" cdkMenuItem>
+                <button class="menu-item" (click)="onNavigatorRoute(menu.ruta)" cdkMenuItem menuClose>
                     <span>{{menu.nombre_menu}}</span>
                 </button>
             </ion-menu-toggle>

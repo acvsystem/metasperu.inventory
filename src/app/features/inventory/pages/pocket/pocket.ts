@@ -45,7 +45,8 @@ export default class Pocket {
 
   constructor(private dialog: MatDialog, private pocketService: PocketInventoryService, private store: StorageService) {
     const codePocket = this.store.getStore('pocketCode');
-    const valueCode = codePocket?.value;
+    console.log(codePocket);
+    const valueCode = codePocket?.value == 'undefined' ? '' : codePocket?.value;
 
     if (!valueCode?.length) {
       this.openVerification();
