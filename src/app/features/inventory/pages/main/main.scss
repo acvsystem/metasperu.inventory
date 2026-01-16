@@ -376,3 +376,23 @@ ion-item {
 .menu-item:active {
   background-color: rgb(255 255 255 / 16%);
 }
+
+.menu-item {
+  width: 100%;
+  background: transparent;
+  border: none;
+  text-align: left;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  color: var(--ion-color-dark);
+  
+  &:active {
+    background-color: rgba(0, 0, 0, 0.05); // Efecto feedback en móvil
+  }
+
+  span {
+    pointer-events: none; // Evita que el span interfiera con el clic del botón
+  }
+}

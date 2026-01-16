@@ -5,10 +5,10 @@
         </ion-toolbar>
     </ion-header>
     <ion-content class="ion-padding">
-        <div class="example-menu" *ngFor="let menu of arMenuList" cdkMenu menuClose>
+        <div *ngFor="let menu of arMenuList">
 
-            <ion-menu-toggle class="example-menu" auto-hide="false">
-                <button class="menu-item" (click)="onNavigatorRoute(menu.ruta)" cdkMenuItem >
+            <ion-menu-toggle auto-hide="false">
+                <button class="menu-item" (click)="onNavigatorRoute(menu.ruta)">
                     <span>{{menu.nombre_menu}}</span>
                 </button>
             </ion-menu-toggle>

@@ -53,20 +53,14 @@ export default class MainComponent {
   }
 
   async onNavigatorRoute(route: string) {
-    // 1. Cerramos el menú explícitamente antes de navegar
-    // 'first' debe coincidir con el menuId de tu HTML
-    await this.menuCtrl.enable(true, 'first');
-    await this.menuCtrl.close('first');
+    // Cerramos manualmente por seguridad (doble protección)
+    await this.menuCtrl.close();
 
-    // 2. Pequeña pausa para asegurar que la animación de Ionic inició
-    // Esto evita que el cambio de ruta de Angular bloquee el cierre
-    setTimeout(() => {
-      if (route == 'inventory/dashboard') {
-        const codeSession = this.store.getStore('codeSession');
-        this.router.navigate([`/${route}`, codeSession?.value]);
-      } else {
-        this.router.navigate([`/${route}`]);
-      }
-    }, 100);
+    if (route == 'inventory/dashboard') {
+      const codeSession = this.store.getStore('codeSession');
+      this.router.navigate([`/${route}`, codeSession?.value]);
+    } else {
+      this.router.navigate([`/${route}`]);
+    }
   }
 }
