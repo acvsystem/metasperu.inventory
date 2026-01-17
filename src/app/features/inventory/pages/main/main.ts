@@ -53,20 +53,22 @@ export default class MainComponent {
   }
 
   async onNavigatorRoute(route: string) {
-    // 1. Cerramos el menú primero
-    try {
-      await this.menuCtrl.close();
-    } catch (e) {
-      console.log('Menú ya estaba cerrado');
-    }
+    // 1. Cerramos el menú
+    await this.menuCtrl.close('first');
 
-    // 2. Navegamos después de un pequeño respiro para el navegador
+    // 2. TRUCO PARA EL ERROR DE ARIA-HIDDEN:
+    // Removemos el atributo que está bloqueando el foco en la raíz
+    document.getElementById('app-root')?.removeAttribute('aria-hidden');
+    document.body.removeAttribute('aria-hidden');
+
+    // 3. Navegamos
     setTimeout(() => {
-      const url = route === 'inventory/dashboard'
-        ? `/${route}/${this.store.getStore('codeSession')?.value}`
-        : `/${route}`;
-
-      this.router.navigateByUrl(url);
-    }, 50);
+      if (route === 'inventory/dashboard') {
+        const codeSession = this.store.getStore('codeSession');
+        this.router.navigate([`/${route}`, codeSession?.value]);
+      } else {
+        this.router.navigate([`/${route}`]);
+      }
+    }, 100);
   }
 }
