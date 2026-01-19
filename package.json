@@ -31,6 +31,7 @@
     "@angular/platform-browser": "^20.3.0",
     "@angular/router": "^20.3.0",
     "@angular/service-worker": "^20.3.15",
+    "@capacitor-mlkit/barcode-scanning": "^8.0.0",
     "@ionic/angular": "^8.7.11",
     "@ionic/angular-toolkit": "^12.3.0",
     "dexie": "^4.2.1",

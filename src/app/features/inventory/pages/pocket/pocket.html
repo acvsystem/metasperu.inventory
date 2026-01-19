@@ -1,31 +1,50 @@
 <ion-content class="ion-padding ion-text-center">
-  <div class="status-badge" [class.online]="isOnline()" [class.offline]="!isOnline()">
-    {{ isOnline() ? 'Conectado' : 'Modo Offline' }}
+  
+  <div [hidden]="isScanning()">
+    <div class="status-badge" [class.online]="isOnline()" [class.offline]="!isOnline()">
+      {{ isOnline() ? 'Conectado' : 'Modo Offline' }}
+    </div>
+
+    <h2>Sesión: {{ sessionCode() }}</h2>
+
+    <ion-item fill="outline" class="ion-margin-bottom">
+      <ion-label position="floating">Escanear SKU</ion-label>
+      <ion-input 
+        [(ngModel)]="skuInput" 
+        (keyup.enter)="handleScan()" 
+        placeholder="Use el lector o escriba"
+        type="text"
+        autofocus="true">
+      </ion-input>
+      <ion-button slot="end" fill="clear" (click)="startScan()" class="scan-button">
+        <ion-icon name="scan-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-item>
+
+    <ion-button expand="block" (click)="handleScan()" color="primary">
+      Registrar Producto
+    </ion-button>
+
+    <div class="sync-info ion-margin-top">
+      <ion-chip color="warning" *ngIf="pendingCount() > 0">
+        <ion-label>{{ pendingCount() }} escaneos pendientes de subir</ion-label>
+      </ion-chip>
+      <ion-chip color="success" *ngIf="pendingCount() === 0">
+        <ion-label>Todo sincronizado</ion-label>
+      </ion-chip>
+    </div>
   </div>
 
-  <h2>Sesión: {{ sessionCode() }}</h2>
-
-  <ion-item fill="outline" class="ion-margin-bottom">
-    <ion-label position="floating">Escanear SKU</ion-label>
-    <ion-input 
-      [(ngModel)]="skuInput" 
-      (keyup.enter)="handleScan()" 
-      placeholder="Use el lector o escriba"
-      type="text"
-      autofocus="true">
-    </ion-input>
-  </ion-item>
-
-  <ion-button expand="block" (click)="handleScan()" color="primary">
-    Registrar Producto
-  </ion-button>
-
-  <div class="sync-info ion-margin-top">
-    <ion-chip color="warning" *ngIf="pendingCount() > 0">
-      <ion-label>{{ pendingCount() }} escaneos pendientes de subir</ion-label>
-    </ion-chip>
-    <ion-chip color="success" *ngIf="pendingCount() === 0">
-      <ion-label>Todo sincronizado</ion-label>
-    </ion-chip>
+  <div *ngIf="isScanning()" class="scanner-container">
+    <div class="scanner-overlay">
+      <div class="scanner-reticle"></div>
+      <p class="scanner-text">Encuadre el código de barras</p>
+    </div>
+    
+    <ion-button (click)="stopScan()" color="danger" class="btn-cancel-scan">
+      <ion-icon name="close-circle-outline" slot="start"></ion-icon>
+      Cancelar Escaneo
+    </ion-button>
   </div>
+
 </ion-content>
