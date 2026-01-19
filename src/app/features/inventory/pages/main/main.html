@@ -1,0 +1,67 @@
+<ion-menu contentId="main-content" menuId="first" type="overlay">
+    <ion-header>
+        <ion-toolbar>
+            <ion-title>Menú</ion-title>
+        </ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding">
+        <ion-list lines="none"> <ion-menu-toggle *ngFor="let menu of arMenuList" auto-hide="false">
+                <ion-item button (click)="onNavigatorRoute(menu.ruta)" detail="false" class="custom-menu-item">
+                    <ion-label>{{ menu.nombre_menu }}</ion-label>
+                </ion-item>
+            </ion-menu-toggle>
+        </ion-list>
+    </ion-content>
+</ion-menu>
+
+<div class="ion-page" id="main-content">
+    <ion-header>
+        <ion-toolbar>
+            <ion-buttons slot="start">
+                <ion-menu-button></ion-menu-button>
+            </ion-buttons>
+
+            <ion-title>METAS PERU</ion-title>
+
+            <ion-buttons slot="end">
+                <ion-button id="profile-popover-trigger">
+                    <ion-avatar class="avatar-header">
+                        <img src="assets/metasicon.png" />
+                    </ion-avatar>
+                    <ion-icon name="chevron-down-outline" size="small"></ion-icon>
+                </ion-button>
+            </ion-buttons>
+        </ion-toolbar>
+    </ion-header>
+
+    <ion-content>
+        <router-outlet></router-outlet>
+    </ion-content>
+</div>
+
+<ion-popover trigger="profile-popover-trigger" triggerAction="click" [dismissOnSelect]="true">
+    <ng-template>
+        <div class="user-popover-header ion-padding">
+            <img src="assets/metasicon.png" width="24">
+            <div class="user-info">
+                <span class="label">SISTEMAS</span>
+                <span class="name">{{ user()?.nombre }}</span>
+            </div>
+        </div>
+
+        <ion-list lines="full">
+            <ion-item button>
+                <ion-icon slot="start" name="notifications-outline"></ion-icon>
+                <ion-label>Notificaciones</ion-label>
+            </ion-item>
+            <ion-item button>
+                <ion-icon slot="start" name="settings-outline"></ion-icon>
+                <ion-label>Configuración cuenta</ion-label>
+            </ion-item>
+            <ion-item button (click)="logout()" detail="false" class="logout-btn">
+                <ion-icon slot="start" name="log-out-outline" color="danger"></ion-icon>
+                <ion-label color="danger">Cerrar sesión</ion-label>
+            </ion-item>
+        </ion-list>
+    </ng-template>
+</ion-popover>

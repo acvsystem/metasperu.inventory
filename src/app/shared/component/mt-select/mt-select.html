@@ -6,7 +6,7 @@
                     [interfaceOptions]="customAlertOptions" toggleIcon="chevron-down-outline"
                     placeholder="Seleccione una sucursal" (ionChange)="onSelectedOption($event)">
 
-                    @for (tienda of data; track tienda.id) {
+                    @for (tienda of data; track tienda.value) {
                     <ion-select-option [value]="tienda">
                         {{ tienda.value }}
                     </ion-select-option>

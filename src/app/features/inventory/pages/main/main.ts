@@ -21,8 +21,6 @@ import { StorageService } from '@metasperu/services/store.service';
   selector: 'main-layout',
   standalone: true,
   imports: [
-    IonContent, IonHeader, IonTitle, IonToolbar, IonItem,
-    IonLabel, IonButton, IonMenu, IonMenuButton,
     CommonModule, IonicModule, RouterOutlet],
   templateUrl: './main.html',
   styleUrl: './main.scss'
@@ -53,15 +51,12 @@ export default class MainComponent {
   }
 
   async onNavigatorRoute(route: string) {
-    // 1. Cerramos el menú
+  
     await this.menuCtrl.close('first');
 
-    // 2. TRUCO PARA EL ERROR DE ARIA-HIDDEN:
-    // Removemos el atributo que está bloqueando el foco en la raíz
     document.getElementById('app-root')?.removeAttribute('aria-hidden');
     document.body.removeAttribute('aria-hidden');
 
-    // 3. Navegamos
     setTimeout(() => {
       if (route === 'inventory/dashboard') {
         const codeSession = this.store.getStore('codeSession');
