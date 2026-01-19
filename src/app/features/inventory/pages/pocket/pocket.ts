@@ -11,7 +11,7 @@ import { addIcons } from 'ionicons';
 import { scanOutline, closeCircleOutline } from 'ionicons/icons';
 
 // Lector para PWA (Navegador)
-import { BrowserMultiFormatReader } from '@zxing/library';
+import { BrowserMultiFormatReader, DecodeHintType, BarcodeFormat } from '@zxing/library';
 
 import { MtVerificationModal } from '@metasperu/component/mt-verification-modal/mt-verification-modal'
 import { MatDialog } from '@angular/material/dialog';
@@ -32,16 +32,28 @@ export default class Pocket implements OnDestroy {
   private pocketService = inject(PocketInventoryService);
   private store = inject(StorageService);
   private alertCtrl = inject(AlertController);
+  // Lector de códigos de barras
+  private codeReader = new BrowserMultiFormatReader(
+    new Map([
+      [
+        DecodeHintType.POSSIBLE_FORMATS,
+        [
+          BarcodeFormat.CODE_128,
+          BarcodeFormat.EAN_13,
+          BarcodeFormat.EAN_8,
+          BarcodeFormat.QR_CODE
+        ]
+      ]
+    ])
+  );
 
   // Signals
   sessionCode = signal('');
   skuInput = signal('');
   pendingCount = signal(0);
   isOnline = signal(navigator.onLine);
-  isScanning = signal(false); 
+  isScanning = signal(false);
 
-  // Lector de códigos de barras
-  private codeReader = new BrowserMultiFormatReader();
 
   constructor() {
     addIcons({ scanOutline, closeCircleOutline });
@@ -63,7 +75,7 @@ export default class Pocket implements OnDestroy {
   // --- LÓGICA DEL ESCÁNER PWA ---
   async startScan() {
     this.isScanning.set(true);
-    
+
     // Pequeño delay para asegurar que el <video> esté en el DOM
     setTimeout(async () => {
       try {
@@ -71,7 +83,7 @@ export default class Pocket implements OnDestroy {
         if (result) {
           const valorLeido = result.getText();
           this.skuInput.set(valorLeido);
-          
+
           await this.handleScan(); // Guarda automáticamente
           this.stopScan(); // Cierra la cámara
         }
@@ -117,7 +129,7 @@ export default class Pocket implements OnDestroy {
     await this.pocketService.saveScanLocally(this.sessionCode(), sku);
     this.skuInput.set('');
     await this.updatePendingCount();
-    
+
     if (this.isOnline()) await this.sync();
   }
 

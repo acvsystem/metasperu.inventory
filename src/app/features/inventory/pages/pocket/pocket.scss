@@ -1,41 +1,59 @@
 .status-badge {
-  padding: 8px;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  margin-bottom: 20px;
-  display: inline-block;
-  &.online { background: #d4edda; color: #155724; }
-  &.offline { background: #f8d7da; color: #721c24; }
+    padding: 8px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    margin-bottom: 20px;
+    display: inline-block;
+
+    &.online {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    &.offline {
+        background: #f8d7da;
+        color: #721c24;
+    }
 }
 
 .scanner-container {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: #000;
-  z-index: 2000;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-
-  .video-wrapper {
-    position: relative;
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 100%;
-    overflow: hidden;
+    height: 100%;
+    background: #000;
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 
-    video {
-      width: 100%;
-      height: auto;
-    }
+    .video-wrapper {
+        position: relative;
+        width: 100%;
+        overflow: hidden;
 
-    .scanner-guide {
-      position: absolute;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      width: 260px; height: 160px;
-      border: 3px solid #00ff00;
-      border-radius: 12px;
-      box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0.4);
+        video {
+            width: 100%;
+            height: auto;
+        }
+
+        .scanner-guide {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 260px;
+            height: 160px;
+            border: 3px solid #00ff00;
+            border-radius: 12px;
+            box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0.4);
+        }
     }
-  }
+}
+
+video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; // Esto ayuda a que no se estire la imagen
 }
