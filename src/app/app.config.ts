@@ -8,15 +8,18 @@ import { authInterceptor } from './shared/services/auth.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideHttpClient(withInterceptors([authInterceptor])),
-    provideIonicAngular(),
-    provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),
-    provideHttpClient(),
-    provideRouter(routes), provideServiceWorker('ngsw-worker.js', {
+    provideRouter(routes),
+    // 1. CONFIGURA IONIC CORRECTAMENTE
+    provideIonicAngular({
+      mode: 'md', // Fuerza el modo Material Design para que sea consistente en PWA
+      animated: true,
+    }),
+    provideHttpClient(withInterceptors([authInterceptor])),
+    // Elimina el segundo provideHttpClient() que estaba duplicado
+    provideServiceWorker('ngsw-worker.js', {
       enabled: !isDevMode(),
       registrationStrategy: 'registerImmediately'
     })
   ]
 };
-
