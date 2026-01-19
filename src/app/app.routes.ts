@@ -6,21 +6,22 @@ export const routes: Routes = [
   {
     path: 'inventory',
     canActivate: [authGuard], // <--- Protección aquí
-    loadComponent: () => import('./features/inventory/pages/main/main'),
-    children: [
-      {
-        path: 'dashboard/:code',
-        loadComponent: () => import('./features/inventory/pages/dashboard/dashboard')
-      },
-      {
-        path: 'session',
-        loadComponent: () => import('./features/inventory/pages/inventory-session/inventory-session')
-      },
-            {
-        path: 'pocket',
-        loadComponent: () => import('./features/inventory/pages/pocket/pocket')
-      }
-    ]
+    loadComponent: () => import('./features/inventory/pages/inventory-session/inventory-session')
+  },
+  {
+    path: 'inventory/session',
+    canActivate: [authGuard], // <--- Protección aquí
+    loadComponent: () => import('./features/inventory/pages/inventory-session/inventory-session'),
+  },
+  {
+    path: 'inventory/dashboard/:code',
+    canActivate: [authGuard], // <--- Protección aquí
+    loadComponent: () => import('./features/inventory/pages/inventory-session/inventory-session'),
+  },
+  {
+    path: 'inventory/pocket',
+    canActivate: [authGuard], // <--- Protección aquí
+    loadComponent: () => import('./features/inventory/pages/pocket/pocket'),
   },
   {
     path: '',
