@@ -21,6 +21,8 @@ import { StorageService } from '@metasperu/services/store.service';
   selector: 'main-layout',
   standalone: true,
   imports: [
+    IonContent, IonHeader, IonTitle, IonToolbar, IonItem,
+    IonLabel, IonButton, IonMenu, IonMenuButton,
     CommonModule, IonicModule, RouterOutlet],
   templateUrl: './main.html',
   styleUrl: './main.scss'
@@ -51,7 +53,7 @@ export default class MainComponent {
   }
 
   async onNavigatorRoute(route: string) {
-  
+
     await this.menuCtrl.close('first');
 
     document.getElementById('app-root')?.removeAttribute('aria-hidden');
