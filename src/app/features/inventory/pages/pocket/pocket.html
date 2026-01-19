@@ -12,11 +12,10 @@
       <ion-input 
         [(ngModel)]="skuInput" 
         (keyup.enter)="handleScan()" 
-        placeholder="Use el lector o escriba"
-        type="text"
-        autofocus="true">
+        placeholder="Escriba o use la cámara"
+        type="text">
       </ion-input>
-      <ion-button slot="end" fill="clear" (click)="startScan()" class="scan-button">
+      <ion-button slot="end" fill="clear" (click)="startScan()">
         <ion-icon name="scan-outline" slot="icon-only"></ion-icon>
       </ion-button>
     </ion-item>
@@ -26,22 +25,21 @@
     </ion-button>
 
     <div class="sync-info ion-margin-top">
-      <ion-chip color="warning" *ngIf="pendingCount() > 0">
-        <ion-label>{{ pendingCount() }} escaneos pendientes de subir</ion-label>
-      </ion-chip>
-      <ion-chip color="success" *ngIf="pendingCount() === 0">
-        <ion-label>Todo sincronizado</ion-label>
+      <ion-chip [color]="pendingCount() > 0 ? 'warning' : 'success'">
+        <ion-label>
+          {{ pendingCount() > 0 ? pendingCount() + ' pendientes' : 'Sincronizado' }}
+        </ion-label>
       </ion-chip>
     </div>
   </div>
 
   <div *ngIf="isScanning()" class="scanner-container">
-    <div class="scanner-overlay">
-      <div class="scanner-reticle"></div>
-      <p class="scanner-text">Encuadre el código de barras</p>
+    <div class="video-wrapper">
+      <video id="video-preview"></video>
+      <div class="scanner-guide"></div>
     </div>
     
-    <ion-button (click)="stopScan()" color="danger" class="btn-cancel-scan">
+    <ion-button expand="block" color="danger" (click)="stopScan()" class="ion-margin">
       <ion-icon name="close-circle-outline" slot="start"></ion-icon>
       Cancelar Escaneo
     </ion-button>

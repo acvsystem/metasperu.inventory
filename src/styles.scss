@@ -87,3 +87,16 @@ body {
     /* Asegura que el contenido no se salga de las esquinas */
   }
 }
+
+// Esta clase se activa solo cuando el escáner está prendido
+body.barcode-scanner-active {
+  --ion-background-color: transparent;
+  --background: transparent;
+
+  // Ocultamos todos los elementos para ver la cámara al fondo
+  main-layout,
+  ion-content,
+  ion-router-outlet {
+    display: none !important;
+  }
+}

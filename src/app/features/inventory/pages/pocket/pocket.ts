@@ -1,9 +1,8 @@
-import { Component, signal, inject } from '@angular/core';
+import { Component, signal, inject, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PocketInventoryService } from '../../../../shared/services/pocket-inventory.service';
 import { db } from '../../../../core/db/offline-db';
-// IONIC IMPORTS
 import {
   IonContent, IonLabel, IonItem, IonInput,
   IonButton, IonChip, IonIcon, AlertController
@@ -11,12 +10,8 @@ import {
 import { addIcons } from 'ionicons';
 import { scanOutline, closeCircleOutline } from 'ionicons/icons';
 
-// SCANNER IMPORTS
-import {
-  BarcodeScanner,
-  BarcodeFormat,
-  LensFacing
-} from '@capacitor-mlkit/barcode-scanning';
+// Lector para PWA (Navegador)
+import { BrowserMultiFormatReader } from '@zxing/library';
 
 import { MtVerificationModal } from '@metasperu/component/mt-verification-modal/mt-verification-modal'
 import { MatDialog } from '@angular/material/dialog';
@@ -32,17 +27,21 @@ import { StorageService } from '@metasperu/services/store.service';
   templateUrl: './pocket.html',
   styleUrl: './pocket.scss',
 })
-export default class Pocket {
+export default class Pocket implements OnDestroy {
   private dialog = inject(MatDialog);
   private pocketService = inject(PocketInventoryService);
   private store = inject(StorageService);
   private alertCtrl = inject(AlertController);
 
+  // Signals
   sessionCode = signal('');
   skuInput = signal('');
   pendingCount = signal(0);
   isOnline = signal(navigator.onLine);
-  isScanning = signal(false); // Nuevo: Controla el estado visual
+  isScanning = signal(false); 
+
+  // Lector de códigos de barras
+  private codeReader = new BrowserMultiFormatReader();
 
   constructor() {
     addIcons({ scanOutline, closeCircleOutline });
@@ -53,7 +52,7 @@ export default class Pocket {
     if (!valueCode?.length) {
       this.openVerification();
     } else {
-      this.sessionCode.set(valueCode); // Corregido: set() para signals
+      this.sessionCode.set(valueCode);
     }
 
     this.updatePendingCount();
@@ -61,47 +60,37 @@ export default class Pocket {
     window.addEventListener('offline', () => this.onNetworkChange(false));
   }
 
-  // --- LÓGICA DEL ESCÁNER ---
-  // --- LÓGICA DEL ESCÁNER ACTUALIZADA ---
+  // --- LÓGICA DEL ESCÁNER PWA ---
   async startScan() {
-    try {
-      const isSupported = await BarcodeScanner.isSupported();
-      if (!isSupported.supported) return;
-
-      const status = await BarcodeScanner.requestPermissions();
-      if (status.camera !== 'granted') return;
-
-      this.isScanning.set(true);
-      document.querySelector('body')?.classList.add('barcode-scanner-active');
-
-      const { barcodes } = await BarcodeScanner.scan({
-        formats: [BarcodeFormat.Code128, BarcodeFormat.Ean13, BarcodeFormat.QrCode],
-      });
-
-      this.stopScan();
-
-      // CORRECCIÓN DEL ERROR DE TIPO:
-      if (barcodes.length > 0) {
-        // Usamos el operador ?? '' para garantizar que siempre sea un string
-        const valorLeido = barcodes[0].rawValue ?? '';
-
-        if (valorLeido) {
+    this.isScanning.set(true);
+    
+    // Pequeño delay para asegurar que el <video> esté en el DOM
+    setTimeout(async () => {
+      try {
+        const result = await this.codeReader.decodeFromInputVideoDevice(undefined, 'video-preview');
+        if (result) {
+          const valorLeido = result.getText();
           this.skuInput.set(valorLeido);
-          await this.handleScan();
+          
+          await this.handleScan(); // Guarda automáticamente
+          this.stopScan(); // Cierra la cámara
         }
+      } catch (err) {
+        console.error('Error de cámara o escaneo:', err);
       }
-    } catch (e) {
-      console.error('Error en escaneo:', e);
-      this.stopScan();
-    }
+    }, 300);
   }
 
   stopScan() {
+    this.codeReader.reset(); // Apaga la cámara
     this.isScanning.set(false);
-    document.querySelector('body')?.classList.remove('barcode-scanner-active');
   }
 
-  // --- LÓGICA EXISTENTE ---
+  ngOnDestroy() {
+    this.codeReader.reset(); // Seguridad al salir de la página
+  }
+
+  // --- LÓGICA DE NEGOCIO ---
   async onNetworkChange(status: boolean) {
     this.isOnline.set(status);
     if (status) await this.sync();
@@ -122,10 +111,13 @@ export default class Pocket {
   }
 
   async handleScan() {
-    if (!this.skuInput()) return;
-    await this.pocketService.saveScanLocally(this.sessionCode(), this.skuInput());
+    const sku = this.skuInput();
+    if (!sku || sku.trim() === '') return;
+
+    await this.pocketService.saveScanLocally(this.sessionCode(), sku);
     this.skuInput.set('');
     await this.updatePendingCount();
+    
     if (this.isOnline()) await this.sync();
   }
 
