@@ -82,18 +82,33 @@ export default class Pocket implements OnDestroy {
 
   async handleScan() {
     const sku = this.skuInput().trim();
+
+    // 1. Validar que no esté vacío
     if (!sku) return;
 
-    await this.pocketService.saveScanLocally(this.sessionCode(), sku);
-    this.skuInput.set('');
-    await this.updatePendingCount();
+    try {
+      // 2. Guardar en la base de datos local (Offline first)
+      await this.pocketService.saveScanLocally(this.sessionCode(), sku);
 
-    // Importante: Devolver el foco al input para el siguiente escaneo láser
-    setTimeout(() => {
-      this.barcodeInput?.setFocus();
-    }, 150);
+      // 3. Limpiar el input INMEDIATAMENTE para recibir el siguiente código
+      this.skuInput.set('');
 
-    if (this.isOnline()) await this.sync();
+      // 4. Actualizar el contador visual de pendientes
+      await this.updatePendingCount();
+
+      // 5. Si hay internet, intentar subirlo al servidor en segundo plano
+      if (this.isOnline()) {
+        this.sync(); // No usamos 'await' aquí para no frenar al usuario
+      }
+
+      // 6. Forzar que el cursor siga en el input (por si acaso se perdió el foco)
+      setTimeout(() => {
+        this.barcodeInput?.setFocus();
+      }, 10);
+
+    } catch (error) {
+      console.error('Error al procesar escaneo automático:', error);
+    }
   }
 
   // --- LÓGICA DE CÁMARA (Para celulares que NO sean Zebra) ---

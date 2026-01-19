@@ -1,5 +1,5 @@
 <ion-content class="ion-padding ion-text-center">
-  
+
   <div class="status-badge" [class.online]="isOnline()" [class.offline]="!isOnline()">
     {{ isOnline() ? 'Conectado' : 'Modo Offline' }}
   </div>
@@ -9,16 +9,8 @@
   <div class="scanner-wrapper">
     <ion-item fill="outline" class="ion-margin-bottom custom-input-item">
       <ion-label position="floating">Escanear SKU</ion-label>
-      <ion-input 
-        #barcodeInput
-        [value]="skuInput()" 
-        (ionInput)="skuInput.set($event.detail.value!)"
-        (keyup.enter)="handleScan()" 
-        placeholder="Dispare el láser del equipo"
-        type="text"
-        autofocus="true"
-        inputmode="text"
-        clear-input="true">
+      <ion-input #barcodeInput [value]="skuInput()" (ionInput)="skuInput.set($event.detail.value!)"
+        (keyup.enter)="handleScan()" placeholder="ESCANEE AHORA..." type="text" autofocus="true" [debounce]="0">
       </ion-input>
       <ion-icon name="barcode-outline" slot="end" color="medium"></ion-icon>
     </ion-item>
