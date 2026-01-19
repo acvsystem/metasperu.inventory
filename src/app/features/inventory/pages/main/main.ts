@@ -73,13 +73,12 @@ export default class MainComponent {
     document.getElementById('app-root')?.removeAttribute('aria-hidden');
     document.body.removeAttribute('aria-hidden');
 
-    setTimeout(() => {
-      if (route === 'inventory/dashboard') {
-        const codeSession = this.store.getStore('codeSession');
-        this.router.navigate([`/${route}`, codeSession?.value]);
-      } else {
-        this.router.navigate([`/${route}`]);
-      }
-    }, 150); // Un pelín más de tiempo para asegurar la PWA
+    if (route === 'inventory/dashboard') {
+      const codeSession = this.store.getStore('codeSession');
+      this.router.navigate([`/${route}`, codeSession?.value]);
+    } else {
+      this.router.navigate([`/${route}`]);
+    }
+
   }
 }
