@@ -11,7 +11,7 @@ import {
 } from 'ionicons/icons';
 import {
   IonContent, IonHeader, IonTitle, IonToolbar, IonItem,
-  IonLabel, IonButton, IonMenu, IonMenuButton
+  IonLabel, IonButton, IonMenu
 } from '@ionic/angular/standalone';
 
 import { addIcons } from 'ionicons';
@@ -19,10 +19,8 @@ import { StorageService } from '@metasperu/services/store.service';
 
 @Component({
   selector: 'main-layout',
-  standalone: true,
   imports: [
-    IonContent, IonHeader, IonTitle, IonToolbar, IonItem,
-    IonLabel, IonButton, IonMenu, IonMenuButton,
+ 
     CommonModule, IonicModule, RouterOutlet],
   templateUrl: './main.html',
   styleUrl: './main.scss'

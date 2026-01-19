@@ -1,16 +1,19 @@
-<ion-menu contentId="main-content" menuId="first" type="overlay">
+<ion-menu contentId="main-content">
     <ion-header>
         <ion-toolbar>
             <ion-title>Menú</ion-title>
         </ion-toolbar>
     </ion-header>
     <ion-content class="ion-padding">
-        <ion-list lines="none"> <ion-menu-toggle *ngFor="let menu of arMenuList" auto-hide="false">
-                <ion-item button (click)="onNavigatorRoute(menu.ruta)" detail="false" class="custom-menu-item">
-                    <ion-label>{{ menu.nombre_menu }}</ion-label>
-                </ion-item>
+        <div class="example-menu" *ngFor="let menu of arMenuList" cdkMenu>
+
+            <ion-menu-toggle class="example-menu" auto-hide="true">
+                <button class="menu-item" (click)="onNavigatorRoute(menu.ruta)" cdkMenuItem>
+                    <span>{{menu.nombre_menu}}</span>
+                </button>
             </ion-menu-toggle>
-        </ion-list>
+
+        </div>
     </ion-content>
 </ion-menu>
 
