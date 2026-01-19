@@ -1,48 +1,42 @@
 <ion-content class="ion-padding ion-text-center">
   
-  <div [hidden]="isScanning()">
-    <div class="status-badge" [class.online]="isOnline()" [class.offline]="!isOnline()">
-      {{ isOnline() ? 'Conectado' : 'Modo Offline' }}
-    </div>
-
-    <h2>Sesión: {{ sessionCode() }}</h2>
-
-    <ion-item fill="outline" class="ion-margin-bottom">
-      <ion-label position="floating">Escanear SKU</ion-label>
-      <ion-input 
-        [(ngModel)]="skuInput" 
-        (keyup.enter)="handleScan()" 
-        placeholder="Escriba o use la cámara"
-        type="text">
-      </ion-input>
-      <ion-button slot="end" fill="clear" (click)="startScan()">
-        <ion-icon name="scan-outline" slot="icon-only"></ion-icon>
-      </ion-button>
-    </ion-item>
-
-    <ion-button expand="block" (click)="handleScan()" color="primary">
-      Registrar Producto
-    </ion-button>
-
-    <div class="sync-info ion-margin-top">
-      <ion-chip [color]="pendingCount() > 0 ? 'warning' : 'success'">
-        <ion-label>
-          {{ pendingCount() > 0 ? pendingCount() + ' pendientes' : 'Sincronizado' }}
-        </ion-label>
-      </ion-chip>
-    </div>
+  <div class="status-badge" [class.online]="isOnline()" [class.offline]="!isOnline()">
+    {{ isOnline() ? 'Conectado' : 'Modo Offline' }}
   </div>
 
-  <div *ngIf="isScanning()" class="scanner-container">
-    <div class="video-wrapper">
-      <video id="video-preview"></video>
-      <div class="scanner-guide"></div>
-    </div>
-    
-    <ion-button expand="block" color="danger" (click)="stopScan()" class="ion-margin">
-      <ion-icon name="close-circle-outline" slot="start"></ion-icon>
-      Cancelar Escaneo
-    </ion-button>
+  <h2>Sesión: {{ sessionCode() }}</h2>
+
+  <div class="scanner-wrapper">
+    <ion-item fill="outline" class="ion-margin-bottom custom-input-item">
+      <ion-label position="floating">Escanear SKU</ion-label>
+      <ion-input 
+        #barcodeInput
+        [value]="skuInput()" 
+        (ionInput)="skuInput.set($event.detail.value!)"
+        (keyup.enter)="handleScan()" 
+        placeholder="Dispare el láser del equipo"
+        type="text"
+        autofocus="true"
+        inputmode="text"
+        clear-input="true">
+      </ion-input>
+      <ion-icon name="barcode-outline" slot="end" color="medium"></ion-icon>
+    </ion-item>
+
+    <p class="helper-text">El cursor debe estar activo para usar el lector láser</p>
+  </div>
+
+  <ion-button expand="block" (click)="handleScan()" color="primary" class="ion-margin-top">
+    Registrar Manualmente
+  </ion-button>
+
+  <div class="sync-info ion-margin-top">
+    <ion-chip [color]="pendingCount() > 0 ? 'warning' : 'success'">
+      <ion-icon [name]="pendingCount() > 0 ? 'cloud-upload-outline' : 'checkmark-done-outline'"></ion-icon>
+      <ion-label>
+        {{ pendingCount() > 0 ? pendingCount() + ' pendientes de subir' : 'Todo sincronizado' }}
+      </ion-label>
+    </ion-chip>
   </div>
 
 </ion-content>
