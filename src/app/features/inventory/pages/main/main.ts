@@ -75,7 +75,8 @@ export default class MainComponent {
 
     if (route === 'inventory/dashboard') {
       const codeSession = this.store.getStore('codeSession');
-      this.router.navigate([`/${route}`, codeSession?.value]);
+      const serieStore = this.store.getStore('serieStore');
+      this.router.navigate([`/${route}`, codeSession?.value, serieStore?.value]);
     } else {
       this.router.navigate([`/${route}`]);
     }

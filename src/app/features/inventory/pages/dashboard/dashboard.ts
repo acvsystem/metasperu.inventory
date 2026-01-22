@@ -9,15 +9,16 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { radioOutline, cubeOutline, barcodeOutline, refreshOutline, checkmarkDoneCircle, hourglassOutline } from 'ionicons/icons';
-
-import { InventoryService } from '../../../../shared/services/inventory.service';
-import { InventorySocketService } from '../../../../shared/services/inventory-socket.service';
+import { MatTabsModule } from '@angular/material/tabs';
+import { InventoryService } from '@metasperu/services/inventory.service';
+import { InventorySocketService } from '@metasperu/services/inventory-socket.service';
+import { View2Inventario } from './component/view-2-inventario/view-2-inventario'
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
   imports: [
-    CommonModule, RouterModule,
+    CommonModule, RouterModule, View2Inventario, MatTabsModule,
     IonHeader, IonToolbar, IonTitle, IonContent, IonGrid, IonRow,
     IonCol, IonCard, IonList, IonItem, IonLabel, IonBadge, IonListHeader,
     IonButtons, IonBackButton, IonButton, IonIcon, IonChip, IonCardContent
@@ -36,9 +37,11 @@ export default class DashboardComponent implements OnInit {
 
   // Propiedades y Signals
   sessionCode = '';
+  serieStore = '';
+  pocketScan: any;
   products = signal<any[]>([]);
   isLoading = signal(false);
-
+  dataInventario: Array<any> = [];
   // Signals computados (se actualizan solos cuando 'products' cambia)
   totalUnidades = computed(() =>
     this.products().reduce((acc, curr) => acc + Number(curr.total_cantidad), 0)
@@ -55,16 +58,19 @@ export default class DashboardComponent implements OnInit {
       if (notification) {
         // 1. Recargamos la tabla principal para ver los nuevos totales
         this.loadData();
-
+        
         // 2. Opcional: Mostrar un Toast rápido informando cuántos productos llegaron
         this.presentToast(`Se sincronizaron ${notification.count} productos nuevos.`);
       }
+
+      this.dataInventario = this.socketService.syncInventarioStore();
     });
   }
 
   ngOnInit() {
     // Obtener el código de la URL: /admin/dashboard/XYZ123
     this.sessionCode = this.route.snapshot.paramMap.get('code') || '';
+    this.serieStore = this.route.snapshot.paramMap.get('serie') || '';
 
     if (!this.sessionCode) {
       this.router.navigate(['/admin/sessions']);
@@ -73,6 +79,12 @@ export default class DashboardComponent implements OnInit {
 
     // Unirse a la sala de socket para recibir actualizaciones en tiempo real
     this.socketService.joinSession(this.sessionCode);
+
+    this.invService.getStoreInventory({ session_code: this.sessionCode, serie_store: this.serieStore }).subscribe({
+      next: (res) => {
+      },
+      error: (err) => { console.log(err); }
+    });
   }
 
   /**
@@ -83,6 +95,7 @@ export default class DashboardComponent implements OnInit {
     this.invService.getSessionSummary(this.sessionCode).subscribe({
       next: (res) => {
         console.log(res);
+        this.pocketScan = res.products;
         this.products.set(res.products);
         this.isLoading.set(false);
       },
@@ -112,9 +125,6 @@ export default class DashboardComponent implements OnInit {
   }
 
   private closeSession() {
-    // Aquí llamarías a un método en el service para cambiar status a 'CLOSED'
-    // this.invService.closeSession(this.sessionCode).subscribe(...)
-
     this.presentToast('Sesión de inventario cerrada correctamente.');
     this.router.navigate(['/admin/sessions']);
   }

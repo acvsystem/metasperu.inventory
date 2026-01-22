@@ -6,7 +6,7 @@ export class InventorySocketService {
     private socket: Socket;
     public isConnected = signal(false);
     public syncNotification = signal<any>(null);
-
+    public syncInventarioStore = signal<any>(null);
     // Guardamos el código por si hay que reintentar al conectar
     private pendingSessionCode: string | null = null;
 
@@ -38,6 +38,13 @@ export class InventorySocketService {
         this.socket.on('update_totals', (data: any) => {
             console.log('📦 Sincronización masiva recibida:', data);
             this.syncNotification.set(data); // Guardamos la data (count, last_scans)
+        });
+
+        // ESCUCHAR EL EVENTO INVENTARIO EXACTO DEL BACKEND
+        this.socket.on('res_inv_store', (data: any) => {
+            console.log('📦 Inventario recibido:', data);
+            this.syncInventarioStore.set(data);
+            //this.syncNotification.set(data); // Guardamos la data (count, last_scans)
         });
     }
 

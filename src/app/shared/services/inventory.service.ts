@@ -1,5 +1,5 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Observable, catchError, tap, throwError } from 'rxjs';
 
 // Definición de interfaces para mejores sugerencias de código (IntelliSense)
@@ -111,8 +111,6 @@ export class InventoryService {
         return throwError(() => new Error(errorMessage));
     }
 
-
-
     // Dentro de la clase InventoryService
     getStores(): Observable<Store[]> {
         return this.http.get<Store[]>(`${this.API_URL}/stores`);
@@ -120,6 +118,22 @@ export class InventoryService {
 
     getActiveSessions(): Observable<any[]> {
         return this.http.get<any[]>(`${this.API_URL}/active-sessions`);
+    }
+
+    getStoreInventory(params: any): Observable<Store[]> {
+        // Convertimos el objeto en parámetros de URL automáticamente
+        let httpParams = new HttpParams();
+
+        if (params) {
+            Object.keys(params).forEach(key => {
+                if (params[key] !== null && params[key] !== undefined) {
+                    httpParams = httpParams.append(key, params[key]);
+                }
+            });
+        }
+
+        // La URL quedará como: .../request/store?sessionCode=XXX&tiendaId=YYY
+        return this.http.get<Store[]>(`${this.API_URL}/request/store`, { params: httpParams });
     }
 
 }

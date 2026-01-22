@@ -4,13 +4,13 @@
       <ion-back-button defaultHref="/admin/sessions"></ion-back-button>
     </ion-buttons>
     <ion-title>Monitoreo: {{ sessionCode }}</ion-title>
-    
+
     <ion-buttons slot="end">
       <ion-chip [color]="socketService.isConnected() ? 'success' : 'danger'">
         <ion-icon name="radio-outline"></ion-icon>
         <ion-label>{{ socketService.isConnected() ? 'EN VIVO' : 'DESCONECTADO' }}</ion-label>
       </ion-chip>
-      
+
       <ion-button (click)="confirmCloseSession()" color="light">
         <ion-icon slot="icon-only" name="checkmark-done-circle"></ion-icon>
       </ion-button>
@@ -19,79 +19,91 @@
 </ion-header>
 
 <ion-content class="ion-padding bg-light">
-  <ion-grid>
-    <ion-row>
-      <ion-col size="12" size-md="6">
-        <ion-card class="stat-card">
-          <ion-card-content>
-            <div class="stat-info">
-              <ion-icon name="cube-outline" color="primary"></ion-icon>
-              <div>
-                <p>Total Unidades</p>
-                <h2>{{ totalUnidades() | number }}</h2>
-              </div>
+
+  <mat-tab-group>
+    <mat-tab label="Inventario Pocket">
+      <ion-grid>
+        <ion-row>
+          <ion-col size="12" size-md="6">
+            <ion-card class="stat-card">
+              <ion-card-content>
+                <div class="stat-info">
+                  <ion-icon name="cube-outline" color="primary"></ion-icon>
+                  <div>
+                    <p>Total Unidades</p>
+                    <h2>{{ totalUnidades() | number }}</h2>
+                  </div>
+                </div>
+              </ion-card-content>
+            </ion-card>
+          </ion-col>
+
+          <ion-col size="12" size-md="6">
+            <ion-card class="stat-card">
+              <ion-card-content>
+                <div class="stat-info">
+                  <ion-icon name="barcode-outline" color="tertiary"></ion-icon>
+                  <div>
+                    <p>SKUs Únicos</p>
+                    <h2>{{ products().length }}</h2>
+                  </div>
+                </div>
+              </ion-card-content>
+            </ion-card>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+
+      <div class="table-container ion-margin-top">
+        <ion-list-header>
+          <ion-label>Detalle de Conteo por Producto</ion-label>
+          <ion-button (click)="loadData()" fill="clear">
+            <ion-icon name="refresh-outline"></ion-icon>
+          </ion-button>
+        </ion-list-header>
+
+        <ion-card>
+          <ion-list lines="full">
+            <ion-item color="light" class="hide-sm">
+              <ion-grid>
+                <ion-row class="ion-text-bold">
+                  <ion-col size="5">Código SKU</ion-col>
+                  <ion-col size="3" class="ion-text-center">Cantidad</ion-col>
+                </ion-row>
+              </ion-grid>
+            </ion-item>
+
+            @for (product of products(); track product.sku) {
+            <ion-item class="product-row">
+              <ion-grid>
+                <ion-row class="ion-align-items-center">
+                  <ion-col size="5">
+                    <span class="sku-text">{{ product.sku }}</span>
+                  </ion-col>
+                  <ion-col size="3" class="ion-text-center">
+                    <ion-badge color="primary" class="qty-badge">
+                      {{ product.total_cantidad }}
+                    </ion-badge>
+                  </ion-col>
+                </ion-row>
+              </ion-grid>
+            </ion-item>
+            } @empty {
+            <div class="ion-text-center ion-padding">
+              <ion-icon name="hourglass-outline" style="font-size: 3rem; color: #ccc;"></ion-icon>
+              <p>Esperando datos de los dispositivos Pocket...</p>
             </div>
-          </ion-card-content>
+            }
+          </ion-list>
         </ion-card>
-      </ion-col>
-      
-      <ion-col size="12" size-md="6">
-        <ion-card class="stat-card">
-          <ion-card-content>
-            <div class="stat-info">
-              <ion-icon name="barcode-outline" color="tertiary"></ion-icon>
-              <div>
-                <p>SKUs Únicos</p>
-                <h2>{{ products().length }}</h2>
-              </div>
-            </div>
-          </ion-card-content>
-        </ion-card>
-      </ion-col>
-    </ion-row>
-  </ion-grid>
+      </div>
+    </mat-tab>
+    <mat-tab label="Cruce inventario">
+      @if(dataInventario){
+      <view-2-inventario  [pocketScan]="pocketScan" [onDataView]=dataInventario></view-2-inventario>
+      }
+    </mat-tab>
+  </mat-tab-group>
 
-  <div class="table-container ion-margin-top">
-    <ion-list-header>
-      <ion-label>Detalle de Conteo por Producto</ion-label>
-      <ion-button (click)="loadData()" fill="clear">
-        <ion-icon name="refresh-outline"></ion-icon>
-      </ion-button>
-    </ion-list-header>
 
-    <ion-card>
-      <ion-list lines="full">
-        <ion-item color="light" class="hide-sm">
-          <ion-grid>
-            <ion-row class="ion-text-bold">
-              <ion-col size="5">Código SKU</ion-col>
-              <ion-col size="3" class="ion-text-center">Cantidad</ion-col>
-            </ion-row>
-          </ion-grid>
-        </ion-item>
-
-        @for (product of products(); track product.sku) {
-          <ion-item class="product-row">
-            <ion-grid>
-              <ion-row class="ion-align-items-center">
-                <ion-col size="5">
-                  <span class="sku-text">{{ product.sku }}</span>
-                </ion-col>
-                <ion-col size="3" class="ion-text-center">
-                  <ion-badge color="primary" class="qty-badge">
-                    {{ product.total_cantidad }}
-                  </ion-badge>
-                </ion-col>
-              </ion-row>
-            </ion-grid>
-          </ion-item>
-        } @empty {
-          <div class="ion-text-center ion-padding">
-            <ion-icon name="hourglass-outline" style="font-size: 3rem; color: #ccc;"></ion-icon>
-            <p>Esperando datos de los dispositivos Pocket...</p>
-          </div>
-        }
-      </ion-list>
-    </ion-card>
-  </div>
 </ion-content>

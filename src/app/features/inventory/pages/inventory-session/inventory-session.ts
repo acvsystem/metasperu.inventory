@@ -32,7 +32,7 @@ export interface PeriodicElement {
   imports: [MatDialogModule, MatButtonModule, MatIconModule, MatInputModule, MatFormFieldModule, MatTableModule, IonCol,
     CommonModule, FormsModule, IonContent, IonHeader, IonTitle, IonRow,
     IonToolbar, IonButton,
-    IonCard,   
+    IonCard,
     MtSelect, MtInput
   ],
   templateUrl: './inventory-session.html',
@@ -80,7 +80,7 @@ export default class InventorySession {
         (data || []).filter((store) => {
 
           (this.stores || []).push({
-            key: (store || {}).id, value: (store || {}).nombre_tienda
+            key: (store || {}).id, value: (store || {}).nombre_tienda, serie: (store || {}).serie
           });
         });
       },
@@ -113,10 +113,19 @@ export default class InventorySession {
       next: (res) => {
         this.generatedCode.set(res.session_code);
         this.store.setStore("codeSession", res.session_code);
+        this.store.setStore("serieStore", store!.serie);
         this.isLoading.set(false);
         this.showNotification();
       },
       error: (err) => { this.isLoading.set(false); }
+    });
+  }
+
+  getStoreInvetory(session_code: string, serie_store: string) {
+    this.inventoryService.getStoreInventory({ session_code: session_code, serie_store: serie_store }).subscribe({
+      next: (res) => {
+      },
+      error: (err) => { console.log(err); }
     });
   }
 

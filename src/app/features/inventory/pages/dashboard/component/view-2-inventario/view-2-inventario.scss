@@ -1,0 +1,169 @@
+.bg-success-comprobantes {
+    background: #2b7be2 !important;
+}
+
+.bg-danger-comprobantes {
+    background: #c42318 !important;
+}
+
+.bg-warning-comprobantes {
+    background: #088f1e !important;
+}
+
+// Clase para la fila que acaba de cambiar
+.row-flash {
+    background-color: rgba(63, 81, 181, 0.2) !important; // Azul tenue de Material
+    transition: background-color 0.5s ease;
+}
+
+// Opcional: una animación de pulso
+@keyframes pulse-update {
+    0% {
+        background-color: transparent;
+    }
+
+    50% {
+        background-color: #fff9c4;
+    }
+
+    // Amarillo suave
+    100% {
+        background-color: transparent;
+    }
+}
+
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background: #f8f9fa;
+    border-radius: 8px 8px 0 0;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.btn-excel {
+    background-color: #1d6f42 !important; // Verde Excel oficial
+    color: white !important;
+    line-height: 40px !important;
+    padding: 0 20px !important;
+    border-radius: 6px !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+
+    mat-icon {
+        margin-right: 8px;
+        vertical-align: middle;
+    }
+
+    .record-count {
+        margin-left: 12px;
+        padding-left: 12px;
+        border-left: 1px solid rgba(255, 255, 255, 0.3);
+        font-size: 0.85em;
+        opacity: 0.9;
+    }
+
+    &:hover {
+        background-color: #145a35 !important;
+    }
+
+}
+
+.example-container {
+    height: 400px;
+    width: 550px;
+    max-width: 100%;
+    overflow: auto;
+}
+
+table {
+    width: 800px;
+}
+
+td.mat-column-star {
+    width: 20px;
+    padding-right: 8px;
+}
+
+th.mat-column-position,
+td.mat-column-position {
+    padding-left: 8px;
+}
+
+.mat-mdc-table-sticky-border-elem-right {
+    border-left: 1px solid #e0e0e0;
+}
+
+.mat-mdc-table-sticky-border-elem-left {
+    border-right: 1px solid #e0e0e0;
+}
+
+table {
+  width: 100%;
+}
+
+tr.example-detail-row {
+  height: 0;
+}
+
+tr.example-element-row {
+  cursor: pointer;
+}
+
+tr.example-element-row:not(.example-expanded-row):hover {
+  background: #e4e4e4;
+}
+
+tr.example-element-row:not(.example-expanded-row):active {
+  background: #e4e4e4;
+}
+
+
+.example-element-detail-wrapper {
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: 0fr;
+  grid-template-columns: 100%;
+  transition: grid-template-rows 225ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.example-element-detail-wrapper-expanded {
+  grid-template-rows: 1fr;
+}
+
+.example-element-detail {
+  display: flex;
+  min-height: 0;
+}
+
+.example-element-diagram {
+  min-width: 80px;
+  border: 2px solid black;
+  padding: 8px;
+  font-weight: lighter;
+  margin: 8px 0;
+  height: 104px;
+}
+
+.example-element-symbol {
+  font-weight: bold;
+  font-size: 40px;
+  line-height: normal;
+}
+
+.example-element-description {
+  padding: 16px;
+}
+
+.example-element-description-attribution {
+  opacity: 0.5;
+}
+
+.example-toggle-button {
+  transition: transform 225ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.example-toggle-button-expanded {
+  transform: rotate(180deg);
+}
