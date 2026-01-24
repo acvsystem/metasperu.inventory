@@ -45,7 +45,8 @@ export default class MainComponent {
   arMenuList = [
     { nombre_menu: 'DASHBOARD', ruta: 'inventory/dashboard' },
     { nombre_menu: 'SESIONES', ruta: 'inventory/session' },
-    { nombre_menu: 'POCKET', ruta: 'inventory/pocket' }
+    { nombre_menu: 'POCKET', ruta: 'inventory/pocket' },
+    { nombre_menu: 'CONFIGURACION', ruta: 'inventory/maintenance' }
   ];
 
   constructor() {

@@ -16,9 +16,13 @@ export const routes: Routes = [
         path: 'session',
         loadComponent: () => import('./features/inventory/pages/inventory-session/inventory-session')
       },
-            {
+      {
         path: 'pocket',
         loadComponent: () => import('./features/inventory/pages/pocket/pocket')
+      },
+      {
+        path: 'maintenance',
+        loadComponent: () => import('./features/maintenance/maintenance')
       }
     ]
   },

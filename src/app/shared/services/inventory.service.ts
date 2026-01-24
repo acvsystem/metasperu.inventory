@@ -136,4 +136,19 @@ export class InventoryService {
         return this.http.get<Store[]>(`${this.API_URL}/request/store`, { params: httpParams });
     }
 
+    getSections(): Observable<any[]> {
+        return this.http.get<any[]>(`${this.API_URL}/api/v1/seccion`);
+    }
+
+    postSections(nombreSection: string): Observable<any> {
+        return this.http.post(
+            `${this.API_URL}/api/v1/seccion`,
+            {
+                nombre_seccion: nombreSection,
+            }
+        ).pipe(
+            catchError(this.handleError)
+        );
+    }
+
 }
