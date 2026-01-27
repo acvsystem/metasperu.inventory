@@ -8,24 +8,29 @@
     <ion-card class="card-content">
         <ion-row>
             <ion-col sizeXs="12" sizeSm="12" sizeMd="2" sizeLg="2">
-                <mt-input></mt-input>
+                <mt-input (afterChange)="applyFilter($event)" label="Filtro" placeholder="Filtro"></mt-input>
             </ion-col>
             <ion-col sizeXs="12" sizeSm="12" sizeMd="3" sizeLg="3">
-                <mt-select [data]="stores" (selectdOption)="onChangeSelect($event)"></mt-select>
+                <mt-select [isMultiselect]=true [data]="arSections" label="Seleccione Seccion" title="Secciones"
+                    (selectdOption)="onChangeSelectMultiple($event)"></mt-select>
+            </ion-col>
+            <ion-col sizeXs="12" sizeSm="12" sizeMd="3" sizeLg="3">
+                <mt-select [data]="stores" (selectdOption)="onChangeSelect($event)" label="Seleccione una sucursal"
+                    title="Sucursales"></mt-select>
             </ion-col>
             <ion-col sizeXs="12" sizeSm="12" sizeMd="2" sizeLg="2">
                 <ion-button (click)="startInventory()" [disabled]="!selectedStoreId || isLoading()">
-                    <i class="fa fa-qrcode" aria-hidden="true" style="padding-right: 5px; font-weight: 100;"></i> 
+                    <i class="fa fa-qrcode" aria-hidden="true" style="padding-right: 5px; font-weight: 100;"></i>
                     {{ isLoading() ? 'Generando...' : 'Generar Codigo' }}
                 </ion-button>
             </ion-col>
         </ion-row>
         <ion-row>
-            <ion-col>
+            <ion-col sizeXs="12" sizeSm="12" sizeMd="12" sizeLg="12">
                 <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
 
                     <!-- Position Column -->
-                    <ng-container matColumnDef="codigo_sesion">
+                    <ng-container matColumnDef="codigo_sesion" sticky>
                         <th mat-header-cell *matHeaderCellDef> Codigo Sesion </th>
                         <td mat-cell *matCellDef="let element"> {{element.codigo_sesion}} </td>
                     </ng-container>
@@ -51,7 +56,26 @@
                     <!-- Symbol Column -->
                     <ng-container matColumnDef="estado">
                         <th mat-header-cell *matHeaderCellDef> Estado </th>
-                        <td mat-cell *matCellDef="let element"> {{element.estado}} </td>
+                        <td mat-cell *matCellDef="let element">
+                            @if(element.estado != 'ACTIVO'){
+                            <h6 style="margin: 0;"><span class="badge bg-danger"
+                                    style="font-weight: 100;">{{element.estado}}</span></h6>
+                            }@else{
+                            <h6 style="margin: 0;"><span class="badge bg-primary"
+                                    style="font-weight: 100;">{{element.estado}}</span></h6>
+                            }
+                        </td>
+                    </ng-container>
+
+                    <!-- Symbol Column -->
+                    <ng-container matColumnDef="accion">
+                        <th mat-header-cell *matHeaderCellDef> Accion </th>
+                        <td mat-cell *matCellDef="let element">
+                            <button type="button" (click)="onNavigatorDashboard(element)"
+                                class="btn btn-primary btn-sm">
+                                <i class="fa fa-exchange" aria-hidden="true"></i>
+                            </button>
+                        </td>
                     </ng-container>
 
                     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
@@ -62,6 +86,9 @@
                         <td class="mat-cell" colspan="4">No data matching the filter </td>
                     </tr>
                 </table>
+                <mat-paginator [pageSizeOptions]="[10, 20, 30]" showFirstLastButtons
+                    aria-label="Select page of periodic elements">
+                </mat-paginator>
             </ion-col>
         </ion-row>
     </ion-card>

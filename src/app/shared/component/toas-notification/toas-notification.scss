@@ -1,0 +1,386 @@
+.content-notification {
+    z-index: 999999 !important;
+    background-color: #FFFF;
+    margin: 10px !important;
+    height: 50px;
+    border-radius: 5px;
+    box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
+
+    .icon-content {
+        width: 50px !important;
+        height: 50px !important;
+        display: inline-flex !important;
+        border-top-left-radius: 5px;
+        border-bottom-left-radius: 5px;
+        border: 0px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        .icon {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 19px;
+            color: #FFFF;
+        }
+    }
+
+    .icon-error {
+        background-color: #eb2d0c !important;
+    }
+
+    .icon-success {
+        background-color: #60C160 !important;
+    }
+
+    .icon-caution {
+        background-color: #FC9701 !important;
+    }
+
+    .icon-information {
+        background-color: #4F8FFB !important;
+    }
+
+    .icon-content::before {
+        content: "";
+        position: absolute;
+        top: 17px;
+        left: 49px;
+        width: 0;
+        height: 0;
+        border-width: 9px;
+        border-style: solid;
+        border-color: transparent transparent transparent #eb2d0c;
+    }
+
+    .icon-content.icon-error::before {
+        border-color: transparent transparent transparent #eb2d0c;
+    }
+
+    .icon-content.icon-success::before {
+        border-color: transparent transparent transparent #60C160;
+    }
+
+    .icon-content.icon-caution::before {
+        border-color: transparent transparent transparent #FC9701;
+    }
+
+    .icon-content.icon-information::before {
+        border-color: transparent transparent transparent #4F8FFB;
+    }
+
+    .body-content {
+        display: inline-flex !important;
+        padding-left: 16px !important;
+    }
+
+}
+
+.content-notification.only-desktop {
+    position: relative;
+    right: 0px;
+    z-index: 999999 !important;
+    background-color: #FFFF;
+    margin: 10px !important;
+    height: 157px;
+    width: 277px;
+    border-radius: 5px;
+    box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
+
+    .head-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 89px;
+
+        i {
+            font-size: 70px;
+        }
+
+        .icon {
+            background-color: transparent !important;
+        }
+
+        .icon-error {
+            color: #eb2d0c !important;
+        }
+
+        .icon-success {
+            color: #60C160 !important;
+        }
+
+        .icon-caution {
+            color: #FC9701 !important;
+        }
+
+        .icon-information {
+            color: #4F8FFB !important;
+        }
+    }
+
+    .lbl-error {
+        text-align: center;
+        font-size: 19px;
+        font-weight: 500;
+        color: #eb2d0c !important;
+    }
+
+    .lbl-success {
+        text-align: center;
+        font-size: 19px;
+        font-weight: 500;
+        color: #60C160 !important;
+    }
+
+    .lbl-caution {
+        text-align: center;
+        font-size: 19px;
+        font-weight: 500;
+        color: #FC9701 !important;
+    }
+
+    .lbl-information {
+        text-align: center;
+        font-size: 19px;
+        font-weight: 500;
+        color: #4F8FFB !important;
+    }
+
+
+    .body-content {
+        display: block !important;
+        padding-left: 0px !important;
+    }
+
+    .content-description {
+        text-align: center;
+        padding-bottom: 19px;
+    }
+
+}
+
+.content-notification.open {
+    position: relative;
+    animation-name: open;
+    animation-duration: 1s;
+    animation-iteration-count: reverse;
+    animation-timing-function: ease-out;
+}
+
+.content-notification.openDesktop {
+    position: absolute;
+    right: 0px;
+    animation-name: openDesktop;
+    animation-duration: 1s;
+    animation-iteration-count: reverse;
+    animation-timing-function: ease-out;
+}
+
+.content-notification.close {
+    position: relative;
+    left: 0px;
+    top: -100px;
+    animation-name: close;
+    animation-duration: 2s;
+    animation-timing-function: ease-out;
+}
+
+.content-notification.closeDesktop {
+    position: absolute;
+    right: 0px;
+    top: -200px;
+    animation-name: closeDesktop;
+    animation-duration: 2s;
+    animation-timing-function: ease-out;
+}
+
+
+
+@keyframes open {
+    0% {
+        left: 0px;
+        top: -100px;
+    }
+
+    25% {
+        left: 0px;
+        top: -100px;
+    }
+
+    50% {
+        left: 0px;
+        top: 0px;
+    }
+
+    75% {
+        left: 0px;
+        top: 0px;
+    }
+
+    100% {
+        left: 0px;
+        top: 0px;
+    }
+}
+
+@keyframes close {
+    0% {
+        left: 0px;
+        top: 0px;
+    }
+
+    25% {
+        left: 0px;
+        top: 0px;
+    }
+
+    50% {
+        left: 0px;
+        top: 0px;
+    }
+
+    75% {
+        left: 0px;
+        top: -100px;
+    }
+
+    100% {
+        left: 0px;
+        top: -100px;
+    }
+}
+
+
+@keyframes openDesktop {
+    0% {
+        right: 0px;
+        top: -200px;
+    }
+
+    25% {
+        right: 0px;
+        top: -200px;
+    }
+
+    50% {
+        right: 0px;
+        top: 0px;
+    }
+
+    75% {
+        right: 0px;
+        top: 0px;
+    }
+
+    100% {
+        right: 0px;
+        top: 0px;
+    }
+}
+
+@keyframes closeDesktop {
+    0% {
+        right: 0px;
+        top: 0px;
+    }
+
+    25% {
+        right: 0px;
+        top: 0px;
+    }
+
+    50% {
+        right: 0px;
+        top: 0px;
+    }
+
+    75% {
+        right: 0px;
+        top: -200px;
+    }
+
+    100% {
+        right: 0px;
+        top: -200px;
+    }
+}
+
+.content-notification.only-desktop {
+    position: fixed; // Cambiado a fixed para que flote sobre la tabla
+    right: 20px;
+    bottom: 20px; // Posición en la parte inferior
+    z-index: 999999 !important;
+    background-color: #FFFF;
+    margin: 0px !important; // Controlado por bottom/right
+    height: 157px;
+    width: 277px;
+    border-radius: 5px;
+    box-shadow: rgba(50, 50, 93, 0.25) 0px 6px 12px -2px, rgba(0, 0, 0, 0.3) 0px 3px 7px -3px;
+
+    // ... (tus estilos internos head-icon, lbl-error, etc, se mantienen igual)
+}
+
+// AJUSTE DE ANIMACIONES PARA DESKTOP (Desde abajo)
+.content-notification.openDesktop {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    animation-name: openDesktopBottom; // Nueva animación
+    animation-duration: 0.5s;
+    animation-fill-mode: forwards;
+}
+
+.content-notification.closeDesktop {
+    position: fixed;
+    right: 20px;
+    animation-name: closeDesktopBottom; // Nueva animación
+    animation-duration: 0.5s;
+    animation-fill-mode: forwards;
+}
+
+@keyframes openDesktopBottom {
+    0% {
+        bottom: -200px; // Inicia fuera de la pantalla abajo
+        opacity: 0;
+    }
+
+    100% {
+        bottom: 20px; // Sube a su posición
+        opacity: 1;
+    }
+}
+
+@keyframes closeDesktopBottom {
+    0% {
+        bottom: 20px;
+        opacity: 1;
+    }
+
+    100% {
+        bottom: -200px; // Baja y desaparece
+        opacity: 0;
+    }
+}
+
+// Ajuste para que se vea bien en la SPA
+.only-desktop {
+    display: inline-table !important;
+}
+
+.only-mobil {
+    display: none !important;
+}
+
+@media (max-width:500px) {
+    .only-mobil {
+        display: block !important;
+        position: fixed;
+        top: 10px; // En móvil suele ser mejor arriba
+        width: calc(100% - 20px);
+    }
+
+    .only-desktop {
+        display: none !important;
+    }
+}

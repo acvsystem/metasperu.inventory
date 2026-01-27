@@ -5,6 +5,7 @@ import { IonCol, IonRow } from '@ionic/angular/standalone';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 
+
 @Component({
   selector: 'mt-input',
   imports: [
@@ -14,5 +15,16 @@ import { MatFormFieldModule } from '@angular/material/form-field';
   styleUrl: './mt-input.scss',
 })
 export class MtInput {
+  @Input() id: string = 'mt-input-' + Math.floor(Math.random() * 9999 + 1111);
+  @Input() label: string = "";
+  @Input() placeholder: string = "";
+  @Input() autoText: string = "";
+  @Output() afterChange: EventEmitter<any> = new EventEmitter();
+
+  onChange(ev: any) {
+    const self = this;
+    let value = (ev.target.value || '').trim();
+    this.afterChange.emit({ id: self.id, value: value });
+  }
 
 }

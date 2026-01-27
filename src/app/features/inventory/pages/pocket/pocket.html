@@ -1,35 +1,108 @@
 <ion-content class="ion-padding ion-text-center">
-  
-  <div class="status-badge" [class.online]="isOnline()" [class.offline]="!isOnline()">
-    {{ isOnline() ? 'Conectado' : 'Modo Offline' }}
-  </div>
 
-  <h2>Sesión: {{ sessionCode() }}</h2>
+  <mat-tab-group>
+    <mat-tab label="Pocket">
+      <div class="content-pocket">
+        <div style="width: 683px;margin-top: 10px;">
+          <div class="status-badge" [class.online]="isOnline()" [class.offline]="!isOnline()">
+            {{ isOnline() ? 'Conectado' : 'Modo Offline' }}
+          </div>
 
-  <ion-item fill="outline" class="ion-margin-bottom">
-    <ion-label position="floating">Escanear SKU</ion-label>
-    <ion-input 
-      #barcodeInput
-      [value]="skuInput()" 
-      (ionInput)="skuInput.set($event.detail.value!)"
-      (keyup.enter)="handleScan()" 
-      placeholder="Dispare el láser ahora"
-      type="text"
-      autofocus="true"
-      inputmode="text">
-    </ion-input>
-  </ion-item>
+          <h2>Sesión: {{ sessionCode() }}</h2>
 
-  <ion-button expand="block" (click)="handleScan()" color="primary">
-    Registrar Manual
-  </ion-button>
+          <ion-row>
+            <ion-col sizeXs="12" sizeSm="12" sizeMd="12" sizeLg="12">
+              <mt-select [data]="arAsignatedSections" (selectdOption)="onChangeSelect($event)"
+                label="Seleccione una seccion" title="Seciones"></mt-select>
+            </ion-col>
+          </ion-row>
 
-  <div class="sync-info ion-margin-top">
-    <ion-chip [color]="pendingCount() > 0 ? 'warning' : 'success'">
-      <ion-label>
-        {{ pendingCount() > 0 ? pendingCount() + ' pendientes' : 'Sincronizado' }}
-      </ion-label>
-    </ion-chip>
-  </div>
+          <ion-row>
+            <ion-col sizeXs="12" sizeSm="12" sizeMd="12" sizeLg="12">
+              <ion-item lines="none" class="search-item">
+                <ion-input label="SKU" label-placement="stacked" fill="outline" placeholder="Ingrese el SKU"
+                  #barcodeInput [value]="skuInput()" (ionInput)="skuInput.set($event.detail.value!)"
+                  (keyup.enter)="handleScan()" type="text" autofocus="true" inputmode="text">
+                </ion-input>
+              </ion-item>
+            </ion-col>
+          </ion-row>
 
+          <ion-row>
+            <ion-col sizeXs="12" sizeSm="12" sizeMd="12" sizeLg="12">
+              <ion-button expand="block" (click)="handleScan()" color="primary">
+                Registrar Manual
+              </ion-button>
+
+              <div class="sync-info ion-margin-top">
+                <ion-chip [color]="pendingCount() > 0 ? 'warning' : 'success'">
+                  <ion-label>
+                    {{ pendingCount() > 0 ? pendingCount() + ' pendientes' : 'Sincronizado' }}
+                  </ion-label>
+                </ion-chip>
+              </div>
+            </ion-col>
+          </ion-row>
+        </div>
+      </div>
+    </mat-tab>
+    <mat-tab label="Escaneados">
+
+      <ion-row>
+        <ion-col sizeXs="12" sizeSm="12" sizeMd="3" sizeLg="3">
+          <mt-input (afterChange)="applyFilter($event)" label="Filtro" placeholder="Filtro"></mt-input>
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col sizeXs="12" sizeSm="12" sizeMd="12" sizeLg="12">
+          <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+            <!-- Position Column -->
+            <ng-container matColumnDef="sku" sticky>
+              <th mat-header-cell *matHeaderCellDef> Codigo barra </th>
+              <td mat-cell *matCellDef="let element"> {{element.sku}} </td>
+            </ng-container>
+
+            <!-- Weight Column -->
+            <ng-container matColumnDef="cantidad">
+              <th mat-header-cell *matHeaderCellDef> Conteo </th>
+              <td mat-cell *matCellDef="let element"> {{element.conteo}} </td>
+            </ng-container>
+
+            <!-- Symbol Column -->
+            <ng-container matColumnDef="seccion">
+              <th mat-header-cell *matHeaderCellDef> Seccion </th>
+              <td mat-cell *matCellDef="let element"> {{element.seccion}} </td>
+            </ng-container>
+
+            <!-- Symbol Column -->
+            <ng-container matColumnDef="estado">
+              <th mat-header-cell *matHeaderCellDef> Estado </th>
+              <td mat-cell *matCellDef="let element">
+                @if(element.estado != 'enviado'){
+                <h6 style="margin: 0;"><span class="badge bg-danger"
+                    style="font-weight: 100;">{{element.estado}}</span></h6>
+                }@else{
+                <h6 style="margin: 0;"><span class="badge bg-primary"
+                    style="font-weight: 100;">{{element.estado}}</span></h6>
+                }
+
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+            <!-- Row shown when there is no matching data. -->
+            <tr class="mat-row" *matNoDataRow>
+              <td class="mat-cell" colspan="4">No data matching the filter </td>
+            </tr>
+          </table>
+
+          <mat-paginator [pageSizeOptions]="[10, 20, 30]" showFirstLastButtons
+            aria-label="Select page of periodic elements">
+          </mat-paginator>
+        </ion-col>
+      </ion-row>
+    </mat-tab>
+  </mat-tab-group>
 </ion-content>

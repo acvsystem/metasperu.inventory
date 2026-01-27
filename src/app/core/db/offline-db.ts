@@ -6,7 +6,8 @@ export interface ScanEntry {
   quantity: number;
   session_code: string;
   scanned_at: Date;
-  synced: number; 
+  synced: number;
+  seccion_id: number;
 }
 
 export class OfflineDB extends Dexie {
@@ -15,7 +16,7 @@ export class OfflineDB extends Dexie {
   constructor() {
     super('MetasPeruDB');
     this.version(1).stores({
-      scans: '++id, session_code, synced, sku'
+      scans: '++id, session_code, synced, sku, seccion_id'
     });
   }
 }

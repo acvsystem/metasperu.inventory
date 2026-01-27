@@ -2,9 +2,10 @@
     <ion-col>
         <div class="selector-container">
             <ion-item lines="none" class="custom-item">
-                <ion-select label-placement="stacked" interface="alert"
-                    [interfaceOptions]="customAlertOptions" toggleIcon="chevron-down-outline"
-                    placeholder="Seleccione una sucursal" (ionChange)="onSelectedOption($event)">
+                @if(isMultiselect){
+                <ion-select [multiple]="true" label-placement="stacked" interface="alert"
+                    [interfaceOptions]="customAlertOptions" toggleIcon="chevron-down-outline" placeholder="{{label}}"
+                    (ionChange)="onSelectedOptionMultiple($event)">
 
                     @for (tienda of data; track tienda.value) {
                     <ion-select-option [value]="tienda">
@@ -12,6 +13,18 @@
                     </ion-select-option>
                     }
                 </ion-select>
+                }@else{
+                <ion-select label-placement="stacked" interface="alert" [interfaceOptions]="customAlertOptions" 
+                    toggleIcon="chevron-down-outline" placeholder="{{label}}" (ionChange)="onSelectedOption($event)">
+
+                    @for (tienda of data; track tienda.value) {
+                    <ion-select-option [value]="tienda">
+                        {{ tienda.value }}
+                    </ion-select-option>
+                    }
+                </ion-select>
+                }
+
             </ion-item>
         </div>
     </ion-col>

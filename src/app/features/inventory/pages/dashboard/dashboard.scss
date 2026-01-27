@@ -47,3 +47,31 @@
     display: none;
   }
 }
+
+.btn-excel {
+    background-color: #1d6f42 !important; // Verde Excel oficial
+    color: white !important;
+    line-height: 40px !important;
+    padding: 0 20px !important;
+    border-radius: 6px !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+
+    mat-icon {
+        margin-right: 8px;
+        vertical-align: middle;
+    }
+
+    .record-count {
+        margin-left: 12px;
+        padding-left: 12px;
+        border-left: 1px solid rgba(255, 255, 255, 0.3);
+        font-size: 0.85em;
+        opacity: 0.9;
+    }
+
+    &:hover {
+        background-color: #145a35 !important;
+    }
+
+}

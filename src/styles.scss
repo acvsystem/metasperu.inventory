@@ -100,3 +100,18 @@ body.barcode-scanner-active {
     display: none !important;
   }
 }
+
+.only-desktop {
+  display: inline-table !important;
+}
+
+@media (max-width:500px) {
+  .only-mobil {
+    display: block !important;
+  }
+
+  .only-desktop {
+    display: none !important;
+  }
+
+}

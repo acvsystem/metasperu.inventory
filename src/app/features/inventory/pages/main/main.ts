@@ -18,6 +18,7 @@ import {
 
 import { addIcons } from 'ionicons';
 import { StorageService } from '@metasperu/services/store.service';
+import { ToasNotification } from '@metasperu/component/toas-notification/toas-notification';
 
 @Component({
   selector: 'main-layout',
@@ -25,6 +26,7 @@ import { StorageService } from '@metasperu/services/store.service';
   imports: [
     CommonModule,
     RouterOutlet,
+    ToasNotification,
     // 2. CORRECCIÓN: Solo importa los componentes específicos necesarios
     IonContent, IonHeader, IonTitle, IonToolbar, IonItem,
     IonLabel, IonButton, IonMenu, IonMenuButton, IonList,

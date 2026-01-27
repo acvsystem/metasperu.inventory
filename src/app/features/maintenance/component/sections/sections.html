@@ -1,8 +1,9 @@
 <div class="mantenimiento-container">
     <div class="header-actions">
         <h3>Mantenimiento de Secciones</h3>
-        <button mat-raised-button color="primary" (click)="agregarSeccion()">
-            <mat-icon>add</mat-icon> Nueva Sección
+
+        <button (click)="agregarSeccion()" type="button" class="btn btn-primary btn-sm">
+            <i class="fa fa-plus" aria-hidden="true"></i> Nueva Sección
         </button>
     </div>
 
@@ -21,10 +22,10 @@
             <th mat-header-cell *matHeaderCellDef> Acciones </th>
             <td mat-cell *matCellDef="let element">
                 <button mat-icon-button color="accent" (click)="editarSeccion(element)">
-                    <mat-icon>edit</mat-icon>
+                    <i class="fa fa-pencil-square-o" aria-hidden="true"></i>
                 </button>
                 <button mat-icon-button color="warn" (click)="eliminarSeccion(element)">
-                    <mat-icon>delete</mat-icon>
+                    <i class="fa fa-trash" aria-hidden="true"></i>
                 </button>
             </td>
         </ng-container>

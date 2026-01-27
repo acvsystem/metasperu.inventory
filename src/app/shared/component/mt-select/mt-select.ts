@@ -19,11 +19,15 @@ import { IonCol, IonContent, IonItem, IonLabel, IonRow, IonSelect, IonSelectOpti
 export class MtSelect {
   @Output() selectdOption: EventEmitter<any> = new EventEmitter();
   @Input() data: Array<any> = []; // Signal para la lista de tiendas
+  @Input() isMultiselect: boolean = false;
+  @Input() label: string = "";
+  @Input() title: string = "";
+
   selectedStoreId = ''; // Almacena el ID seleccionado
   optionSelected = {};
 
   customAlertOptions = {
-    header: 'Seleccionar Tienda',
+    header: this.title,
     cssClass: 'custom-alert-inventory',
     buttons: [
       {
@@ -39,6 +43,9 @@ export class MtSelect {
     ]
   };
 
+  ngOnInit() {
+    this.customAlertOptions.header = this.title
+  }
 
   onSelectedOption(ev: any) {
     let selected = ev.detail.value;
@@ -47,6 +54,11 @@ export class MtSelect {
       value: (selected || {}).value
     };
     this.selectdOption.emit(this.optionSelected);
+  }
+
+  onSelectedOptionMultiple(event: any) {
+    let misSeleccionados = event.detail.value;
+    this.selectdOption.emit(misSeleccionados);
   }
 
 

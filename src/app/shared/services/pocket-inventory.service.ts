@@ -9,13 +9,14 @@ export class PocketInventoryService {
   private apiUrl = 'https://api.metasperu.net.pe/s3/inventory';
 
   // Guardar escaneo en LocalStorage (IndexedDB)
-  async saveScanLocally(sessionCode: string, sku: string) {
+  async saveScanLocally(seccion_id: number, sessionCode: string, sku: string) {
     const newScan: ScanEntry = {
       sku,
       quantity: 1,
       session_code: sessionCode,
       scanned_at: new Date(),
-      synced: 0 // Estado: Pendiente
+      synced: 0, // Estado: Pendiente
+      seccion_id: seccion_id
     };
     return await db.scans.add(newScan);
   }
@@ -31,23 +32,31 @@ export class PocketInventoryService {
     try {
       // Enviamos el bulk al backend (la cookie de auth se envía sola por withCredentials)
       await firstValueFrom(
-        this.http.post(`${this.apiUrl}/sync-bulk`, { 
-          session_code: sessionCode, 
-          scans: pending 
+        this.http.post(`${this.apiUrl}/sync-bulk`, {
+          session_code: sessionCode,
+          scans: pending
         })
       );
 
       // Si el servidor responde OK, marcamos como sincronizados localmente
       const ids = pending.map((p: ScanEntry) => p.id!);
-      await db.scans.bulkUpdate(ids.map((id:any) => ({ key: id, changes: { synced: 1 } })));
-      
+      await db.scans.bulkUpdate(ids.map((id: any) => ({ key: id, changes: { synced: 1 } })));
+
       // Opcional: Borrar los ya sincronizados para no llenar el dispositivo
       // await db.scans.bulkDelete(ids); 
-      
+
       return true;
     } catch (error) {
       console.error('Error de sincronización, se reintentará luego', error);
       return false;
     }
+  }
+
+  async syncIndexedBD(sessionCode: string) {
+    const dataScanPocket = await db.scans
+      .where({ session_code: sessionCode })
+      .toArray();
+
+    return dataScanPocket || [];
   }
 }

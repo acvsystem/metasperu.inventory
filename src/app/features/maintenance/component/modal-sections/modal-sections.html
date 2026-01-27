@@ -1,11 +1,14 @@
 <h2 mat-dialog-title>{{data.title}}</h2>
 <mat-dialog-content>
-    <mat-form-field appearance="fill" class="w-full">
-        <mat-label>Nombre de la Sección</mat-label>
-        <input matInput [(ngModel)]="data.nombre_seccion">
-    </mat-form-field>
+    <mt-input 
+        (afterChange)="onChangeInput($event)" 
+        [autoText]="data.nombre_seccion" 
+        label="Nombre de la Sección"
+        placeholder="Nombre de la Sección">
+    </mt-input>
+
 </mat-dialog-content>
 <mat-dialog-actions align="end">
-    <button mat-button (click)="onNoClick()">Cancelar</button>
-    <button mat-raised-button color="primary" [mat-dialog-close]="data">Guardar</button>
+    <button type="button" class="btn btn-light btn-sm" style="margin-right: 10px;" (click)="onNoClick()">Cancelar</button>
+    <button type="button" class="btn btn-primary btn-sm" [mat-dialog-close]="data">Guardar</button>
 </mat-dialog-actions>

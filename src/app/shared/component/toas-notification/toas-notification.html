@@ -1,0 +1,68 @@
+<div [class]="isTimeClose ? 'content-notification only-mobil close':'content-notification only-mobil open'"
+  *ngIf="configurationList.length">
+  <div
+    [class]="conf.isError ? 'icon-error icon-content':conf.isSuccess ? 'icon-success icon-content': conf.isCaution ? 'icon-caution icon-content' : conf.isInformation ? 'icon-information icon-content':'icon-content'"
+    *ngFor="let conf of configurationList">
+    <span class="icon icon-error" *ngIf="conf.isError">
+      <i class="fa fa-times-circle" aria-hidden="true"></i>
+    </span>
+    <span class="icon icon-success" *ngIf="conf.isSuccess">
+      <i class="fa fa-check" aria-hidden="true"></i>
+    </span>
+    <span class="icon icon-caution" *ngIf="conf.isCaution">
+      <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
+    </span>
+    <span class="icon icon-information" *ngIf="conf.isInformation">
+      <i class="fa fa-info" aria-hidden="true"></i>
+    </span>
+  </div>
+  <div class="body-content" *ngFor="let conf of configurationList">
+    <span *ngIf="conf.bodyNotification">
+      {{conf.bodyNotification}}
+    </span>
+  </div>
+</div>
+
+<div
+  [class]="isTimeClose ? 'content-notification only-desktop closeDesktop':'content-notification only-desktop openDesktop'"
+  *ngIf="configurationList.length">
+  <div class="body-content" *ngFor="let conf of configurationList">
+    <ion-row>
+      <ion-col sizeXs="12" sizeSm="12" sizeMd="12" sizeLg="12">
+        <div class="head-icon">
+          <span class="icon icon-error" *ngIf="conf.isError">
+            <i class="fa fa-times-circle" aria-hidden="true"></i>
+          </span>
+          <span class="icon icon-success" *ngIf="conf.isSuccess">
+            <i class="fa fa-check" aria-hidden="true"></i>
+          </span>
+          <span class="icon icon-caution" *ngIf="conf.isCaution">
+            <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
+          </span>
+          <span class="icon icon-information" *ngIf="conf.isInformation">
+            <i class="fa fa-info" aria-hidden="true"></i>
+          </span>
+        </div>
+        <div *ngIf="conf.isError" class="lbl-error">
+          <label>Error</label>
+        </div>
+        <div *ngIf="conf.isSuccess" class="lbl-success">
+          <label>Success</label>
+        </div>
+        <div *ngIf="conf.isCaution" class="lbl-caution">
+          <label>Caution</label>
+        </div>
+        <div *ngIf="conf.isInformation" class="lbl-information">
+          <label>Information</label>
+        </div>
+      </ion-col>
+      <ion-col sizeXs="12" sizeSm="12" sizeMd="12" sizeLg="12">
+        <div class="content-description">
+          <span *ngIf="conf.bodyNotification">
+            {{conf.bodyNotification}}
+          </span>
+        </div>
+      </ion-col>
+    </ion-row>
+  </div>
+</div>

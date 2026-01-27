@@ -1,12 +1,10 @@
-import { Component, signal, inject } from '@angular/core';
+import { Component, signal, inject, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormControl, FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { InventoryService } from '../../../../shared/services/inventory.service';
 import {
-  IonContent, IonHeader, IonTitle, IonToolbar, IonItem,
-  IonLabel, IonButton, IonCard, IonCardHeader, IonRow, IonCol,
-  IonCardTitle, IonCardContent, IonSelect, IonSelectOption
+  IonContent, IonHeader, IonTitle, IonToolbar,
+  IonButton, IonCard, IonRow, IonCol
 } from '@ionic/angular/standalone';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatInputModule } from '@angular/material/input';
@@ -19,6 +17,13 @@ import { MatDialogModule } from '@angular/material/dialog'; // Para mat-dialog-a
 import { MatButtonModule } from '@angular/material/button'; // Para los botones de acción
 import { MatIconModule } from '@angular/material/icon';
 import { StorageService } from '@metasperu/services/store.service';
+import { InventoryService } from '@metasperu/services/inventory.service';
+import { MatSelectModule } from '@angular/material/select';
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatSort, MatSortModule } from '@angular/material/sort';
+
+
+
 export interface PeriodicElement {
   codigo_sesion: string;
   nombre_tienda: string;
@@ -31,24 +36,29 @@ export interface PeriodicElement {
   selector: 'app-inventory-session',
   imports: [MatDialogModule, MatButtonModule, MatIconModule, MatInputModule, MatFormFieldModule, MatTableModule, IonCol,
     CommonModule, FormsModule, IonContent, IonHeader, IonTitle, IonRow,
-    IonToolbar, IonButton,
-    IonCard,
-    MtSelect, MtInput
+    IonToolbar, IonButton, MatSelectModule, MatPaginator, MatPaginatorModule, MatSortModule,
+    IonCard, MtSelect, MtInput
   ],
   templateUrl: './inventory-session.html',
   styleUrl: './inventory-session.scss',
 })
 export default class InventorySession {
-
+  private inventoryService = inject(InventoryService);
+  private router = inject(Router);
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  @ViewChild(MatSort) sort!: MatSort;
+  sections = new FormControl('');
   storeName = '';
   generatedCode = signal<string | null>(null);
   isLoading = signal(false);
   stores: Array<any> = []; // Signal para la lista de tiendas
   selectedStoreId = ''; // Almacena el ID seleccionado
-  private inventoryService = inject(InventoryService);
-  private router = inject(Router);
-  displayedColumns: string[] = ['codigo_sesion', 'nombre_tienda', 'usuario', 'fecha_inicio', 'estado'];
+  displayedColumns: string[] = ['codigo_sesion', 'nombre_tienda', 'usuario', 'fecha_inicio', 'estado', 'accion'];
   sessions: Array<any> = [];
+  arSections: Array<any> = [];
+  sectionsSelected: Array<any> = [];
+  formSection: string[] = []
+  inFilter: string = "";
   dataSource = new MatTableDataSource(this.sessions);
 
   constructor(private dialog: MatDialog, private store: StorageService) { }
@@ -56,6 +66,7 @@ export default class InventorySession {
   ngOnInit() {
     this.loadStores();
     this.loeadSessions();
+    this.getSections();
   }
 
   showNotification() {
@@ -67,11 +78,6 @@ export default class InventorySession {
         inCodeGen: this.generatedCode()
       }
     });
-  }
-
-  applyFilter(event: Event) {
-    const filterValue = (event.target as HTMLInputElement).value;
-    this.dataSource.filter = filterValue.trim().toLowerCase();
   }
 
   loadStores() {
@@ -90,15 +96,26 @@ export default class InventorySession {
 
   loeadSessions() {
     this.inventoryService.getSessions().subscribe({
-      next: (data) => { this.sessions = data; this.dataSource = new MatTableDataSource(data); },
+      next: (data) => {
+        this.sessions = data;
+        this.dataSource = new MatTableDataSource(data);
+        this.dataSource.paginator = this.paginator;
+        this.dataSource.sort = this.sort;
+      },
       error: (err) => console.error('Error al cargar tiendas', err)
     });
   }
 
   async onChangeSelect(data: any) {
-    console.log(data);
     let selectData = data || {};
     this.selectedStoreId = (selectData || {}).key || "";
+  }
+
+  async onChangeSelectMultiple(data: any) {
+    let selectData = data || {};
+    selectData?.filter((selected: any) => {
+      this.sectionsSelected.push({ seccion_id: selected?.key, nombre_seccion: selected?.value });
+    });
   }
 
   async startInventory() {
@@ -108,8 +125,8 @@ export default class InventorySession {
     this.isLoading.set(true);
     // Buscamos el nombre de la tienda basado en el ID para enviarlo al backend
     const store = this.stores.find(s => s.key === +this.selectedStoreId);
-
-    this.inventoryService.createSession(store!.key).subscribe({
+    const assignedSection = this.sectionsSelected;
+    this.inventoryService.createSession(store!.key, assignedSection).subscribe({
       next: (res) => {
         this.generatedCode.set(res.session_code);
         this.store.setStore("codeSession", res.session_code);
@@ -132,6 +149,49 @@ export default class InventorySession {
   goToDashboard() {
     // Redirigir al monitor en vivo con el código recién creado
     this.router.navigate(['/admin/dashboard', this.generatedCode()]);
+  }
+
+  applyFilter(data: any) {
+    if (!data) return;
+    const { id, value } = data;
+    this.inFilter = value ?? "";
+    const filterValue = value;
+    this.dataSource.filter = filterValue.trim().toLowerCase();
+  }
+
+  getSections() {
+    this.inventoryService.getSections().subscribe({
+      next: (data) => {
+        (data || []).filter((sec) => {
+          (this.arSections || []).push({
+            key: (sec || {}).seccion_id, value: (sec || {}).nombre_seccion
+          });
+        });
+      },
+      error: (err) => {
+        this.onNotification({ error: 'error', message: err?.message });
+      }
+    })
+  }
+
+  onNotification(result: any) {
+    let notificationList = [{
+      isSuccess: !result?.error?.length ? true : false,
+      isError: result?.error?.length ? true : false,
+      bodyNotification: result?.message
+    }];
+
+    this.inventoryService.onNotification.emit(notificationList);
+  }
+
+  async onNavigatorDashboard(element: any) {
+    const store = this.stores.find(s => s.value === element?.nombre_tienda);
+
+    if (!element?.codigo_sesion || !store!.serie) return;
+
+    this.store.setStore("codeSession", element?.codigo_sesion);
+    this.store.setStore("serieStore", store!.serie);
+    this.router.navigate([`/inventory/dashboard`, element?.codigo_sesion, store?.serie]);
   }
 
 }

@@ -1,4 +1,4 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { EventEmitter, Injectable, Output, inject, signal } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Observable, catchError, tap, throwError } from 'rxjs';
 
@@ -26,6 +26,8 @@ export interface Store {
     providedIn: 'root'
 })
 export class InventoryService {
+    @Output() onNotification: EventEmitter<any> = new EventEmitter();
+
     private http = inject(HttpClient);
 
     // Cambia esta URL según tu entorno de desarrollo/producción
@@ -37,10 +39,10 @@ export class InventoryService {
     /**
      * ADMIN: Crear una nueva sesión de inventario
      */
-    createSession(storeName: number): Observable<SessionResponse> {
+    createSession(storeName: number, sections: Array<any>): Observable<SessionResponse> {
         return this.http.post<SessionResponse>(
             `${this.API_URL}/create-session`,
-            { tienda_id: storeName }
+            { tienda_id: storeName, assigned_section: sections }
         ).pipe(
             tap(session => this.activeSession.set(session)),
             catchError(this.handleError)
@@ -97,6 +99,7 @@ export class InventoryService {
      * Manejo centralizado de errores de HTTP
      */
     private handleError(error: HttpErrorResponse) {
+        const self = this;
         let errorMessage = 'Ocurrió un error desconocido';
 
         if (error.status === 401) {
@@ -107,7 +110,8 @@ export class InventoryService {
             errorMessage = error.error.message;
         }
 
-        console.error(`Error ${error.status}:`, error);
+        //console.error(`Error ${error.status}:`, error);
+
         return throwError(() => new Error(errorMessage));
     }
 
@@ -151,4 +155,32 @@ export class InventoryService {
         );
     }
 
+    putSections(seccion_id: number, nombreSection: string): Observable<any> {
+        return this.http.put(
+            `${this.API_URL}/api/v1/seccion`,
+            {
+                seccion_id: seccion_id,
+                nombre_seccion: nombreSection,
+            }
+        ).pipe(
+            catchError(this.handleError)
+        );
+    }
+
+    delSections(seccion_id: number): Observable<any> {
+        return this.http.delete(
+            `${this.API_URL}/api/v1/seccion/${seccion_id}`
+        ).pipe(
+            catchError(this.handleError)
+        );
+    }
+
+
+    getAssignedSections(sessionCode: string): Observable<any> {
+        return this.http.get(
+            `${this.API_URL}/section/assigned/${sessionCode}`
+        ).pipe(
+            catchError(this.handleError)
+        );
+    }
 }

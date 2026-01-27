@@ -57,3 +57,58 @@ video {
     height: 100%;
     object-fit: cover; // Esto ayuda a que no se estire la imagen
 }
+
+.content-pocket {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+//INPUT
+
+.search-item {
+    --background: transparent;
+    --padding-start: 0;
+    --inner-padding-end: 0;
+    margin-bottom: 10px;
+    min-height: auto; // Quita el mínimo de 48px de Ionic
+
+    ion-input {
+        // Altura total del contenedor
+        height: 38.98px;
+        min-height: 38.98px !important;
+
+        // Colores y Borde
+        --border-color: #3b82f6;
+        --border-radius: 4px;
+        --border-width: 1px;
+
+        // Ajuste de paddings internos para que el texto no se corte
+        --padding-top: 0px;
+        --padding-bottom: 0px;
+        --padding-start: 10px;
+
+        font-size: 14px; // Un poco más pequeño para que quepa en 38px
+
+        // Estilo del Label (El texto de arriba)
+        .label-text-wrapper {
+            transform: translateY(-8px) scale(0.8); // Ajusta la posición del label flotante
+            color: #3b82f6 !important;
+            background: white; // Para que tape la línea del borde si es necesario
+            padding: 0 4px;
+            
+        }
+
+        // Ajuste del contenedor de entrada nativo
+        .native-wrapper {
+            align-items: center;
+            height: 100%;
+        }
+    }
+}
+
+// Reset para que el item no fuerce alturas de lista
+ion-item.search-item::part(native) {
+    padding: 0;
+    height: 38.98px;
+}

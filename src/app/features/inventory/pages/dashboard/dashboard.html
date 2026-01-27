@@ -1,8 +1,5 @@
 <ion-header>
   <ion-toolbar color="primary">
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/admin/sessions"></ion-back-button>
-    </ion-buttons>
     <ion-title>Monitoreo: {{ sessionCode }}</ion-title>
 
     <ion-buttons slot="end">
@@ -57,50 +54,72 @@
       <div class="table-container ion-margin-top">
         <ion-list-header>
           <ion-label>Detalle de Conteo por Producto</ion-label>
-          <ion-button (click)="loadData()" fill="clear">
+          <button (click)="loadData()" type="button" class="btn btn-primary btn-sm" style="margin-right: 10px;">
             <ion-icon name="refresh-outline"></ion-icon>
-          </ion-button>
+          </button>
+
+          <button mat-raised-button class="btn-excel" (click)="exportarExcel()">
+            <mat-icon>file_download</mat-icon>
+            <span>Exportar Excel</span>
+            <span class="record-count">{{ dataSource.data.length | number }} items</span>
+          </button>
         </ion-list-header>
+        <ion-row>
+          <ion-col sizeXs="12" sizeSm="12" sizeMd="2" sizeLg="2">
+            <mt-input (afterChange)="applyFilter($event)" label="Filtro" placeholder="Filtro"></mt-input>
+          </ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col sizeXs="12" sizeSm="12" sizeMd="12" sizeLg="12">
+            <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+              <!-- Position Column -->
+              <ng-container matColumnDef="sku" sticky>
+                <th mat-header-cell *matHeaderCellDef> Codigo barra </th>
+                <td mat-cell *matCellDef="let element"> {{element.sku}} </td>
+              </ng-container>
 
-        <ion-card>
-          <ion-list lines="full">
-            <ion-item color="light" class="hide-sm">
-              <ion-grid>
-                <ion-row class="ion-text-bold">
-                  <ion-col size="5">Código SKU</ion-col>
-                  <ion-col size="3" class="ion-text-center">Cantidad</ion-col>
-                </ion-row>
-              </ion-grid>
-            </ion-item>
+              <!-- Symbol Column -->
+              <ng-container matColumnDef="usuario">
+                <th mat-header-cell *matHeaderCellDef> Usuario </th>
+                <td mat-cell *matCellDef="let element">
+                  <h6 style="margin: 0;"><span class="badge bg-primary"
+                      style="font-weight: 400;">{{element.user}}</span></h6>
+                </td>
+              </ng-container>
 
-            @for (product of products(); track product.sku) {
-            <ion-item class="product-row">
-              <ion-grid>
-                <ion-row class="ion-align-items-center">
-                  <ion-col size="5">
-                    <span class="sku-text">{{ product.sku }}</span>
-                  </ion-col>
-                  <ion-col size="3" class="ion-text-center">
-                    <ion-badge color="primary" class="qty-badge">
-                      {{ product.total_cantidad }}
-                    </ion-badge>
-                  </ion-col>
-                </ion-row>
-              </ion-grid>
-            </ion-item>
-            } @empty {
-            <div class="ion-text-center ion-padding">
-              <ion-icon name="hourglass-outline" style="font-size: 3rem; color: #ccc;"></ion-icon>
-              <p>Esperando datos de los dispositivos Pocket...</p>
-            </div>
-            }
-          </ion-list>
-        </ion-card>
+              <!-- Symbol Column -->
+              <ng-container matColumnDef="seccion">
+                <th mat-header-cell *matHeaderCellDef> Seccion </th>
+                <td mat-cell *matCellDef="let element"> {{element.section_name}} </td>
+              </ng-container>
+
+              <!-- Weight Column -->
+              <ng-container matColumnDef="cantidad">
+                <th mat-header-cell *matHeaderCellDef> Conteo </th>
+                <td mat-cell *matCellDef="let element">
+                  <h6 style="margin: 0;"><span class="badge bg-primary">{{element.total_cantidad}}</span></h6>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+              <!-- Row shown when there is no matching data. -->
+              <tr class="mat-row" *matNoDataRow>
+                <td class="mat-cell" colspan="4">No data matching the filter </td>
+              </tr>
+            </table>
+
+            <mat-paginator [pageSizeOptions]="[10, 20, 30]" showFirstLastButtons
+              aria-label="Select page of periodic elements">
+            </mat-paginator>
+          </ion-col>
+        </ion-row>
       </div>
     </mat-tab>
     <mat-tab label="Cruce inventario">
       @if(dataInventario){
-      <view-2-inventario  [pocketScan]="pocketScan" [onDataView]=dataInventario></view-2-inventario>
+      <view-2-inventario [pocketScan]="pocketScan" [onDataView]=dataInventario></view-2-inventario>
       }
     </mat-tab>
   </mat-tab-group>
