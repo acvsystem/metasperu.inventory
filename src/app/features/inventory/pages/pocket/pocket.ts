@@ -16,12 +16,13 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
+import { MatRadioModule } from '@angular/material/radio';
 
 @Component({
   selector: 'pocket-scanner',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, IonContent, IonLabel, MatTabsModule, MtInput, MatPaginatorModule,
+    CommonModule, FormsModule, IonContent, IonLabel, MatTabsModule, MtInput, MatPaginatorModule, MatRadioModule,
     IonItem, IonInput, IonButton, IonChip, MtSelect, IonCol, IonRow, MatTableModule, MatSortModule
   ],
   templateUrl: './pocket.html',
@@ -41,6 +42,8 @@ export default class Pocket {
   selectedSectionId: number = 0;
   registerConteo: Array<any> = [];
   inFilter: string = "";
+  inCantidad: string = "";
+  OptionTypeScan: string = 'pistola';
   dataSource = new MatTableDataSource(this.registerConteo);
   displayedColumns: string[] = ['sku', 'cantidad', 'seccion', 'estado'];
 
@@ -98,7 +101,7 @@ export default class Pocket {
     };
 
     // 1. Guardar localmente
-    await this.pocketService.saveScanLocally(this.selectedSectionId, this.sessionCode(), sku);
+    await this.pocketService.saveScanLocally(this.selectedSectionId, this.sessionCode(), sku, parseInt(this.inCantidad) || 1);
 
     // 2. Limpiar y refrescar contador
     this.skuInput.set('');
@@ -173,6 +176,11 @@ export default class Pocket {
     this.inFilter = value ?? "";
     const filterValue = value;
     this.dataSource.filter = filterValue.trim().toLowerCase();
+  }
+
+  onChangeInput(data: any) {
+    const { id, value } = data;
+    this.inCantidad = value ?? "";
   }
 
   onDataTable(sessionCode: string) {

@@ -9,10 +9,10 @@ export class PocketInventoryService {
   private apiUrl = 'https://api.metasperu.net.pe/s3/inventory';
 
   // Guardar escaneo en LocalStorage (IndexedDB)
-  async saveScanLocally(seccion_id: number, sessionCode: string, sku: string) {
+  async saveScanLocally(seccion_id: number, sessionCode: string, sku: string, quantity: number) {
     const newScan: ScanEntry = {
       sku,
-      quantity: 1,
+      quantity: quantity,
       session_code: sessionCode,
       scanned_at: new Date(),
       synced: 0, // Estado: Pendiente

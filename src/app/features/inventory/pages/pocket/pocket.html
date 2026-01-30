@@ -12,19 +12,33 @@
 
           <ion-row>
             <ion-col sizeXs="12" sizeSm="12" sizeMd="12" sizeLg="12">
+              <mat-radio-group [(ngModel)]="OptionTypeScan" aria-label="Select an option">
+                <mat-radio-button value="pistola">Pistola</mat-radio-button>
+                <mat-radio-button value="cantidad">Cantidad</mat-radio-button>
+              </mat-radio-group>
+            </ion-col>
+          </ion-row>
+
+          <ion-row>
+            <ion-col sizeXs="12" sizeSm="12" sizeMd="12" sizeLg="12">
               <mt-select [data]="arAsignatedSections" (selectdOption)="onChangeSelect($event)"
                 label="Seleccione una seccion" title="Seciones"></mt-select>
             </ion-col>
           </ion-row>
 
           <ion-row>
-            <ion-col sizeXs="12" sizeSm="12" sizeMd="12" sizeLg="12">
+            <ion-col sizeXs="12" sizeSm="12" [sizeMd]="OptionTypeScan == 'cantidad' ? 10: 12" [sizeLg]="OptionTypeScan == 'cantidad' ? 10: 12">
               <ion-item lines="none" class="search-item">
                 <ion-input label="SKU" label-placement="stacked" fill="outline" placeholder="Ingrese el SKU"
                   #barcodeInput [value]="skuInput()" (ionInput)="skuInput.set($event.detail.value!)"
                   (keyup.enter)="handleScan()" type="text" autofocus="true" inputmode="text">
                 </ion-input>
               </ion-item>
+            </ion-col>
+            <ion-col sizeXs="2" sizeSm="2" sizeMd="2" sizeLg="2">
+              @if(OptionTypeScan == 'cantidad'){
+                <mt-input (afterChange)="onChangeInput($event)" label="Cantidad" placeholder="Cantidad"></mt-input>
+              }
             </ion-col>
           </ion-row>
 
@@ -79,8 +93,8 @@
               <th mat-header-cell *matHeaderCellDef> Estado </th>
               <td mat-cell *matCellDef="let element">
                 @if(element.estado != 'enviado'){
-                <h6 style="margin: 0;"><span class="badge bg-danger"
-                    style="font-weight: 100;">{{element.estado}}</span></h6>
+                <h6 style="margin: 0;"><span class="badge bg-danger" style="font-weight: 100;">{{element.estado}}</span>
+                </h6>
                 }@else{
                 <h6 style="margin: 0;"><span class="badge bg-primary"
                     style="font-weight: 100;">{{element.estado}}</span></h6>
