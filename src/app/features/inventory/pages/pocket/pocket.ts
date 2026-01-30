@@ -102,7 +102,7 @@ export default class Pocket {
 
     // 1. Guardar localmente
     await this.pocketService.saveScanLocally(this.selectedSectionId, this.sessionCode(), sku, parseInt(this.inCantidad) || 1);
-
+    this.inCantidad ="";
     // 2. Limpiar y refrescar contador
     this.skuInput.set('');
     await this.updatePendingCount();
