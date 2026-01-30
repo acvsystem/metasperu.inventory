@@ -26,7 +26,7 @@ import { MatIconModule } from '@angular/material/icon';
   imports: [
     CommonModule, RouterModule, View2Inventario, MatTabsModule,
     IonHeader, IonToolbar, IonTitle, IonContent, IonGrid, IonRow,
-    IonCol, IonCard, IonLabel, IonListHeader,MatIconModule,
+    IonCol, IonCard, IonLabel, IonListHeader, MatIconModule,
     IonButtons, IonButton, IonIcon, IonChip, IonCardContent, MatTableModule,
     MatPaginator, MatPaginatorModule, MatSortModule, MtInput
   ],
@@ -107,7 +107,6 @@ export default class DashboardComponent implements OnInit {
   loadData() {
     this.isLoading.set(true);
 
-
     this.invService.getSessionSummary(this.sessionCode).subscribe({
       next: (res) => {
         const products = res.products;
@@ -115,7 +114,7 @@ export default class DashboardComponent implements OnInit {
         const formattedData = products.map((item: any) => {
           const seccionObj = this.arAsignatedSections.find(s => s.id === item.seccion_id);
 
-          return {
+          const objReturn: Record<string, any> = {
             seccion_id: item.seccion_id,
             sku: item.sku,
             user: item.usuario,
@@ -124,6 +123,14 @@ export default class DashboardComponent implements OnInit {
             veces_escaneado: item.veces_escaneado,
             section_name: seccionObj ? seccionObj.nombre_seccion : 'DESCONOCIDO'
           };
+
+          this.arAsignatedSections.map((section) => {
+            objReturn[`${((section.nombre_seccion)).replace(" ", "_").toLowerCase()}`] = seccionObj.nombre_seccion == section.nombre_seccion ? item.total_cantidad : 0;
+          });
+
+
+
+          return objReturn;
         }).reverse();
 
         this.pocketScan = formattedData;

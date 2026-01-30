@@ -102,16 +102,16 @@ body.barcode-scanner-active {
 }
 
 .only-desktop {
-  display: inline-table !important;
+    display: inline-table !important;
 }
 
 @media (max-width:500px) {
-  .only-mobil {
-    display: block !important;
-  }
+    .only-mobil {
+        display: block !important;
+    }
 
-  .only-desktop {
-    display: none !important;
-  }
+    .only-desktop {
+        display: none !important;
+    }
 
 }

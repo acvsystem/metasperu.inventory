@@ -1,4 +1,4 @@
-import { Component, Input, SimpleChanges, ViewChild, OnInit, OnChanges, AfterViewInit, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, SimpleChanges, ViewChild, OnInit, OnChanges, AfterViewInit, ChangeDetectorRef, inject } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
@@ -6,7 +6,14 @@ import { MatTableModule } from '@angular/material/table';
 import { IonRow, IonCol } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
+import { InventoryService } from '@metasperu/services/inventory.service';
 import * as XLSX from 'xlsx';
+
+export interface tableColumns {
+  matColumnDef: string;
+  titleColumn: string;
+  propertyValue: string;
+}
 
 @Component({
   selector: 'view-2-inventario',
@@ -18,18 +25,35 @@ import * as XLSX from 'xlsx';
 export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
   @Input() onDataView: Array<any> = [];
   @Input() pocketScan: any = null; // Objeto que llega del Socket: { cCodigoBarra: '...' }
-
+  @Input() inAsignatedSections: Array<any> = [];
+  isInsertColum: boolean = false;
   dataSource = new MatTableDataSource<any>([]);
   displayedColumns = [
     'codigoBarra', 'Referencia', 'descripcion', 'departamento',
     'seccion', 'familia', 'subfamilia', 'temporada',
-    'talla', 'color', 'stock', 'conteo', 'total',
+    'talla', 'color', 'stock', 'total',
   ];
+
+  dataColumns: tableColumns[] = [{ matColumnDef: 'codigoBarra', titleColumn: 'Codigo Barra', propertyValue: 'cCodigoBarra' },
+  { matColumnDef: 'Referencia', titleColumn: 'Referencia', propertyValue: 'cReferencia' },
+  { matColumnDef: 'descripcion', titleColumn: 'Descripcion', propertyValue: 'cDescripcion' },
+  { matColumnDef: 'departamento', titleColumn: 'Departamento', propertyValue: 'cDepartamento' },
+  { matColumnDef: 'seccion', titleColumn: 'Seccion', propertyValue: 'cSeccion' },
+  { matColumnDef: 'familia', titleColumn: 'Familia', propertyValue: 'cFamilia' },
+  { matColumnDef: 'subfamilia', titleColumn: 'SubFamilia', propertyValue: 'cSubFamilia' },
+  { matColumnDef: 'temporada', titleColumn: 'Temporada', propertyValue: 'cTemporada' },
+  { matColumnDef: 'talla', titleColumn: 'Talla', propertyValue: 'cTalla' },
+  { matColumnDef: 'color', titleColumn: 'Color', propertyValue: 'cColor' },
+  { matColumnDef: 'color_scent', titleColumn: 'Color/Scent', propertyValue: 'cColorScent' },
+  { matColumnDef: 'stock', titleColumn: 'Stock', propertyValue: 'cStock' },
+  { matColumnDef: 'total', titleColumn: 'Total Conteo', propertyValue: 'cTotalConteo' }];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
-  constructor(private cdr: ChangeDetectorRef) { }
+  constructor(private cdr: ChangeDetectorRef) {
+
+  }
 
   ngOnInit() {
     this.initializeTable(this.onDataView);
@@ -48,19 +72,42 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     if (changes['pocketScan'] && changes['pocketScan'].currentValue) {
       this.updateSingleRecord(this.pocketScan);
     }
+
+    if (changes['inAsignatedSections'] && changes['inAsignatedSections'].currentValue) {
+      this.asignSectionColum();
+    }
+  }
+
+  private asignSectionColum() {
+    if (!this.isInsertColum) {
+      this.inAsignatedSections.map((section, i) => {
+        this.dataColumns.push({ matColumnDef: (section.nombre_seccion).toLowerCase(), titleColumn: section.nombre_seccion, propertyValue: `${((section.nombre_seccion)).replace(" ", "_").toLowerCase()}` });
+        this.displayedColumns.push((section.nombre_seccion).toLowerCase());
+      });
+
+      this.isInsertColum = true;
+    }
   }
 
   private initializeTable(data: any[]) {
+    console.log(data);
     const formattedData = data.map(item => {
       const stock = Number(item.cStock) || 0;
       const conteo = Number(item.cConteo) || 0;
 
-      return {
+
+      const objReturn: Record<string, any> = {
         ...item,
         cStock: stock,
         cConteo: conteo,
         CTotalStock: conteo - stock
-      };
+      }
+
+      /* this.inAsignatedSections.map((section) => {
+         objReturn[`${(section.nombre_seccion).toLowerCase()}`] = seccionObj.nombre_seccion == section.nombre_seccion ? item.total_cantidad : 0;
+       });*/
+
+      return objReturn;
     });
 
     this.dataSource.data = formattedData;
@@ -69,6 +116,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
   }
 
   private updateSingleRecord(pocketScans: any[]) {
+    console.log(pocketScans);
     const data = [...this.dataSource.data];
     let cambioDetectado = false;
 
@@ -83,6 +131,23 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
 
         const stock = item.cStock || 0;
         item.cTotalConteo = item.cConteo - stock;
+
+        this.inAsignatedSections.map((section) => {
+          if (data[index]['cCodigoBarra'] == scan.sku) {
+            let defaultValue = data[index][`${((section.nombre_seccion)).replace(" ", "_").toLowerCase()}`] || 0;
+            console.log(defaultValue);
+            if (defaultValue <= 0) {
+              defaultValue += parseInt(scan[`${((section.nombre_seccion)).replace(" ", "_").toLowerCase()}`]) || 0;
+            } else if (parseInt(scan[`${((section.nombre_seccion)).replace(" ", "_").toLowerCase()}`]) > 0) {
+
+              defaultValue = parseInt(scan[`${((section.nombre_seccion)).replace(" ", "_").toLowerCase()}`]) || 0;
+            }
+
+
+            data[index][`${((section.nombre_seccion)).replace(" ", "_").toLowerCase()}`] = defaultValue;
+
+          }
+        });
       }
     });
 
@@ -129,4 +194,5 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     link.click();
     window.URL.revokeObjectURL(url);
   }
+
 }

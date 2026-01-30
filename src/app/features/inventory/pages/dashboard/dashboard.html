@@ -119,7 +119,11 @@
     </mat-tab>
     <mat-tab label="Cruce inventario">
       @if(dataInventario){
-      <view-2-inventario [pocketScan]="pocketScan" [onDataView]=dataInventario></view-2-inventario>
+      <view-2-inventario 
+        [inAsignatedSections]="arAsignatedSections" 
+        [pocketScan]="pocketScan"
+        [onDataView]=dataInventario>
+      </view-2-inventario>
       }
     </mat-tab>
   </mat-tab-group>
