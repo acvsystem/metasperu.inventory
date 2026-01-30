@@ -118,7 +118,7 @@
       </div>
     </mat-tab>
     <mat-tab label="Cruce inventario">
-      @if(dataInventario){
+      @if(dataInventario && arAsignatedSections && pocketScan){
       <view-2-inventario 
         [inAsignatedSections]="arAsignatedSections" 
         [pocketScan]="pocketScan"

@@ -27,7 +27,8 @@
           </ion-row>
 
           <ion-row>
-            <ion-col [sizeXs]="OptionTypeScan == 'cantidad' ? 8: 12" [sizeSm]="OptionTypeScan == 'cantidad' ? 8: 12" [sizeMd]="OptionTypeScan == 'cantidad' ? 10: 12" [sizeLg]="OptionTypeScan == 'cantidad' ? 10: 12">
+            <ion-col [sizeXs]="OptionTypeScan == 'cantidad' ? 8: 12" [sizeSm]="OptionTypeScan == 'cantidad' ? 8: 12"
+              [sizeMd]="OptionTypeScan == 'cantidad' ? 10: 12" [sizeLg]="OptionTypeScan == 'cantidad' ? 10: 12">
               <ion-item lines="none" class="search-item">
                 <ion-input label="SKU" label-placement="stacked" fill="outline" placeholder="Ingrese el SKU"
                   #barcodeInput [value]="skuInput()" (ionInput)="skuInput.set($event.detail.value!)"
@@ -37,7 +38,8 @@
             </ion-col>
             <ion-col sizeXs="4" sizeSm="4" sizeMd="2" sizeLg="2">
               @if(OptionTypeScan == 'cantidad'){
-                <mt-input (afterChange)="onChangeInput($event)" label="Cantidad" placeholder="Cantidad"></mt-input>
+              <mt-input type="number" (afterChange)="onChangeInput($event)" label="Cantidad"
+                placeholder="Cantidad"></mt-input>
               }
             </ion-col>
           </ion-row>

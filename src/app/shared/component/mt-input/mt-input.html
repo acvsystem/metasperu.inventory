@@ -3,10 +3,13 @@
         <div class="filter-wrapper">
             <mat-form-field appearance="fill" class="custom-filter-internal">
                 <mat-label>{{label}}</mat-label>
-                <input matInput 
-                [(ngModel)]="autoText"
-                (keyup)="onChange($event)"
-                placeholder="{{placeholder}}">
+                @if(type != 'number'){
+                <input matInput [(ngModel)]="autoText" (keyup)="onChange($event)" placeholder="{{placeholder}}">
+                }@else{
+                <input matInput type="text" inputmode="numeric" (keypress)="onlyNumbers($event)" [(ngModel)]="autoText" (keyup)="onChange($event)"
+                    placeholder="{{placeholder}}">
+                }
+
             </mat-form-field>
         </div>
     </ion-col>

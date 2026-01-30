@@ -57,6 +57,8 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
 
   ngOnInit() {
     this.initializeTable(this.onDataView);
+    this.asignSectionColum();
+    this.updateSingleRecord(this.pocketScan);
   }
 
   ngAfterViewInit() {
