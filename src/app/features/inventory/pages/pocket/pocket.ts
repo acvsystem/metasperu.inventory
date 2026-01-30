@@ -100,9 +100,10 @@ export default class Pocket {
       return
     };
 
+    const cantidad = this.OptionTypeScan == 'cantidad' ? parseInt(this.inCantidad) : 1;
     // 1. Guardar localmente
-    await this.pocketService.saveScanLocally(this.selectedSectionId, this.sessionCode(), sku, parseInt(this.inCantidad) || 1);
-    this.inCantidad ="";
+    await this.pocketService.saveScanLocally(this.selectedSectionId, this.sessionCode(), sku, cantidad);
+
     // 2. Limpiar y refrescar contador
     this.skuInput.set('');
     await this.updatePendingCount();
@@ -118,6 +119,8 @@ export default class Pocket {
     } else {
       this.onDataTable(this.sessionCode());
     }
+
+    this.inCantidad = "";
 
   }
 
