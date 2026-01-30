@@ -16,5 +16,9 @@ import {
   styleUrl: './maintenance.scss',
 })
 export default class Maintenance {
-
+  roleUser: any = "";
+  ngOnInit() {
+    const userRole = localStorage.getItem('role');
+    this.roleUser = userRole;
+  }
 }
