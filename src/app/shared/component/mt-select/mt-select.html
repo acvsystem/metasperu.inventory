@@ -14,7 +14,7 @@
                     }
                 </ion-select>
                 }@else{
-                <ion-select label-placement="stacked" interface="alert" [interfaceOptions]="customAlertOptions" 
+                <ion-select class="modalUser" label-placement="stacked" interface="alert" [interfaceOptions]="customAlertOptions" 
                     toggleIcon="chevron-down-outline" placeholder="{{label}}" (ionChange)="onSelectedOption($event)">
 
                     @for (tienda of data; track tienda.value) {

@@ -5,7 +5,7 @@
         </ion-toolbar>
     </ion-header>
     <ion-content class="ion-padding">
-        <div class="example-menu" *ngFor="let menu of arMenuList" cdkMenu>
+        <div class="example-menu" *ngFor="let menu of menuFiltrado" cdkMenu>
 
             <ion-menu-toggle class="example-menu" auto-hide="true">
                 <button class="menu-item" (click)="onNavigatorRoute(menu.ruta)" cdkMenuItem>

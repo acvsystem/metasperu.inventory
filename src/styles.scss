@@ -102,16 +102,159 @@ body.barcode-scanner-active {
 }
 
 .only-desktop {
-    display: inline-table !important;
+  display: inline-table !important;
 }
 
 @media (max-width:500px) {
-    .only-mobil {
-        display: block !important;
-    }
+  .only-mobil {
+    display: block !important;
+  }
 
-    .only-desktop {
-        display: none !important;
-    }
+  .only-desktop {
+    display: none !important;
+  }
 
+}
+
+/* En global.scss */
+
+.custom-alert-inventory {
+
+  .sc-ion-alert-md-h.select-alert.custom-alert-inventory.single-select-alert {
+
+    --z-index: 99999 !important;
+    z-index: 99999 !important;
+  }
+
+  --z-index: 99999 !important;
+  z-index: 99999 !important;
+}
+
+.custom-alert-inventory.alert-wrapper.sc-ion-alert-md {
+  --z-index: 99999 !important;
+  z-index: 99999 !important;
+}
+
+.custom-alert-inventory.alert-wrapper {
+  /* 1. Bordes redondeados de la ventana */
+  border-radius: 8px !important;
+
+  /* 2. Controlar la altura máxima para que no ocupe toda la pantalla */
+  max-height: 80% !important;
+  width: 90% !important;
+  max-width: 400px !important;
+
+  --z-index: 99999 !important;
+  z-index: 99999 !important;
+}
+
+.custom-alert-inventory.alert-wrapper.sc-ion-alert-md {
+  --z-index: 99999 !important;
+  z-index: 99999 !important;
+}
+
+/* 3. Estilo de los botones CANCEL y OK */
+.custom-alert-inventory .alert-button-group {
+  padding-right: 10px;
+}
+
+.custom-alert-inventory .alert-button-inner {
+  color: #3880ff;
+  /* Color azul de los botones */
+  font-weight: 500;
+}
+
+/* 4. Estilo de los radio buttons (círculos) */
+.custom-alert-inventory .alert-radio-icon {
+  border-color: #666;
+  /* Color del círculo cuando no está marcado */
+}
+
+.custom-alert-inventory .alert-radio-label {
+  font-size: 14px;
+  color: #333;
+}
+
+
+.custom-item {
+  /* 1. Creamos nuestro propio borde fino */
+  border: 1px solid #d1d1d1;
+  border-radius: 4px;
+
+  /* 2. Quitamos el color de fondo y sombras de Ionic */
+  --background: transparent;
+  --padding-start: 12px;
+  --inner-padding-end: 12px;
+  --highlight-height: 0;
+  /* ESTO QUITA LA LÍNEA VERDE */
+  height: 39px !important;
+  min-height: 39px !important;
+  transition: border-color 0.2s;
+  display: flex;
+  align-items: center;
+}
+
+/* 3. Ajustamos el select para que la flecha se pegue a la derecha */
+ion-select {
+  width: 100%;
+  --placeholder-color: #999;
+  --placeholder-opacity: 1;
+  min-height: 40px !important;
+}
+
+ion-select::part(container) {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+}
+
+/* 4. Efecto de foco (opcional) */
+.custom-item:focus-within {
+  border-color: #3880ff;
+}
+
+/* Aplicamos a la clase que definimos en interfaceOptions */
+.custom-alert-inventory {
+  z-index: 99999999999 !important;
+
+  /* 1. Quitar el anillo de enfoque de toda la ventana de alerta */
+  .alert-wrapper:focus {
+    outline: none !important;
+  }
+
+  /* 2. Quitar el borde de enfoque en las opciones (Radio buttons) */
+  .alert-radio-button:focus,
+  .alert-radio-button:focus-visible,
+  .alert-radio-button.ion-focused {
+    --background-focused: transparent;
+    outline: none !important;
+  }
+
+  /* 3. Quitar el borde de los botones CANCEL y OK al hacer click */
+  .alert-button:focus,
+  .alert-button:focus-visible,
+  .alert-button.ion-focused {
+    outline: none !important;
+    background: transparent !important;
+    --background-focused: transparent;
+    --background-hover: rgba(0, 0, 0, 0.05);
+    /* Opcional: un toque sutil al pasar el mouse */
+  }
+
+  /* 4. Específico para navegadores basados en Chromium */
+  * {
+    outline: none !important;
+  }
+}
+
+ion-modal {
+  z-index: 1000 !important;
+}
+
+ion-alert {
+  z-index: 9999 !important;
+}
+
+body > ion-alert {
+  z-index: 99999 !important;
 }

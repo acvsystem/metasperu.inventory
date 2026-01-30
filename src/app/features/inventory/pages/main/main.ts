@@ -19,6 +19,7 @@ import {
 import { addIcons } from 'ionicons';
 import { StorageService } from '@metasperu/services/store.service';
 import { ToasNotification } from '@metasperu/component/toas-notification/toas-notification';
+import { InventoryService } from '@metasperu/services/inventory.service';
 
 @Component({
   selector: 'main-layout',
@@ -42,16 +43,19 @@ export default class MainComponent {
   // 3. Ahora este controlador sí tendrá autoridad sobre los componentes standalone
   private menuCtrl = inject(MenuController);
   private store = inject(StorageService);
-
+  private invService = inject(InventoryService);
+  menuFiltrado: Array<any> = [];
   user = this.authService.currentUser;
   arMenuList = [
-    { nombre_menu: 'DASHBOARD', ruta: 'inventory/dashboard' },
-    { nombre_menu: 'SESIONES', ruta: 'inventory/session' },
-    { nombre_menu: 'POCKET', ruta: 'inventory/pocket' },
-    { nombre_menu: 'CONFIGURACION', ruta: 'inventory/maintenance' }
+    { nombre_menu: 'DASHBOARD', ruta: 'inventory/dashboard', roles: ['administrador', 'auditor'] },
+    { nombre_menu: 'SESIONES', ruta: 'inventory/session', roles: ['administrador', 'auditor'] },
+    { nombre_menu: 'POCKET', ruta: 'inventory/pocket', roles: ['administrador', 'pocket'] },
+    { nombre_menu: 'CONFIGURACION', ruta: 'inventory/maintenance', roles: ['administrador', 'auditor'] }
   ];
 
   constructor() {
+
+
     addIcons({
       chevronDownOutline,
       notificationsOutline,
@@ -60,8 +64,39 @@ export default class MainComponent {
     });
   }
 
+
+
+  ngOnInit() {
+    const userRole = localStorage.getItem('role'); // O de tu servicio de Auth
+    this.menuFiltrado = this.arMenuList.filter(item => item.roles.includes(userRole as any));
+
+    this.invService.onMenu.subscribe((rol) => {
+      const role = rol || userRole;
+      this.menuFiltrado = this.arMenuList.filter(item => item.roles.includes(role));
+      this.redireccionarPorRol(role);
+    });
+  }
+
+  redireccionarPorRol(role: string) {
+    switch (role) {
+      case 'administrador':
+        this.onNavigatorRoute('inventory/session');
+        break;
+      case 'auditor':
+        this.onNavigatorRoute('inventory/session');
+        break;
+      case 'pocket':
+        this.onNavigatorRoute('inventory/pocket');
+        break;
+      default:
+        this.onNavigatorRoute('inventory/dashboard');
+        break;
+    }
+  }
+
   logout() {
     this.authService.logout();
+    localStorage.clear();
   }
 
   async onNavigatorRoute(route: string) {

@@ -1,0 +1,34 @@
+<h2 mat-dialog-title>{{data.title}}</h2>
+<mat-dialog-content>
+    <ion-row>
+        <ion-col>
+            <mt-input (afterChange)="onChangeInput('username',$event)" [autoText]="data.username" label="Nombre de usuario"
+                placeholder="Nombre de usuario">
+            </mt-input>
+        </ion-col>
+        <ion-col>
+            <mt-input (afterChange)="onChangeInput('password',$event)" [autoText]="data.password" label="Contraseña"
+                placeholder="Contraseña">
+            </mt-input>
+        </ion-col>
+        <ion-col>
+            <mt-input (afterChange)="onChangeInput('perfilname',$event)" [autoText]="data.perfilname" label="Nombre de perfil"
+                placeholder="Nombre de perfil">
+            </mt-input>
+        </ion-col>
+        <ion-col>
+            <mat-radio-group aria-labelledby="example-radio-group-label" class="example-radio-group"
+                [(ngModel)]="userRol" (change)="onRolChange()">
+                @for (rol of arRole; track rol) {
+                <mat-radio-button class="example-radio-button" [value]="rol.value">{{rol.value}}</mat-radio-button>
+                }
+            </mat-radio-group>
+        </ion-col>
+    </ion-row>
+
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+    <button type="button" class="btn btn-light btn-sm" style="margin-right: 10px;"
+        (click)="onNoClick()">Cancelar</button>
+    <button type="button" class="btn btn-primary btn-sm" [mat-dialog-close]="data">Guardar</button>
+</mat-dialog-actions>

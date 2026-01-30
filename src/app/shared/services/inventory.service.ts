@@ -27,7 +27,8 @@ export interface Store {
 })
 export class InventoryService {
     @Output() onNotification: EventEmitter<any> = new EventEmitter();
-
+    @Output() onMenu: EventEmitter<any> = new EventEmitter();
+    
     private http = inject(HttpClient);
 
     // Cambia esta URL según tu entorno de desarrollo/producción

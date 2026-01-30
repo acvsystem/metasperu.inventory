@@ -1,0 +1,60 @@
+<div class="mantenimiento-container">
+    <div class="header-actions">
+        <h3>Mantenimiento de Usuario</h3>
+
+        <button (click)="agregarUsuario()" type="button" class="btn btn-primary btn-sm">
+            <i class="fa fa-plus" aria-hidden="true"></i> Nuevo usuario
+        </button>
+    </div>
+
+    <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+        <ng-container matColumnDef="id">
+            <th mat-header-cell *matHeaderCellDef> No. </th>
+            <td mat-cell *matCellDef="let i = index"> {{i + 1}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="usuario">
+            <th mat-header-cell *matHeaderCellDef> Usuario </th>
+            <td mat-cell *matCellDef="let element"> {{element.username}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="profile_name">
+            <th mat-header-cell *matHeaderCellDef> Nombre Perfil </th>
+            <td mat-cell *matCellDef="let element"> {{element.perfilname}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="rol">
+            <th mat-header-cell *matHeaderCellDef> Rol </th>
+            <td mat-cell *matCellDef="let element"> {{element.role}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="estado">
+            <th mat-header-cell *matHeaderCellDef> Estado </th>
+            <td mat-cell *matCellDef="let element">
+                @if(element.estado){
+                <h6 style="margin: 0;"><span class="badge bg-primary" style="font-weight: 400;">Activo</span>
+                </h6>
+                }@else{
+                <h6 style="margin: 0;"><span class="badge bg-danger" style="font-weight: 400;">Desactivado</span>
+                </h6>
+                }
+
+            </td>
+        </ng-container>
+
+        <ng-container matColumnDef="acciones">
+            <th mat-header-cell *matHeaderCellDef> Acciones </th>
+            <td mat-cell *matCellDef="let element">
+                <button mat-icon-button color="accent" (click)="editarUsuario(element)">
+                    <i class="fa fa-pencil-square-o" aria-hidden="true"></i>
+                </button>
+                <button mat-icon-button color="warn" (click)="eliminarUsuario(element)">
+                    <i class="fa fa-trash" aria-hidden="true"></i>
+                </button>
+            </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+</div>

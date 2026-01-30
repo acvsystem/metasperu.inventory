@@ -22,6 +22,7 @@ export class MtSelect {
   @Input() isMultiselect: boolean = false;
   @Input() label: string = "";
   @Input() title: string = "";
+  @Input() modalUser: string = "";
 
   selectedStoreId = ''; // Almacena el ID seleccionado
   optionSelected = {};
@@ -29,6 +30,7 @@ export class MtSelect {
   customAlertOptions = {
     header: this.title,
     cssClass: 'custom-alert-inventory',
+
     buttons: [
       {
         text: 'CANCEL',

@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { Sections } from './component/sections/sections';
+import { Users } from './component/users/users';
 import { MatTabsModule } from '@angular/material/tabs';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent, IonGrid, IonRow,
@@ -10,7 +11,7 @@ import {
 
 @Component({
   selector: 'app-maintenance',
-  imports: [Sections, MatTabsModule, IonContent],
+  imports: [Sections, MatTabsModule, IonContent, Users],
   templateUrl: './maintenance.html',
   styleUrl: './maintenance.scss',
 })
