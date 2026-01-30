@@ -16,16 +16,9 @@
                 <ng-container matColumnDef="{{col.matColumnDef}}" sticky>
                     <th mat-header-cell *matHeaderCellDef> {{col.titleColumn}} </th>
                     <td mat-cell *matCellDef="let element">
-                        {{element[col.propertyValue]}}
-                    </td>
-                </ng-container>
-                }
 
 
-                <!--
-                <ng-container matColumnDef="total">
-                    <th mat-header-cell *matHeaderCellDef> Total Conteo </th>
-                    <td mat-cell *matCellDef="let element">
+                        @if(col.propertyValue == 'cTotalConteo'){
                         @if(element.cTotalConteo > 0){
                         <span class="badge bg-success-comprobantes">{{element.cTotalConteo}}</span>
                         }
@@ -37,10 +30,12 @@
                         @if(element.cTotalConteo < 0){ <span class="badge bg-danger-comprobantes">
                             {{element.cTotalConteo}}</span>
                             }
-
+                        }@else {
+                            {{element[col.propertyValue]}}
+                        }
                     </td>
                 </ng-container>
--->
+                }
 
                 <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
                 <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="example-element-row"></tr>

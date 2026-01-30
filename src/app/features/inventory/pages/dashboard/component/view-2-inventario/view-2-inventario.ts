@@ -103,10 +103,6 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
         CTotalStock: conteo - stock
       }
 
-      /* this.inAsignatedSections.map((section) => {
-         objReturn[`${(section.nombre_seccion).toLowerCase()}`] = seccionObj.nombre_seccion == section.nombre_seccion ? item.total_cantidad : 0;
-       });*/
-
       return objReturn;
     });
 
@@ -135,7 +131,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
         this.inAsignatedSections.map((section) => {
           if (data[index]['cCodigoBarra'] == scan.sku) {
             let defaultValue = data[index][`${((section.nombre_seccion)).replace(" ", "_").toLowerCase()}`] || 0;
-            console.log(defaultValue);
+
             if (defaultValue <= 0) {
               defaultValue += parseInt(scan[`${((section.nombre_seccion)).replace(" ", "_").toLowerCase()}`]) || 0;
             } else if (parseInt(scan[`${((section.nombre_seccion)).replace(" ", "_").toLowerCase()}`]) > 0) {
@@ -160,7 +156,8 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
   exportarExcel() {
     // 1. Mapeamos los datos para que el Excel tenga nombres de columnas bonitos
     const dataParaExportar = this.dataSource.data.map(item => {
-      return {
+
+      const objReturn: Record<string, any> = {
         'Referencia': item.cReferencia,
         'Código de Barras': item.cCodigoBarra,
         'Descripción': item.cDescripcion,
@@ -170,6 +167,16 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
         'Conteo Físico': item.cConteo,
         'Total Cruce': item.cTotalConteo
       };
+
+      this.inAsignatedSections.map((section) => {
+        objReturn[`${((section.nombre_seccion)).replace(" ", "_").toLowerCase()}`] = item[`${((section.nombre_seccion)).replace(" ", "_").toLowerCase()}`];
+      });
+
+
+
+      return objReturn;
+
+
     });
 
     // 2. Creamos el libro y la hoja de trabajo
