@@ -36,13 +36,29 @@ export class MtVerificationModal {
   }
 
   onPaste(event: ClipboardEvent) {
-    const data = event.clipboardData?.getData('text').trim();
-    if (data?.length === 6 && /^\d+$/.test(data)) {
-      data.split('').forEach((char, i) => {
-        this.inputs.toArray()[i].nativeElement.value = char;
-      });
-      this.checkCompletion();
+    event.preventDefault();
+
+    const data = event.clipboardData?.getData('text') || '';
+    const digits = data.split('');
+    const inputElements = this.inputs.toArray();
+
+    digits.forEach((char, index) => {
+      if (inputElements[index]) {
+        inputElements[index].nativeElement.value = char;
+      }
+    });
+
+    const lastIndex = digits.length - 1;
+    if (lastIndex >= 0) {
+      inputElements[Math.min(lastIndex + 1, 5)].nativeElement.focus();
     }
+
+    this.checkIfComplete();
+  }
+
+  checkIfComplete() {
+    const code = this.inputs.toArray().map(el => el.nativeElement.value).join('');
+    this.isComplete = code.length === 6;
   }
 
   checkCompletion() {

@@ -11,11 +11,26 @@
     align-items: center;
     justify-content: center;
     margin: 0 auto 20px;
-    mat-icon { font-size: 40px; width: 40px; height: 40px; color: #3880ff; }
+
+    i {
+      font-size: 55px;
+      width: 55px;
+      height: 55px;
+      color: #3880ff;
+    }
   }
 
-  h2 { font-weight: 700; color: #2c3e50; margin-bottom: 8px; }
-  .subtitle { color: #7f8c8d; font-size: 14px; margin-bottom: 25px; }
+  h2 {
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 8px;
+  }
+
+  .subtitle {
+    color: #7f8c8d;
+    font-size: 14px;
+    margin-bottom: 25px;
+  }
 
   .code-inputs {
     display: flex;
@@ -44,15 +59,21 @@
   .resend-text {
     font-size: 13px;
     color: #7f8c8d;
-    .link { color: #3880ff; cursor: pointer; font-weight: 600; }
+
+    .link {
+      color: #3880ff;
+      cursor: pointer;
+      font-weight: 600;
+    }
   }
 
   mat-dialog-actions {
     margin-top: 30px;
     gap: 15px;
-    button { 
-      flex: 1; 
-      height: 48px; 
+
+    button {
+      flex: 1;
+      height: 48px;
       border-radius: 12px;
       font-weight: 600;
     }

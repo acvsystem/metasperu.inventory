@@ -95,10 +95,19 @@ export default class Pocket {
   // --- FUNCIÓN DE ESCANEO AUTOMÁTICO ---
   async handleScan() {
     const sku = this.skuInput().trim();
-    if (!sku || !this.selectedSectionId) {
-      this.onNotification({ error: 'error', message: 'Llene todos los campos' });
-      return
-    };
+    if (this.OptionTypeScan == 'pistola') {
+      if (!sku || !this.selectedSectionId) {
+        this.onNotification({ error: 'error', message: 'Llene todos los campos' });
+        return
+      }
+    } else {
+      if (!sku || !this.selectedSectionId || !this.inCantidad) {
+        this.onNotification({ error: 'error', message: 'Llene todos los campos' });
+        return
+      }
+    }
+
+
 
     const cantidad = this.OptionTypeScan == 'cantidad' ? parseInt(this.inCantidad) : 1;
     // 1. Guardar localmente
