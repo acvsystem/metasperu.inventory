@@ -29,7 +29,7 @@
                 "input": "src/assets",
                 "output": "assets"
               },
-              "src/favicon.ico",
+              "src/metas-favicon.ico",
               "src/manifest.webmanifest"
             ],
             "styles": [
@@ -100,7 +100,7 @@
                 "input": "src/assets",
                 "output": "assets"
               },
-              "src/favicon.ico",
+              "src/metas-favicon.ico",
               "src/manifest.webmanifest"
             ],
             "styles": [
