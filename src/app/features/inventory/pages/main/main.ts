@@ -49,7 +49,7 @@ export default class MainComponent {
   arMenuList = [
     { nombre_menu: 'DASHBOARD', ruta: 'inventory/dashboard', roles: ['administrador', 'auditor'] },
     { nombre_menu: 'SESIONES', ruta: 'inventory/session', roles: ['administrador', 'auditor'] },
-    { nombre_menu: 'POCKET', ruta: 'inventory/pocket', roles: ['administrador', 'pocket'] },
+    { nombre_menu: 'POCKET', ruta: 'inventory/pocket', roles: ['administrador', 'auditor', 'pocket'] },
     { nombre_menu: 'CONFIGURACION', ruta: 'inventory/maintenance', roles: ['administrador', 'auditor'] }
   ];
 
@@ -96,7 +96,6 @@ export default class MainComponent {
 
   logout() {
     this.authService.logout();
-    localStorage.clear();
   }
 
   async onNavigatorRoute(route: string) {

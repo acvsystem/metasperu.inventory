@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { tap, catchError, of, Observable, map } from 'rxjs';
 import { InventoryService } from '@metasperu/services/inventory.service';
+import { db, ScanEntry } from '../../core/db/offline-db';
 
 // Definimos la interfaz del usuario para tipado fuerte
 export interface User {
@@ -61,8 +62,17 @@ export class AuthService {
     }
 
 
+    async logout() {
 
-    logout() {
+        const pendientes = await db.scans.where('synced').equals(0).count();
+
+        if (pendientes > 0) {
+            const confirmar = confirm(`Tienes ${pendientes} escaneos sin subir al servidor. Si cierras sesión se perderán. ¿Cerrar de todos modos?`);
+            if (!confirmar) return;
+        }
+
+        await db.scans.clear();
+        localStorage.clear();
         localStorage.removeItem('auth_token'); // Limpiar el token
         localStorage.removeItem('codeSession');
         localStorage.removeItem('pocketCode');

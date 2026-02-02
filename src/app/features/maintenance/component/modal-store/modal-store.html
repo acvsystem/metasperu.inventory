@@ -1,0 +1,21 @@
+<h2 mat-dialog-title>{{data.title}}</h2>
+<mat-dialog-content>
+    <ion-row>
+        <ion-col>
+            <mt-input (afterChange)="onChangeInput('serie',$event)" [autoText]="data.serie" label="Serie"
+                placeholder="Serie">
+            </mt-input>
+        </ion-col>
+        <ion-col>
+            <mt-input (afterChange)="onChangeInput('nombre_tienda',$event)" [autoText]="data.nombre_tienda"
+                label="Nombre de tienda" placeholder="Nombre de tienda">
+            </mt-input>
+        </ion-col>
+    </ion-row>
+
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+    <button type="button" class="btn btn-light btn-sm" style="margin-right: 10px;"
+        (click)="onNoClick()">Cancelar</button>
+    <button type="button" class="btn btn-primary btn-sm" [mat-dialog-close]="data">Guardar</button>
+</mat-dialog-actions>

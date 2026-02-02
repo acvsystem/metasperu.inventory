@@ -1,12 +1,13 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { db, ScanEntry } from '../../core/db/offline-db'; // La DB que definimos antes
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class PocketInventoryService {
   private http = inject(HttpClient);
   private apiUrl = 'https://api.metasperu.net.pe/s3/inventory';
+  private readonly API_URL = 'https://api.metasperu.net.pe/s3/inventory';
 
   // Guardar escaneo en LocalStorage (IndexedDB)
   async saveScanLocally(seccion_id: number, sessionCode: string, sku: string, quantity: number) {
@@ -54,9 +55,14 @@ export class PocketInventoryService {
 
   async syncIndexedBD(sessionCode: string) {
     const dataScanPocket = await db.scans
-      .where({ session_code: sessionCode })
+      .where({ session_code: sessionCode, synced: 0 })
       .toArray();
 
     return dataScanPocket || [];
+  }
+
+
+  getPocketScan(sessionCode: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.API_URL}/pocket/scan/${sessionCode}`);
   }
 }

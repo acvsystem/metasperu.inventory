@@ -9,8 +9,8 @@ import {
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MtSelect } from '../../../../shared/component/mt-select/mt-select';
-import { MtInput } from '../../../../shared/component/mt-input/mt-input';
+import { MtSelect } from '@metasperu/component/mt-select/mt-select';
+import { MtInput } from '@metasperu/component/mt-input/mt-input';
 import { MtNotificationModal } from '@metasperu/component/mt-notification-modal/mt-notification-modal';
 import { MatDialog } from '@angular/material/dialog';
 import { MatDialogModule } from '@angular/material/dialog'; // Para mat-dialog-actions, title y content
@@ -64,9 +64,10 @@ export default class InventorySession {
   constructor(private dialog: MatDialog, private store: StorageService) { }
 
   ngOnInit() {
+    this.getSections();
     this.loadStores();
     this.loeadSessions();
-    this.getSections();
+    
   }
 
   showNotification() {

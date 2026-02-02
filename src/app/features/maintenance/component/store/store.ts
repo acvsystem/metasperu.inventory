@@ -4,20 +4,21 @@ import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { ModalUsers } from '../modal-users/modal-users';
-import { UserService } from '@metasperu/services/users.service'
+import { StoreService } from '@metasperu/services/stores.service'
 import { InventoryService } from '@metasperu/services/inventory.service';
+import { ModalStore } from '../modal-store/modal-store';
 
 @Component({
-  selector: 'app-users',
+  selector: 'app-store',
   imports: [MatIconModule, MatButtonModule, MatTableModule],
-  templateUrl: './users.html',
-  styleUrl: './users.scss',
+  templateUrl: './store.html',
+  styleUrl: './store.scss',
 })
-export class Users {
-  displayedColumns: string[] = ['id', 'usuario', 'profile_name', 'rol', 'estado', 'acciones'];
+export class Store {
+  displayedColumns: string[] = ['id', 'serie', 'nombre_tienda', 'estado', 'acciones'];
   dataSource = new MatTableDataSource<any>([]);
 
-  constructor(public dialog: MatDialog, private serviceUser: UserService, private service: InventoryService) { }
+  constructor(public dialog: MatDialog, private serviceStore: StoreService, private service: InventoryService) { }
 
   ngOnInit() {
     this.cargarDatos();
@@ -26,16 +27,16 @@ export class Users {
   cargarDatos() {
     // Simulación de carga desde API
 
-    this.serviceUser.getUsers().subscribe((users) => {
-      this.dataSource.data = users;
+    this.serviceStore.getStore().subscribe((store) => {
+      this.dataSource.data = store;
     });
   }
 
   // --- MÉTODO AGREGAR ---
-  agregarUsuario() {
-    const dialogRef = this.dialog.open(ModalUsers, {
+  agregarStore() {
+    const dialogRef = this.dialog.open(ModalStore, {
       width: '350px',
-      data: { username: '', password: '', perfilname: '', role: '', title: 'Agregar Usuario' } // Objeto vacío para nueva sección
+      data: { serie: '', nombre_tienda: '' } // Objeto vacío para nueva sección
     });
 
     dialogRef.afterClosed().subscribe({
@@ -43,8 +44,8 @@ export class Users {
       next: (result) => {
         if (result) {
 
-          this.serviceUser.postUser(result).subscribe((users) => {
-            this.dataSource.data = users;
+          this.serviceStore.postStore(result).subscribe((store) => {
+            this.dataSource.data = store?.data;
             this.onNotification(result);
           });
         }
@@ -56,12 +57,12 @@ export class Users {
   }
 
   // --- MÉTODO ELIMINAR ---
-  eliminarUsuario(user: any) {
-    if (confirm(`¿Estás seguro de eliminar la sección "${user.username}"?`)) {
+  eliminarStore(store: any) {
+    if (confirm(`¿Estás seguro de eliminar la sección "${store.nombre_tienda}"?`)) {
 
-      this.serviceUser.delUser(user.id).subscribe({
+      this.serviceStore.delStore(store.id).subscribe({
         next: (result) => {
-          this.dataSource.data = this.dataSource.data.filter(s => s.id !== user.id);
+          this.dataSource.data = this.dataSource.data.filter(s => s.id !== store.id);
           this.onNotification(result);
         },
         error: (err) => {
@@ -71,22 +72,21 @@ export class Users {
     }
   }
 
-  editarUsuario(user: any) {
-    const dialogRef = this.dialog.open(ModalUsers, {
+  editarStore(store: any) {
+    const dialogRef = this.dialog.open(ModalStore, {
       width: '350px',
-      data: { ...user, title: 'Editar Sección' }
+      data: { ...store, title: 'Editar Sección' }
     });
 
     dialogRef.afterClosed().subscribe({
 
       next: (result) => {
-        console.log(result);
         if (result) {
-          const index = this.dataSource.data.findIndex(s => s.id === user.id);
+          const index = this.dataSource.data.findIndex(s => s.id === store.id);
           if (index !== -1) {
             const actualizados = [...this.dataSource.data];
             actualizados[index] = result;
-            this.serviceUser.putUser(actualizados[index]).subscribe((result) => {
+            this.serviceStore.putStore(actualizados[index]).subscribe((result) => {
               this.dataSource.data = actualizados;
               this.onNotification(result);
             });

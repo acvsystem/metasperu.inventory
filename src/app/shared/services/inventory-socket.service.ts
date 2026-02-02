@@ -14,7 +14,10 @@ export class InventorySocketService {
         this.socket = io('https://api.metasperu.net.pe', {
             path: '/s3/socket/', // <--- IMPORTANTE: Nginx redirige esto al puerto 3001
             transports: ['websocket', 'polling'],
-            withCredentials: true
+            withCredentials: true,
+            reconnection: true,
+            reconnectionAttempts: Infinity,
+            reconnectionDelay: 1000,
         });
 
         // Evento cuando conectamos con el servidor

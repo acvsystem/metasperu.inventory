@@ -69,7 +69,6 @@ export default class Pocket {
     window.addEventListener('online', () => this.onNetworkChange(true));
     window.addEventListener('offline', () => this.onNetworkChange(false));
 
-
   }
 
   async onNetworkChange(status: boolean) {
@@ -111,7 +110,7 @@ export default class Pocket {
 
     const cantidad = this.OptionTypeScan == 'cantidad' ? parseInt(this.inCantidad) : 1;
     // 1. Guardar localmente
-    await this.pocketService.saveScanLocally(this.selectedSectionId, this.sessionCode(), sku, cantidad);
+    await this.saveScanLocally(this.selectedSectionId, this.sessionCode(), sku, cantidad);
 
     // 2. Limpiar y refrescar contador
     this.skuInput.set('');
@@ -132,6 +131,11 @@ export default class Pocket {
     this.inCantidad = "";
 
   }
+
+  async saveScanLocally(seccion_id: number, session_code: string, sku: any, cantidad: any) {
+    await this.pocketService.saveScanLocally(seccion_id, session_code, sku, cantidad);
+  }
+
 
   async sync() {
     const success = await this.pocketService.syncWithBackend(this.sessionCode());

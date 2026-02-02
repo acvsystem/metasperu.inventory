@@ -8,6 +8,7 @@ import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { InventoryService } from '@metasperu/services/inventory.service';
 import * as XLSX from 'xlsx';
+import { MtInput } from '@metasperu/component/mt-input/mt-input';
 
 export interface tableColumns {
   matColumnDef: string;
@@ -18,7 +19,7 @@ export interface tableColumns {
 @Component({
   selector: 'view-2-inventario',
   standalone: true,
-  imports: [MatTableModule, MatPaginatorModule, MatIconModule, MatSortModule, IonCol, IonRow, CommonModule],
+  imports: [MatTableModule, MtInput, MatPaginatorModule, MatIconModule, MatSortModule, IonCol, IonRow, CommonModule],
   templateUrl: './view-2-inventario.html',
   styleUrl: './view-2-inventario.scss',
 })
@@ -28,6 +29,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
   @Input() inAsignatedSections: Array<any> = [];
   isInsertColum: boolean = false;
   dataSource = new MatTableDataSource<any>([]);
+  inFilter: string = "";
   displayedColumns = [
     'codigoBarra', 'Referencia', 'descripcion', 'departamento',
     'seccion', 'familia', 'subfamilia', 'temporada',
@@ -202,6 +204,14 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     link.download = fileName + '_' + new Date().getTime() + '.xlsx';
     link.click();
     window.URL.revokeObjectURL(url);
+  }
+
+  applyFilter(data: any) {
+    if (!data) return;
+    const { id, value } = data;
+    this.inFilter = value ?? "";
+    const filterValue = value;
+    this.dataSource.filter = filterValue.trim().toLowerCase();
   }
 
 }

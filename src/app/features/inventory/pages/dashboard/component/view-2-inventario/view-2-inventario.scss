@@ -1,102 +1,102 @@
 .bg-success-comprobantes {
-    background: #2b7be2 !important;
+  background: #2b7be2 !important;
 }
 
 .bg-danger-comprobantes {
-    background: #c42318 !important;
+  background: #c42318 !important;
 }
 
 .bg-warning-comprobantes {
-    background: #088f1e !important;
+  background: #088f1e !important;
 }
 
 // Clase para la fila que acaba de cambiar
 .row-flash {
-    background-color: rgba(63, 81, 181, 0.2) !important; // Azul tenue de Material
-    transition: background-color 0.5s ease;
+  background-color: rgba(63, 81, 181, 0.2) !important; // Azul tenue de Material
+  transition: background-color 0.5s ease;
 }
 
 // Opcional: una animación de pulso
 @keyframes pulse-update {
-    0% {
-        background-color: transparent;
-    }
+  0% {
+    background-color: transparent;
+  }
 
-    50% {
-        background-color: #fff9c4;
-    }
+  50% {
+    background-color: #fff9c4;
+  }
 
-    // Amarillo suave
-    100% {
-        background-color: transparent;
-    }
+  // Amarillo suave
+  100% {
+    background-color: transparent;
+  }
 }
 
 .header-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px;
-    background: #f8f9fa;
-    border-radius: 8px 8px 0 0;
-    border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px 8px 0 0;
+  border-bottom: 1px solid #e0e0e0;
 }
 
 .btn-excel {
-    background-color: #1d6f42 !important; // Verde Excel oficial
-    color: white !important;
-    line-height: 40px !important;
-    padding: 0 20px !important;
-    border-radius: 6px !important;
-    transition: all 0.3s ease !important;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+  background-color: #1d6f42 !important; // Verde Excel oficial
+  color: white !important;
+  line-height: 40px !important;
+  padding: 0 20px !important;
+  border-radius: 6px !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
 
-    mat-icon {
-        margin-right: 8px;
-        vertical-align: middle;
-    }
+  mat-icon {
+    margin-right: 8px;
+    vertical-align: middle;
+  }
 
-    .record-count {
-        margin-left: 12px;
-        padding-left: 12px;
-        border-left: 1px solid rgba(255, 255, 255, 0.3);
-        font-size: 0.85em;
-        opacity: 0.9;
-    }
+  .record-count {
+    margin-left: 12px;
+    padding-left: 12px;
+    border-left: 1px solid rgba(255, 255, 255, 0.3);
+    font-size: 0.85em;
+    opacity: 0.9;
+  }
 
-    &:hover {
-        background-color: #145a35 !important;
-    }
+  &:hover {
+    background-color: #145a35 !important;
+  }
 
 }
 
 .example-container {
-    height: 400px;
-    width: 550px;
-    max-width: 100%;
-    overflow: auto;
+  height: 400px;
+  width: 550px;
+  max-width: 100%;
+  overflow: auto;
 }
 
 table {
-    width: 800px;
+  width: 800px;
 }
 
 td.mat-column-star {
-    width: 20px;
-    padding-right: 8px;
+  width: 20px;
+  padding-right: 8px;
 }
 
 th.mat-column-position,
 td.mat-column-position {
-    padding-left: 8px;
+  padding-left: 8px;
 }
 
 .mat-mdc-table-sticky-border-elem-right {
-    border-left: 1px solid #e0e0e0;
+  border-left: 1px solid #e0e0e0;
 }
 
 .mat-mdc-table-sticky-border-elem-left {
-    border-right: 1px solid #e0e0e0;
+  border-right: 1px solid #e0e0e0;
 }
 
 table {
@@ -166,4 +166,8 @@ tr.example-element-row:not(.example-expanded-row):active {
 
 .example-toggle-button-expanded {
   transform: rotate(180deg);
+}
+
+.only-mobil {
+  text-align: center;
 }
