@@ -26,8 +26,16 @@ export const authGuard: CanActivateFn = (route, state) => {
                 const rolesPermitidos = route.data['roles'] as Array<string>;
 
                 // 3. Validar
-                console.log(userRole, rolesPermitidos);
+
                 if (userRole && rolesPermitidos.includes(userRole)) {
+
+                    if (userRole == 'administrador' || userRole == 'auditor') {
+                        router.navigate(['/inventory/session']);
+
+                    } else if (userRole == 'pocket') {
+                        router.navigate(['/inventory/pocket']);
+                    }
+
                     return true; // Acceso permitido
                 } else {
                     // Redirigir al dashboard o login si no tiene permiso

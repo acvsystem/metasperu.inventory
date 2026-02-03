@@ -21,7 +21,7 @@ import { InventoryService } from '@metasperu/services/inventory.service';
 import { MatSelectModule } from '@angular/material/select';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
-
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 
 export interface PeriodicElement {
@@ -35,7 +35,7 @@ export interface PeriodicElement {
 @Component({
   selector: 'app-inventory-session',
   imports: [MatDialogModule, MatButtonModule, MatIconModule, MatInputModule, MatFormFieldModule, MatTableModule, IonCol,
-    CommonModule, FormsModule, IonContent, IonHeader, IonTitle, IonRow,
+    CommonModule, FormsModule, IonContent, IonHeader, IonTitle, IonRow, MatTooltipModule,
     IonToolbar, IonButton, MatSelectModule, MatPaginator, MatPaginatorModule, MatSortModule,
     IonCard, MtSelect, MtInput
   ],
@@ -60,14 +60,15 @@ export default class InventorySession {
   formSection: string[] = []
   inFilter: string = "";
   dataSource = new MatTableDataSource(this.sessions);
-
+  roleUser: any = "";
   constructor(private dialog: MatDialog, private store: StorageService) { }
 
   ngOnInit() {
     this.getSections();
     this.loadStores();
     this.loeadSessions();
-    
+    const userRole = localStorage.getItem('role');
+    this.roleUser = userRole;
   }
 
   showNotification() {
@@ -168,6 +169,19 @@ export default class InventorySession {
             key: (sec || {}).seccion_id, value: (sec || {}).nombre_seccion
           });
         });
+      },
+      error: (err) => {
+        this.onNotification({ error: 'error', message: err?.message });
+      }
+    })
+  }
+
+
+  onActiveSession(element: any) {
+    this.inventoryService.putStartSession(element?.codigo_sesion).subscribe({
+      next: (data) => {
+        this.loeadSessions();
+        this.onNotification({ message: data?.message });
       },
       error: (err) => {
         this.onNotification({ error: 'error', message: err?.message });

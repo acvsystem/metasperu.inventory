@@ -19,13 +19,15 @@ import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MtInput } from '@metasperu/component/mt-input/mt-input';
 import * as XLSX from 'xlsx';
 import { MatIconModule } from '@angular/material/icon';
+import { Statistics } from '../dashboard/component/statistics/statistics';
+import { MatSidenavModule } from '@angular/material/sidenav';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
   imports: [
-    CommonModule, RouterModule, View2Inventario, MatTabsModule,
-    IonHeader, IonToolbar, IonTitle, IonContent, IonGrid, IonRow,
+    CommonModule, RouterModule, View2Inventario, MatTabsModule, Statistics,
+    IonHeader, IonToolbar, IonTitle, IonContent, IonGrid, IonRow, MatSidenavModule,
     IonCol, IonCard, IonLabel, IonListHeader, MatIconModule,
     IonButtons, IonButton, IonIcon, IonChip, IonCardContent, MatTableModule,
     MatPaginator, MatPaginatorModule, MatSortModule, MtInput
@@ -67,6 +69,7 @@ export default class DashboardComponent implements OnInit {
     // Efecto reactivo: Cuando el socket reciba una actualización, refrescamos los datos
     effect(() => {
       const notification = this.socketService.syncNotification();
+      console.log(notification);
       this.asignedSections();
       if (notification) {
         // 1. Recargamos la tabla principal para ver los nuevos totales
@@ -77,6 +80,7 @@ export default class DashboardComponent implements OnInit {
       }
 
       this.dataInventario = this.socketService.syncInventarioStore();
+      console.log(this.dataInventario);
     });
   }
 
@@ -128,8 +132,6 @@ export default class DashboardComponent implements OnInit {
             objReturn[`${((section.nombre_seccion)).replace(" ", "_").toLowerCase()}`] = seccionObj.nombre_seccion == section.nombre_seccion ? item.total_cantidad : 0;
           });
 
-
-
           return objReturn;
         }).reverse();
 
@@ -143,7 +145,7 @@ export default class DashboardComponent implements OnInit {
         this.isLoading.set(false);
       },
       error: (err) => {
-        console.error('Error cargando resumen:', err);
+
         this.isLoading.set(false);
       }
     });
@@ -168,8 +170,10 @@ export default class DashboardComponent implements OnInit {
   }
 
   private closeSession() {
-    this.presentToast('Sesión de inventario cerrada correctamente.');
-    this.router.navigate(['/admin/sessions']);
+    this.invService.putEndedSession(this.sessionCode).subscribe(() => {
+      this.presentToast('Sesión de inventario cerrada correctamente.');
+      this.router.navigate(['/inventory/session']);
+    });
   }
 
   private async presentToast(message: string) {

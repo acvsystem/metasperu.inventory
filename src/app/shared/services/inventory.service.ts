@@ -28,7 +28,7 @@ export interface Store {
 export class InventoryService {
     @Output() onNotification: EventEmitter<any> = new EventEmitter();
     @Output() onMenu: EventEmitter<any> = new EventEmitter();
-    
+
     private http = inject(HttpClient);
 
     // Cambia esta URL según tu entorno de desarrollo/producción
@@ -180,6 +180,28 @@ export class InventoryService {
     getAssignedSections(sessionCode: string): Observable<any> {
         return this.http.get(
             `${this.API_URL}/section/assigned/${sessionCode}`
+        ).pipe(
+            catchError(this.handleError)
+        );
+    }
+
+    putEndedSession(codeSession: string): Observable<any> {
+        return this.http.put(
+            `${this.API_URL}/ended-session`,
+            {
+                codeSession: codeSession
+            }
+        ).pipe(
+            catchError(this.handleError)
+        );
+    }
+
+    putStartSession(codeSession: string): Observable<any> {
+        return this.http.put(
+            `${this.API_URL}/estart-session`,
+            {
+                codeSession: codeSession
+            }
         ).pipe(
             catchError(this.handleError)
         );
