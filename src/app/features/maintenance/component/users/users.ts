@@ -80,7 +80,6 @@ export class Users {
     dialogRef.afterClosed().subscribe({
 
       next: (result) => {
-        console.log(result);
         if (result) {
           const index = this.dataSource.data.findIndex(s => s.id === user.id);
           if (index !== -1) {

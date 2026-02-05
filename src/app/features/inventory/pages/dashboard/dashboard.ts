@@ -69,7 +69,7 @@ export default class DashboardComponent implements OnInit {
     // Efecto reactivo: Cuando el socket reciba una actualización, refrescamos los datos
     effect(() => {
       const notification = this.socketService.syncNotification();
-      console.log(notification);
+    
       this.asignedSections();
       if (notification) {
         // 1. Recargamos la tabla principal para ver los nuevos totales
@@ -80,7 +80,6 @@ export default class DashboardComponent implements OnInit {
       }
 
       this.dataInventario = this.socketService.syncInventarioStore();
-      console.log(this.dataInventario);
     });
   }
 

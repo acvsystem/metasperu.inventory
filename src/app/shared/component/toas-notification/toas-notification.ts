@@ -25,7 +25,6 @@ export class ToasNotification {
 
   ngOnInit() {
     this.service.onNotification.subscribe((configuration) => {
-      console.log(configuration);
       this.configurationList = [];
       this.isTimeClose = false;
       this.configurationList = configuration;

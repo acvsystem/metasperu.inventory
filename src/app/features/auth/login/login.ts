@@ -36,8 +36,6 @@ export default class LoginPage {
   constructor() {
     // 3. REGISTRAR LOS ICONOS QUE USASTE
     addIcons({ eyeOutline, eyeOffOutline });
-
-    console.log("LOGIN");
   }
 
   togglePassword() {

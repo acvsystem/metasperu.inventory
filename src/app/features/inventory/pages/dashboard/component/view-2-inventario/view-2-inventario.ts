@@ -94,7 +94,6 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
   }
 
   private initializeTable(data: any[]) {
-    console.log(data);
     const formattedData = data.map(item => {
       const stock = Number(item.cStock) || 0;
       const conteo = Number(item.cConteo) || 0;
@@ -116,7 +115,6 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
   }
 
   private updateSingleRecord(pocketScans: any[]) {
-    console.log(pocketScans);
     const data = [...this.dataSource.data];
     let cambioDetectado = false;
 
@@ -147,6 +145,27 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
             data[index][`${((section.nombre_seccion)).replace(" ", "_").toLowerCase()}`] = defaultValue;
 
           }
+        });
+      } else {
+        cambioDetectado = true;
+        data.push({
+          CTotalStock: 0,
+          cCodigoArticulo: 0,
+          cCodigoBarra: scan.sku,
+          cCodigoTienda: this.dataSource.data[0]['cCodigoTienda'],
+          cColor: "",
+          cConteo: 1,
+          cDepartamento: "",
+          cDescripcion: "",
+          cFamilia: "",
+          cReferencia: "",
+          cSeccion: "",
+          cSessionCode: scan.session_code,
+          cStock: 0,
+          cSubFamilia: "",
+          cTalla: "",
+          cTemporada: "",
+          cTotalConteo: 0
         });
       }
     });
