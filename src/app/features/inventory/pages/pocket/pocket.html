@@ -38,7 +38,7 @@
             </ion-col>
             <ion-col sizeXs="4" sizeSm="4" sizeMd="2" sizeLg="2">
               @if(OptionTypeScan == 'cantidad'){
-              <mt-input type="number" (afterChange)="onChangeInput($event)" label="Cantidad"
+              <mt-input type="number" (afterChange)="onChangeInput($event)" label="Cantidad" [autoText]="inCantidad"
                 placeholder="Cantidad"></mt-input>
               }
             </ion-col>

@@ -53,6 +53,8 @@ export default class DashboardComponent implements OnInit {
   pocketScan: any;
   inFilter: string = "";
   products = signal<any[]>([]);
+  totalSkusCount = signal<number>(0);
+  uniqueSkusCount = signal<number>(0);
   isLoading = signal(false);
   dataInventario: Array<any> = [];
   arAsignatedSections: Array<any> = [];
@@ -114,9 +116,14 @@ export default class DashboardComponent implements OnInit {
     this.invService.getSessionSummary(this.sessionCode).subscribe({
       next: (res) => {
         const products = res.products;
+        const uniqueSkusSet = new Set<string>();
 
         const formattedData = products.map((item: any) => {
           const seccionObj = this.arAsignatedSections.find(s => s.id === item.seccion_id);
+
+          if (item.sku) {
+            uniqueSkusSet.add(item.sku);
+          }
 
           const objReturn: Record<string, any> = {
             seccion_id: item.seccion_id,
@@ -134,6 +141,9 @@ export default class DashboardComponent implements OnInit {
 
           return objReturn;
         }).reverse();
+
+        this.totalSkusCount.set(products.length); // Total de registros
+        this.uniqueSkusCount.set(uniqueSkusSet.size); // SKUs sin repetir
 
         this.pocketScan = formattedData;
         this.products.set(formattedData);

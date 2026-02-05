@@ -64,11 +64,13 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
   }
 
   ngAfterViewInit() {
+   
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
   }
 
   ngOnChanges(changes: SimpleChanges) {
+     console.log(this.onDataView);
     if (changes['onDataView'] && changes['onDataView'].currentValue) {
       this.initializeTable(changes['onDataView'].currentValue);
     }
