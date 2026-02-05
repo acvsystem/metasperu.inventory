@@ -21,6 +21,7 @@ import * as XLSX from 'xlsx';
 import { MatIconModule } from '@angular/material/icon';
 import { Statistics } from '../dashboard/component/statistics/statistics';
 import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-dashboard',
@@ -28,7 +29,7 @@ import { MatSidenavModule } from '@angular/material/sidenav';
   imports: [
     CommonModule, RouterModule, View2Inventario, MatTabsModule, Statistics,
     IonHeader, IonToolbar, IonTitle, IonContent, IonGrid, IonRow, MatSidenavModule,
-    IonCol, IonCard, IonLabel, IonListHeader, MatIconModule,
+    IonCol, IonCard, IonLabel, IonListHeader, MatIconModule, MatTooltipModule,
     IonButtons, IonButton, IonIcon, IonChip, IonCardContent, MatTableModule,
     MatPaginator, MatPaginatorModule, MatSortModule, MtInput
   ],
@@ -69,7 +70,7 @@ export default class DashboardComponent implements OnInit {
     // Efecto reactivo: Cuando el socket reciba una actualización, refrescamos los datos
     effect(() => {
       const notification = this.socketService.syncNotification();
-    
+
       this.asignedSections();
       if (notification) {
         // 1. Recargamos la tabla principal para ver los nuevos totales

@@ -62,11 +62,13 @@
           <div class="table-container ion-margin-top">
             <ion-list-header>
               <ion-label>Detalle de Conteo por Producto</ion-label>
-              <button (click)="loadData()" type="button" class="btn btn-primary btn-sm" style="margin-right: 10px;">
+              <button (click)="loadData()" matTooltip="Sincronizar" type="button" class="btn btn-primary btn-sm"
+                style="margin-right: 10px;">
                 <ion-icon name="refresh-outline"></ion-icon>
               </button>
 
-              <button (click)="drawer.toggle()" type="button" class="btn btn-primary btn-sm" style="margin-right: 10px;">
+              <button (click)="drawer.toggle()" matTooltip="Estadisticas" type="button" class="btn btn-primary btn-sm"
+                style="margin-right: 10px;">
                 <i class="fa fa-bar-chart" aria-hidden="true"></i>
               </button>
 
