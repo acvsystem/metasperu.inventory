@@ -28,7 +28,8 @@ export class MtSelect {
   @Input() label: string = "";
   @Input() title: string = "";
   @Input() modalUser: string = "";
-
+  isAllSelected = false;
+  isIndeterminate = false;
   selectedStoreId = ''; // Almacena el ID seleccionado
   optionSelected = {};
   filteredData: any[] = [];
@@ -70,8 +71,8 @@ export class MtSelect {
       this.toggleSelection(tienda);
     } else {
       console.log(tienda);
-      this.selectedText = '';
-      this.onSelectedOption({ detail: { value: tienda } }); // Tu función original
+      this.selectedText = tienda.value;
+      this.onSelectedOption(tienda); // Tu función original
       this.isModalOpen = false;
     }
   }
@@ -91,17 +92,17 @@ export class MtSelect {
   }
 
   onSelectedOption(ev: any) {
-    let selected = ev.value;
+    let selected = ev;
     this.optionSelected = {
       key: (selected || {}).key,
       value: (selected || {}).value
     };
-    this.selectedText = selected;
+    this.selectedText = (selected || {}).value;
     this.selectdOption.emit(this.optionSelected);
   }
 
   onSelectedOptionMultiple(event: any) {
-    let misSeleccionados = event.value;
+    let misSeleccionados = event;
     this.selectdOption.emit(misSeleccionados);
   }
 
@@ -123,8 +124,34 @@ export class MtSelect {
     item.selected = event.detail.checked;
   }
 
+  toggleSelectAll() {
+    this.isAllSelected = !this.isAllSelected;
+
+    // Aplicamos el cambio a toda la lista (basado en lo que está filtrado o en todo)
+    this.filteredData.forEach(item => item.selected = this.isAllSelected);
+
+    this.checkMasterState();
+  }
+
   toggleItem(item: any) {
     item.selected = !item.selected;
+    this.checkMasterState();
+  }
+
+  checkMasterState() {
+    const totalItems = this.filteredData.length;
+    const selectedItems = this.filteredData.filter(i => i.selected).length;
+
+    if (selectedItems > 0 && selectedItems < totalItems) {
+      this.isIndeterminate = true;
+      this.isAllSelected = false;
+    } else if (selectedItems === totalItems && totalItems > 0) {
+      this.isIndeterminate = false;
+      this.isAllSelected = true;
+    } else {
+      this.isIndeterminate = false;
+      this.isAllSelected = false;
+    }
   }
 
   // Al dar OK, procesamos los seleccionados

@@ -19,7 +19,7 @@
                     title="Sucursales"></mt-select>
             </ion-col>
             <ion-col sizeXs="12" sizeSm="12" sizeMd="2" sizeLg="2">
-                <ion-button (click)="startInventory()" [disabled]="!selectedStoreId || isLoading()"
+                <ion-button (click)="startInventory()" [disabled]="!selectedStoreId || isLoading() || !sectionsSelected.length"
                     style="width: 100%;">
                     <i class="fa fa-qrcode" aria-hidden="true" style="padding-right: 5px; font-weight: 100;"></i>
                     {{ isLoading() ? 'Generando...' : 'Generar Codigo' }}

@@ -23,6 +23,16 @@
 
             <div class="dialog-body">
                 <ion-list lines="none">
+                    @if(isMultiselect){
+                    <ion-item class="selectable-item select-all-item" (click)="toggleSelectAll()">
+                        <ion-checkbox slot="start" [checked]="isAllSelected" [indeterminate]="isIndeterminate"
+                            mode="md">
+                        </ion-checkbox>
+                        <ion-label><strong>SELECCIONAR TODOS</strong></ion-label>
+                    </ion-item>
+                    }
+
+                    <div class="separator"></div>
                     @for (item of filteredData; track item.value) {
 
                     @if(isMultiselect){
@@ -31,7 +41,7 @@
                         <ion-label>{{ item.value }}</ion-label>
                     </ion-item>
                     }@else{
-                    <ion-item (click)="onSelectedOption(item)" class="selectable-item notMultiselect">
+                    <ion-item (click)="selectItem(item)" class="selectable-item notMultiselect">
                         <ion-label>{{ item.value }}</ion-label>
                     </ion-item>
                     }

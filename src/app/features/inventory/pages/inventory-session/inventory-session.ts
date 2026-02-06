@@ -154,11 +154,13 @@ export default class InventorySession {
   }
 
   async onChangeSelect(data: any) {
+    console.log(data);
     let selectData = data || {};
     this.selectedStoreId = (selectData || {}).key || "";
   }
 
   async onChangeSelectMultiple(data: any) {
+    console.log(data);
     let selectData = data || {};
     selectData?.filter((selected: any) => {
       this.sectionsSelected.push({ seccion_id: selected?.key, nombre_seccion: selected?.value });
@@ -179,6 +181,7 @@ export default class InventorySession {
         this.store.setStore("codeSession", res.session_code);
         this.store.setStore("serieStore", store!.serie);
         this.isLoading.set(false);
+        this.loeadSessions();
         this.showNotification();
       },
       error: (err) => { this.isLoading.set(false); }
