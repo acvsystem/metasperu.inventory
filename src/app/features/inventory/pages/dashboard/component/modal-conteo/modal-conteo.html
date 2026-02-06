@@ -1,0 +1,14 @@
+<h2 mat-dialog-title>{{data.title}}</h2>
+<mat-dialog-content>
+    <mt-input 
+        (afterChange)="onChangeInput($event)" 
+        [autoText]="data.nombre_seccion" 
+        label="Cantidad"
+        placeholder="Cantidad">
+    </mt-input>
+
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+    <button type="button" class="btn btn-light btn-sm" style="margin-right: 10px;" (click)="onNoClick()">Cancelar</button>
+    <button type="button" class="btn btn-primary btn-sm" [mat-dialog-close]="data">Guardar</button>
+</mat-dialog-actions>

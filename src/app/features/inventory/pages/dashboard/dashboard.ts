@@ -22,6 +22,18 @@ import { MatIconModule } from '@angular/material/icon';
 import { Statistics } from '../dashboard/component/statistics/statistics';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatMenu } from '@angular/material/menu';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatDialog } from '@angular/material/dialog';
+import { ModalConteo } from './component/modal-conteo/modal-conteo';
+
+export interface tableColumns {
+  matColumnDef: string;
+  titleColumn: string;
+  propertyValue: string;
+  filterActive?: boolean;
+  id?: number;
+}
 
 @Component({
   selector: 'app-dashboard',
@@ -31,7 +43,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     IonHeader, IonToolbar, IonTitle, IonContent, IonGrid, IonRow, MatSidenavModule,
     IonCol, IonCard, IonLabel, IonListHeader, MatIconModule, MatTooltipModule,
     IonButtons, IonButton, IonIcon, IonChip, IonCardContent, MatTableModule,
-    MatPaginator, MatPaginatorModule, MatSortModule, MtInput
+    MatPaginator, MatPaginatorModule, MatSortModule, MtInput, MatMenu, MatMenuModule
   ],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss'
@@ -59,12 +71,20 @@ export default class DashboardComponent implements OnInit {
   dataInventario: Array<any> = [];
   arAsignatedSections: Array<any> = [];
   dataSource = new MatTableDataSource(this.products());
-  displayedColumns: string[] = ['sku', 'usuario', 'seccion', 'cantidad',];
+  filterValues: any = {};
+  displayedColumns = ['sku', 'usuario', 'seccion', 'cantidad', 'accion'];
+  dataColumns: tableColumns[] = [
+    { matColumnDef: 'sku', titleColumn: 'Sku', propertyValue: 'sku', filterActive: false, id: 0 },
+    { matColumnDef: 'usuario', titleColumn: 'Usuario', propertyValue: 'user', filterActive: false, id: 0 },
+    { matColumnDef: 'seccion', titleColumn: 'Seccion', propertyValue: 'section_name', filterActive: false, id: 0 },
+    { matColumnDef: 'cantidad', titleColumn: 'Cantidad', propertyValue: 'total_cantidad', filterActive: false, id: 0 },
+    { matColumnDef: 'accion', titleColumn: 'Accion', propertyValue: '', filterActive: false, id: 0 }];
+
   totalUnidades = computed(() =>
     this.products().reduce((acc, curr) => acc + Number(curr.total_cantidad), 0)
   );
 
-  constructor() {
+  constructor(public dialog: MatDialog) {
 
     // Registrar iconos de Ionic
     addIcons({ radioOutline, cubeOutline, barcodeOutline, refreshOutline, checkmarkDoneCircle, hourglassOutline });
@@ -105,6 +125,15 @@ export default class DashboardComponent implements OnInit {
       },
       error: (err) => { console.log(err); }
     });
+
+    this.dataSource.filterPredicate = (data: any, filter: string) => {
+      const searchTerms = JSON.parse(filter);
+
+      return Object.keys(searchTerms).every(columnKey => {
+        const cellValue = data[columnKey]?.toString().toLowerCase() || '';
+        return cellValue.includes(searchTerms[columnKey]);
+      });
+    };
   }
 
   /**
@@ -126,6 +155,7 @@ export default class DashboardComponent implements OnInit {
           }
 
           const objReturn: Record<string, any> = {
+            id: item.id,
             seccion_id: item.seccion_id,
             sku: item.sku,
             user: item.usuario,
@@ -186,6 +216,33 @@ export default class DashboardComponent implements OnInit {
     });
   }
 
+  editarConteo(conteo: any) {
+    const dialogRef = this.dialog.open(ModalConteo, {
+      width: '350px',
+      data: { ...conteo, title: 'Editar Conteo' }
+    });
+
+    dialogRef.afterClosed().subscribe({
+
+      next: (result) => {
+        if (result) {
+          this.invService.putPocketScan({ id: result.id, cantidad: result.cantidad }).subscribe({
+            next: (value) => {
+              this.loadData();
+              this.onNotification(value);
+            },
+            error: (err) => {
+              this.onNotification({ error: 'error', message: err?.message });
+            },
+          });
+        }
+      },
+      error: (err) => {
+        this.onNotification({ error: 'error', message: err?.message });
+      }
+    });
+  }
+
   private async presentToast(message: string) {
     const toast = await this.toastCtrl.create({
       message,
@@ -215,6 +272,15 @@ export default class DashboardComponent implements OnInit {
     this.dataSource.filter = filterValue.trim().toLowerCase();
   }
 
+  applyFilterTable(event: Event, column: string) {
+    const filterValue = (event.target as HTMLInputElement).value;
+
+    const property: any = this.dataColumns.find((t) => t.matColumnDef == column);
+    const indexHeader: any = this.dataColumns.findIndex((t) => t.matColumnDef == column);
+    this.dataColumns[indexHeader]['filterActive'] = filterValue.length ? true : false;
+    this.filterValues[property?.propertyValue] = filterValue.trim().toLowerCase();
+    this.dataSource.filter = JSON.stringify(this.filterValues);
+  }
 
   private onNotification(result: any) {
     let notificationList = [{

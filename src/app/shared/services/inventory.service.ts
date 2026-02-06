@@ -22,6 +22,11 @@ export interface Store {
     nombre_tienda: string;
 }
 
+export interface pocketScan {
+    id: number;
+    cantidad: number;
+}
+
 @Injectable({
     providedIn: 'root'
 })
@@ -202,6 +207,14 @@ export class InventoryService {
             {
                 codeSession: codeSession
             }
+        ).pipe(
+            catchError(this.handleError)
+        );
+    }
+
+    putPocketScan(data: pocketScan): Observable<any> {
+        return this.http.put(
+            `${this.API_URL}/pocket/scan`, data
         ).pipe(
             catchError(this.handleError)
         );

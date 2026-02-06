@@ -80,3 +80,52 @@
   width: 60% !important;
   border-radius: 0px !important;
 }
+
+
+
+.head-table {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  .filter-content {
+    width: 100%;
+    display: flex;
+    justify-content: end;
+  }
+
+  .btn-filter {
+    cursor: pointer;
+    border-radius: 4px;
+    padding-right: 3px;
+    padding-left: 3px;
+  }
+
+  .btn-filter:hover {
+    background: #e7e7e7 !important;
+  }
+
+}
+
+.sku-text {
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.qty-badge {
+  font-size: 1rem;
+  padding: 6px 12px;
+}
+
+.text-muted {
+  color: var(--ion-color-medium);
+}
+
+// Ocultar cabecera en móviles
+@media (max-width: 576px) {
+  .hide-sm {
+    display: none;
+  }
+}
+

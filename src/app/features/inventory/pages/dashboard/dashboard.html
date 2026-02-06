@@ -79,41 +79,75 @@
               </button>
             </ion-list-header>
             <ion-row>
-              <ion-col sizeXs="12" sizeSm="12" sizeMd="2" sizeLg="2">
-                <mt-input (afterChange)="applyFilter($event)" label="Filtro" placeholder="Filtro"></mt-input>
-              </ion-col>
-            </ion-row>
-            <ion-row>
               <ion-col sizeXs="12" sizeSm="12" sizeMd="12" sizeLg="12">
                 <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
-                  <!-- Position Column -->
-                  <ng-container matColumnDef="sku" sticky>
-                    <th mat-header-cell *matHeaderCellDef> Codigo barra </th>
-                    <td mat-cell *matCellDef="let element"> {{element.sku}} </td>
-                  </ng-container>
+                  @for(col of dataColumns; track col){
+                  @if(col.matColumnDef == 'sku'){
+                  <ng-container matColumnDef="{{col.matColumnDef}}" sticky>
+                    <th mat-header-cell *matHeaderCellDef>
+                      <div class="head-table">
+                        {{col.titleColumn}}
+                        <div class="filter-content" slot="end">
 
-                  <!-- Symbol Column -->
-                  <ng-container matColumnDef="usuario">
-                    <th mat-header-cell *matHeaderCellDef> Usuario </th>
+                          <div class="btn-filter" [matMenuTriggerFor]="filterMenu">
+                            @if(col.filterActive){
+                            <div matBadge="1" matBadgeSize="small" style="width: 2px;"></div>
+                            }
+                            <i class="fa fa-filter" aria-hidden="true"></i>
+                          </div>
+
+                        </div>
+                      </div>
+                      <mat-menu #filterMenu="matMenu">
+                        <mt-input id="filterTienda" (click)="$event.stopPropagation()"
+                          (keydown)="$event.stopPropagation()" label="Filtro {{col.titleColumn}}"
+                          placeholder="Nombre {{col.titleColumn}}" type="text"
+                          (keyup)="applyFilterTable($event,col.matColumnDef)"></mt-input>
+                      </mat-menu>
+                    </th>
+                    <td mat-cell *matCellDef="let element">{{element[col.propertyValue]}}</td>
+                  </ng-container>
+                  }@else{
+                  <ng-container matColumnDef="{{col.matColumnDef}}">
+                    <th mat-header-cell *matHeaderCellDef>
+                      @if(col.matColumnDef != 'accion'){
+                      <div class="head-table">
+                        {{col.titleColumn}}
+                        <div class="filter-content" slot="end">
+
+                          <div class="btn-filter" [matMenuTriggerFor]="filterMenu">
+                            @if(col.filterActive){
+                            <div matBadge="1" matBadgeSize="small" style="width: 2px;"></div>
+                            }
+                            <i class="fa fa-filter" aria-hidden="true"></i>
+                          </div>
+
+                        </div>
+                      </div>
+                      <mat-menu #filterMenu="matMenu">
+                        <mt-input id="filterTienda" (click)="$event.stopPropagation()"
+                          (keydown)="$event.stopPropagation()" label="Filtro {{col.titleColumn}}"
+                          placeholder="Nombre {{col.titleColumn}}" type="text"
+                          (keyup)="applyFilterTable($event,col.matColumnDef)"></mt-input>
+                      </mat-menu>
+                      }@else{
+                        {{col.titleColumn}}
+                      }
+
+                    </th>
                     <td mat-cell *matCellDef="let element">
-                      <h6 style="margin: 0;"><span class="badge bg-primary"
-                          style="font-weight: 400;">{{element.user}}</span></h6>
+                      @if(col.matColumnDef == 'accion'){
+                      <button matTooltip="Ver Session" type="button" (click)="editarConteo(element)"
+                        class="btn btn-primary btn-sm">
+                        <i class="fa fa-pencil-square-o" aria-hidden="true"></i>
+                      </button>
+                      }@else{
+                      {{element[col.propertyValue]}}
+                      }
                     </td>
                   </ng-container>
-
-                  <!-- Symbol Column -->
-                  <ng-container matColumnDef="seccion">
-                    <th mat-header-cell *matHeaderCellDef> Seccion </th>
-                    <td mat-cell *matCellDef="let element"> {{element.section_name}} </td>
-                  </ng-container>
-
-                  <!-- Weight Column -->
-                  <ng-container matColumnDef="cantidad">
-                    <th mat-header-cell *matHeaderCellDef> Conteo </th>
-                    <td mat-cell *matCellDef="let element">
-                      <h6 style="margin: 0;"><span class="badge bg-primary">{{element.total_cantidad}}</span></h6>
-                    </td>
-                  </ng-container>
+                  }
+                  }
 
                   <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
                   <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
