@@ -22,7 +22,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTooltipModule } from '@angular/material/tooltip';
-
+import { MatMenu } from '@angular/material/menu';
+import { MatMenuModule } from '@angular/material/menu';
 
 export interface PeriodicElement {
   codigo_sesion: string;
@@ -32,12 +33,19 @@ export interface PeriodicElement {
   estado: string;
 }
 
+export interface tableColumns {
+  matColumnDef: string;
+  titleColumn: string;
+  propertyValue: string;
+  filterActive?: boolean;
+}
+
 @Component({
   selector: 'app-inventory-session',
   imports: [MatDialogModule, MatButtonModule, MatIconModule, MatInputModule, MatFormFieldModule, MatTableModule, IonCol,
     CommonModule, FormsModule, IonContent, IonHeader, IonTitle, IonRow, MatTooltipModule,
     IonToolbar, IonButton, MatSelectModule, MatPaginator, MatPaginatorModule, MatSortModule,
-    IonCard, MtSelect, MtInput
+    IonCard, MtSelect, MtInput, MatMenu, MatMenuModule
   ],
   templateUrl: './inventory-session.html',
   styleUrl: './inventory-session.scss',
@@ -54,6 +62,14 @@ export default class InventorySession {
   stores: Array<any> = []; // Signal para la lista de tiendas
   selectedStoreId = ''; // Almacena el ID seleccionado
   displayedColumns: string[] = ['codigo_sesion', 'nombre_tienda', 'usuario', 'fecha_inicio', 'estado', 'accion'];
+  dataColumns: tableColumns[] = [
+    { matColumnDef: 'codigo_sesion', titleColumn: 'Codigo Sesion', propertyValue: 'codigo_sesion', filterActive: false },
+    { matColumnDef: 'nombre_tienda', titleColumn: 'Tienda', propertyValue: 'nombre_tienda', filterActive: false },
+    { matColumnDef: 'usuario', titleColumn: 'Creado por', propertyValue: 'usuario', filterActive: false },
+    { matColumnDef: 'fecha_inicio', titleColumn: 'Fecha inicio', propertyValue: 'fecha_inicio', filterActive: false },
+    { matColumnDef: 'estado', titleColumn: 'Estado', propertyValue: 'estado', filterActive: false },
+    { matColumnDef: 'accion', titleColumn: 'Accion', propertyValue: '', filterActive: false }];
+  filterValues: any = {};
   sessions: Array<any> = [];
   arSections: Array<any> = [];
   sectionsSelected: Array<any> = [];
@@ -69,6 +85,35 @@ export default class InventorySession {
     this.loeadSessions();
     const userRole = localStorage.getItem('role');
     this.roleUser = userRole;
+
+    this.dataSource.filterPredicate = (data: any, filter: string) => {
+      const searchTerms = JSON.parse(filter);
+
+      return Object.keys(searchTerms).every(columnKey => {
+        const cellValue = data[columnKey]?.toString().toLowerCase() || '';
+        return cellValue.includes(searchTerms[columnKey]);
+      });
+    };
+  }
+
+  applyFilterTable(event: Event, column: string) {
+    const filterValue = (event.target as HTMLInputElement).value;
+
+    const property: any = this.dataColumns.find((t) => t.matColumnDef == column);
+    const indexHeader: any = this.dataColumns.findIndex((t) => t.matColumnDef == column);
+    this.dataColumns[indexHeader]['filterActive'] = filterValue.length ? true : false;
+    this.filterValues[property?.propertyValue] = filterValue.trim().toLowerCase();
+    
+    this.dataSource.filter = JSON.stringify(this.filterValues);
+
+        this.dataSource.filterPredicate = (data: any, filter: string) => {
+      const searchTerms = JSON.parse(filter);
+      
+      return Object.keys(searchTerms).every(columnKey => {
+        const cellValue = data[columnKey]?.toString().toLowerCase() || '';
+        return cellValue.includes(searchTerms[columnKey]);
+      });
+    };
   }
 
   showNotification() {

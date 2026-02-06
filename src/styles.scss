@@ -105,9 +105,19 @@ body.barcode-scanner-active {
   display: inline-table !important;
 }
 
+.custom-dialog-modal.mt-select {
+  --width: 400px !important;
+}
+
+
+
 @media (max-width:500px) {
   .only-mobil {
     display: block !important;
+  }
+
+  .custom-dialog-modal.mt-select {
+    --width: 90% !important;
   }
 
   .only-desktop {
@@ -255,6 +265,75 @@ ion-alert {
   z-index: 9999 !important;
 }
 
-body > ion-alert {
+body>ion-alert {
   z-index: 99999 !important;
+}
+
+/* Centrar el modal y darle tamaño de diálogo */
+.custom-alert-modal {
+  --width: 90%;
+  --height: fit-content;
+  --max-height: 80%;
+  --border-radius: 4px;
+}
+
+.modal-main-container {
+  display: flex;
+  flex-direction: column;
+  background: white;
+}
+
+.modal-title {
+  padding: 20px 20px 10px 20px;
+  margin: 0;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.filter-searchbar {
+  padding: 0 10px;
+  --box-shadow: none;
+  --background: #f2f2f2;
+}
+
+.modal-body {
+  max-height: 400px;
+  /* Ajusta según necesites */
+}
+
+.item-checkbox {
+  --padding-start: 10px;
+  font-size: 14px;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 8px;
+}
+
+.modal-footer ion-button {
+  --color: #1a73e8;
+  /* Azul profesional */
+  font-weight: bold;
+}
+
+/* Estilo para el contenedor gris del filtro */
+::ng-deep .filter-menu-panel {
+  background-color: #eeeeee !important;
+  /* Gris claro de la imagen */
+  border-radius: 8px !important;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1) !important;
+  padding: 12px !important;
+  min-width: 250px !important;
+}
+
+/* El input blanco interno */
+.filter-container input {
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 8px;
+  width: 100%;
+  outline: none;
 }

@@ -1,31 +1,50 @@
 <ion-row>
-    <ion-col>
-        <div class="selector-container">
-            <ion-item lines="none" class="custom-item">
-                @if(isMultiselect){
-                <ion-select [multiple]="true" label-placement="stacked" interface="alert"
-                    [interfaceOptions]="customAlertOptions" toggleIcon="chevron-down-outline" placeholder="{{label}}"
-                    (ionChange)="onSelectedOptionMultiple($event)">
-
-                    @for (tienda of data; track tienda.value) {
-                    <ion-select-option [value]="tienda">
-                        {{ tienda.value }}
-                    </ion-select-option>
-                    }
-                </ion-select>
-                }@else{
-                <ion-select class="modalUser" label-placement="stacked" interface="alert" [interfaceOptions]="customAlertOptions" 
-                    toggleIcon="chevron-down-outline" placeholder="{{label}}" (ionChange)="onSelectedOption($event)">
-
-                    @for (tienda of data; track tienda.value) {
-                    <ion-select-option [value]="tienda">
-                        {{ tienda.value }}
-                    </ion-select-option>
-                    }
-                </ion-select>
-                }
-
-            </ion-item>
+    <ion-col size="12">
+        <div class="custom-item " (click)="openStoreModal()">
+            <div class="selector-content" style="padding-left: 10px">
+                <span class="selector-label" style="font-weight: 300;color: #1e1e1e;">{{ label }}</span><br>
+                <span class="selector-value" style="color: black;">
+                    {{ selectedText || 'Seleccione items'}}
+                </span>
+            </div>
         </div>
     </ion-col>
 </ion-row>
+
+<ion-modal [isOpen]="isModalOpen" class="custom-dialog-modal mt-select" (didDismiss)="isModalOpen = false">
+    <ng-template>
+        <div class="dialog-container">
+            <div class="dialog-header">
+                <h2>{{ label }}</h2>
+                <ion-searchbar placeholder="Filtrar..." (ionInput)="handleFilter($event)" mode="md"
+                    class="custom-searchbar">
+                </ion-searchbar>
+            </div>
+
+            <div class="dialog-body">
+                <ion-list lines="none">
+                    @for (item of filteredData; track item.value) {
+
+                    @if(isMultiselect){
+                    <ion-item (click)="toggleItem(item)" class="selectable-item">
+                        <ion-checkbox slot="start" [checked]="item.selected" mode="md"></ion-checkbox>
+                        <ion-label>{{ item.value }}</ion-label>
+                    </ion-item>
+                    }@else{
+                    <ion-item (click)="onSelectedOption(item)" class="selectable-item notMultiselect">
+                        <ion-label>{{ item.value }}</ion-label>
+                    </ion-item>
+                    }
+                    } @empty {
+                    <div class="no-results">No se encontraron resultados</div>
+                    }
+                </ion-list>
+            </div>
+
+            <div class="dialog-footer">
+                <ion-button fill="clear" color="medium" (click)="isModalOpen = false">CANCELAR</ion-button>
+                <ion-button fill="clear" color="primary" (click)="confirmSelection()">ACEPTAR</ion-button>
+            </div>
+        </div>
+    </ng-template>
+</ion-modal>

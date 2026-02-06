@@ -4,14 +4,19 @@ import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatTableModule } from '@angular/material/table';
-import { IonCol, IonContent, IonItem, IonLabel, IonRow, IonSelect, IonSelectOption } from '@ionic/angular/standalone';
+import {
+  IonCol, IonIcon, IonSearchbar,
+  IonItem, IonLabel, IonRow, IonSelect,
+  IonSelectOption, IonList, IonContent, IonModal,
+  IonToolbar, IonButton, IonButtons, IonTitle, IonHeader, IonCheckbox
+} from '@ionic/angular/standalone';
 
 @Component({
   selector: 'mt-select',
   standalone: true,
   imports: [
-    MatInputModule, MatFormFieldModule, FormsModule, CommonModule,
-    IonCol, IonRow, IonSelect, IonSelectOption, IonItem
+    MatInputModule, MatFormFieldModule, FormsModule, CommonModule, IonIcon, IonList, IonToolbar, IonButtons, IonTitle, IonCheckbox,
+    IonCol, IonRow, IonSelect, IonSelectOption, IonItem, IonSearchbar, IonLabel, IonContent, IonButton, IonHeader, IonModal
   ],
   templateUrl: './mt-select.html',
   styleUrl: './mt-select.scss',
@@ -26,7 +31,10 @@ export class MtSelect {
 
   selectedStoreId = ''; // Almacena el ID seleccionado
   optionSelected = {};
-
+  filteredData: any[] = [];
+  isModalOpen = false;
+  selectedText = '';
+  selectedValues: any[] = [];
   customAlertOptions = {
     header: this.title,
     cssClass: 'custom-alert-inventory',
@@ -46,22 +54,99 @@ export class MtSelect {
   };
 
   ngOnInit() {
-    this.customAlertOptions.header = this.title
+    this.customAlertOptions.header = this.title;
+    this.filteredData = this.data;
+  }
+
+
+  openStoreModal() {
+    this.filteredData = [...this.data]; // Mostramos todo al inicio
+    this.isModalOpen = true;
+  }
+
+  // 3. Seleccionar item
+  selectItem(tienda: any) {
+    if (this.isMultiselect) {
+      this.toggleSelection(tienda);
+    } else {
+      console.log(tienda);
+      this.selectedText = '';
+      this.onSelectedOption({ detail: { value: tienda } }); // Tu función original
+      this.isModalOpen = false;
+    }
+  }
+
+  toggleSelection(tienda: any) {
+    const index = this.selectedValues.findIndex(v => v.value === tienda.value);
+    if (index > -1) {
+      this.selectedValues.splice(index, 1);
+    } else {
+      this.selectedValues.push(tienda);
+    }
+    this.selectedText = this.selectedValues.length + ' items seletionados';
+  }
+
+  checkSelected(tienda: any) {
+    return this.selectedValues.some(v => v.value === tienda.value) || this.selectedText === tienda.value;
   }
 
   onSelectedOption(ev: any) {
-    let selected = ev.detail.value;
+    let selected = ev.value;
     this.optionSelected = {
       key: (selected || {}).key,
       value: (selected || {}).value
     };
+    this.selectedText = selected;
     this.selectdOption.emit(this.optionSelected);
   }
 
   onSelectedOptionMultiple(event: any) {
-    let misSeleccionados = event.detail.value;
+    let misSeleccionados = event.value;
     this.selectdOption.emit(misSeleccionados);
   }
 
+  handleFilter(event: any) {
+    const query = event.target.value.toLowerCase();
+
+    if (query && query.trim() !== '') {
+      this.filteredData = this.data.filter((tienda) => {
+        return tienda.value.toLowerCase().indexOf(query) > -1;
+      });
+    } else {
+      // Si el buscador está vacío, mostramos todo
+      this.filteredData = this.data;
+    }
+  }
+
+  // Alternar selección al hacer clic en cualquier parte del item
+  onCheckboxChange(event: any, item: any) {
+    item.selected = event.detail.checked;
+  }
+
+  toggleItem(item: any) {
+    item.selected = !item.selected;
+  }
+
+  // Al dar OK, procesamos los seleccionados
+  confirmSelection() {
+    const selectedItems = this.data.filter(i => i.selected);
+    if (this.isMultiselect) {
+      // Actualizamos el texto que se ve en el botón principal
+      if (selectedItems.length > 0) {
+        this.selectedText = selectedItems.length + ' items seletionados';
+      } else {
+        this.selectedText = '';
+      }
+    } else {
+      if (!this.selectedText.length) {
+        this.selectedText = '';
+      }
+    }
+
+
+    // Llamamos a tu función original de salida
+    this.onSelectedOptionMultiple(selectedItems);
+    this.isModalOpen = false;
+  }
 
 }
