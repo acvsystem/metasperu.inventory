@@ -165,9 +165,9 @@
             </ion-row>
           </div>
         </mat-tab>
-        <mat-tab label="Cruce inventario">
-          @if(dataInventario && arAsignatedSections && pocketScan){
-          <view-2-inventario [inAsignatedSections]="arAsignatedSections" [pocketScan]="pocketScan"
+        <mat-tab label="C
+          @if(dataInventario && arAsignatedSections && pocketScan){ruce inventario">
+          <view-2-inventario [inAsignatedSections]="arAsignatedSections" [pocketScan]="pocketScan" [isDownloading]="socketService.isDownloading()"
             [onDataView]=dataInventario>
           </view-2-inventario>
           }

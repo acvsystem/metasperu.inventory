@@ -120,11 +120,7 @@ export default class DashboardComponent implements OnInit {
     // Unirse a la sala de socket para recibir actualizaciones en tiempo real
     this.socketService.joinSession(this.sessionCode);
 
-    this.invService.getStoreInventory({ session_code: this.sessionCode, serie_store: this.serieStore }).subscribe({
-      next: (res) => {
-      },
-      error: (err) => { console.log(err); }
-    });
+    this.onStoreInventory();
 
     this.dataSource.filterPredicate = (data: any, filter: string) => {
       const searchTerms = JSON.parse(filter);
@@ -134,6 +130,15 @@ export default class DashboardComponent implements OnInit {
         return cellValue.includes(searchTerms[columnKey]);
       });
     };
+  }
+
+  onStoreInventory() {
+    this.socketService.isDownloading.set(true);
+    this.invService.getStoreInventory({ session_code: this.sessionCode, serie_store: this.serieStore }).subscribe({
+      next: (res) => {
+      },
+      error: (err) => { console.log(err); }
+    });
   }
 
   /**

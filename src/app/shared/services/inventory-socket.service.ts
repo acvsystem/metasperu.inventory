@@ -7,6 +7,12 @@ export class InventorySocketService {
     public isConnected = signal(false);
     public syncNotification = signal<any>(null);
     public syncInventarioStore = signal<any>(null);
+
+    public isDownloading = signal(false); // Cuando los datos vienen del servidor
+
+    public showTable = signal(false);
+
+
     // Guardamos el código por si hay que reintentar al conectar
     private pendingSessionCode: string | null = null;
 
@@ -47,6 +53,7 @@ export class InventorySocketService {
         this.socket.on('res_inv_store', (data: any) => {
             console.log('📦 Inventario recibido:', data);
             this.syncInventarioStore.set(data);
+            this.isDownloading.set(false);
             //this.syncNotification.set(data); // Guardamos la data (count, last_scans)
         });
     }

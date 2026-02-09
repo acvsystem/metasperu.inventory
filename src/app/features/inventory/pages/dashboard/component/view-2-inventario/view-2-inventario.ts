@@ -3,7 +3,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
-import { IonRow, IonCol, IonIcon, IonCardContent, IonCard, IonGrid } from '@ionic/angular/standalone';
+import { IonRow, IonCol, IonIcon, IonCardContent, IonCard, IonGrid, IonProgressBar, IonSpinner } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import * as XLSX from 'xlsx';
@@ -12,6 +12,7 @@ import { MatMenu } from '@angular/material/menu';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatBadgeModule } from '@angular/material/badge';
+import { InventorySocketService } from '@metasperu/services/inventory-socket.service';
 
 export interface tableColumns {
   matColumnDef: string;
@@ -23,7 +24,7 @@ export interface tableColumns {
 @Component({
   selector: 'view-2-inventario',
   standalone: true,
-  imports: [MatTableModule, IonCardContent, IonGrid, IonCard, MatBadgeModule, MatMenuModule, IonIcon, MatFormFieldModule, MtInput, MatPaginatorModule, MatIconModule, MatSortModule, IonCol, IonRow, CommonModule, MatMenu],
+  imports: [MatTableModule, IonCardContent, IonProgressBar, IonSpinner, IonGrid, IonCard, MatBadgeModule, MatMenuModule, IonIcon, MatFormFieldModule, MtInput, MatPaginatorModule, MatIconModule, MatSortModule, IonCol, IonRow, CommonModule, MatMenu],
   templateUrl: './view-2-inventario.html',
   styleUrl: './view-2-inventario.scss',
 })
@@ -31,6 +32,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
   @Input() onDataView: Array<any> = [];
   @Input() pocketScan: any = null; // Objeto que llega del Socket: { cCodigoBarra: '...' }
   @Input() inAsignatedSections: Array<any> = [];
+  @Input() isDownloading: Boolean = false;
   isInsertColum: boolean = false;
   dataSource = new MatTableDataSource<any>([]);
   inFilter: string = "";
@@ -39,7 +41,9 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
   totalStock = signal<number>(0);
   totalConteo = signal<number>(0);
   totalDiferencia = signal<number>(0);
-
+  showTable = signal(false);
+  progress = signal(0);
+  isProcessing = signal(false);  // Cuando se procesan los 50k a la tabla
   displayedColumns = [
     'codigoBarra', 'Referencia', 'descripcion', 'departamento',
     'seccion', 'familia', 'subfamilia', 'temporada',
@@ -63,12 +67,15 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
-  constructor(private cdr: ChangeDetectorRef) {
-
+  constructor(private cdr: ChangeDetectorRef, private serviceSocket: InventorySocketService) {
+    this.showTable.set(false);
   }
 
   ngOnInit() {
-    this.initializeTable(this.onDataView);
+    if (!(this.onDataView || []).length) {
+      this.initializeTable(this.onDataView);
+    }
+
     this.asignSectionColum();
     this.updateSingleRecord(this.pocketScan);
 
@@ -90,8 +97,8 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    console.log(this.onDataView);
     if (changes['onDataView'] && changes['onDataView'].currentValue) {
+      this.showTable.set(false);
       this.initializeTable(changes['onDataView'].currentValue);
     }
 
@@ -101,6 +108,10 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
 
     if (changes['inAsignatedSections'] && changes['inAsignatedSections'].currentValue) {
       this.asignSectionColum();
+    }
+
+    if (changes['isDownloading'] && changes['isDownloading'].currentValue) {
+      console.log(this.serviceSocket.isDownloading());
     }
   }
 
@@ -125,38 +136,50 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     }
   }
 
-  private initializeTable(data: any[]) {
-    let totalStockGlobal = 0;
-    let totalConteoGlobal = 0;
+  private async initializeTable(data: any[]) {
+    this.isProcessing.set(true);
+    this.progress.set(0);
 
-    console.log(data);
+    const allFormattedData: any[] = [];
+    const chunkSize = 500; // Tu tamaño de lote
+    const total = data.length;
 
-    const formattedData = data.map(item => {
-      const stock = Number(item.cStock) || 0;
-      const conteo = Number(item.cConteo) || 0;
+    for (let i = 0; i < total; i += chunkSize) {
+      const chunk = data.slice(i, i + chunkSize);
 
-      // Acumulamos los valores en cada iteración
-      totalStockGlobal += stock;
-      totalConteoGlobal += conteo;
+      const formattedChunk = chunk.map(item => this.transformItem(item));
+      allFormattedData.push(...formattedChunk);
 
-      const objReturn: Record<string, any> = {
-        ...item,
-        cStock: stock,
-        cConteo: conteo,
-        CTotalStock: item.cConteo == item.cStock ? stock : conteo - stock
-      }
+      // CORRECCIÓN: Calcular el progreso basado en cuántos elementos hemos procesado YA
+      // Math.min asegura que no pase del 100% si el último lote es más pequeño
+      const processedSoFar = Math.min(i + chunkSize, total);
+      this.progress.set(processedSoFar / total);
 
-      return objReturn;
-    });
+      // Dar respiro al navegador
+      await new Promise(resolve => requestAnimationFrame(resolve));
+    }
 
-    // Guardamos los totales en señales (Signals) para el Dashboard
-    this.totalStock.set(totalStockGlobal);
-    this.totalConteo.set(totalConteoGlobal);
-    this.totalDiferencia.set(totalConteoGlobal - totalStockGlobal);
+    // FORZAR 100% al terminar (por si acaso hubiera decimales mínimos)
+    this.progress.set(1);
 
-    this.dataSource.data = formattedData;
-    this.dataSource.paginator = this.paginator;
-    this.dataSource.sort = this.sort;
+    // ... (Asignación a la tabla y cálculos de totales)
+    this.dataSource.data = allFormattedData;
+
+    if (this.progress() == 1) {
+      this.isProcessing.set(false);
+      this.showTable.set(true);
+    }
+  }
+
+  private transformItem(item: any) {
+    const stock = Number(item.cStock) || 0;
+    const conteo = Number(item.cConteo) || 0;
+    return {
+      ...item,
+      cStock: stock,
+      cConteo: conteo,
+      CTotalStock: stock === conteo ? 0 : conteo - stock
+    };
   }
 
   private updateSingleRecord(pocketScans: any[]) {
@@ -226,7 +249,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     });
 
     if (cambioDetectado) {
-      this.dataSource.data = data;
+      this.dataSource = new MatTableDataSource(data);
       this.cdr.markForCheck();
     }
   }
