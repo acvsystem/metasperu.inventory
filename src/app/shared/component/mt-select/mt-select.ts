@@ -3,20 +3,19 @@ import { Component, EventEmitter, Input, input, Output, signal } from '@angular/
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatTableModule } from '@angular/material/table';
 import {
-  IonCol, IonIcon, IonSearchbar,
-  IonItem, IonLabel, IonRow, IonSelect,
-  IonSelectOption, IonList, IonContent, IonModal,
-  IonToolbar, IonButton, IonButtons, IonTitle, IonHeader, IonCheckbox
+  IonCol, IonSearchbar,
+  IonItem, IonLabel, IonRow,
+  IonList, IonModal,
+  IonButton, IonCheckbox
 } from '@ionic/angular/standalone';
 
 @Component({
   selector: 'mt-select',
   standalone: true,
   imports: [
-    MatInputModule, MatFormFieldModule, FormsModule, CommonModule, IonIcon, IonList, IonToolbar, IonButtons, IonTitle, IonCheckbox,
-    IonCol, IonRow, IonSelect, IonSelectOption, IonItem, IonSearchbar, IonLabel, IonContent, IonButton, IonHeader, IonModal
+    MatInputModule, MatFormFieldModule, FormsModule, CommonModule, IonList, IonCheckbox,
+    IonCol, IonRow, IonItem, IonSearchbar, IonLabel, IonButton, IonModal
   ],
   templateUrl: './mt-select.html',
   styleUrl: './mt-select.scss',
