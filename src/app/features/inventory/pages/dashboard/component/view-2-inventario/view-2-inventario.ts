@@ -39,6 +39,9 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
   totalStock = signal<number>(0);
   totalConteo = signal<number>(0);
   totalDiferencia = signal<number>(0);
+  showTable = signal(false);
+  progress = signal(0);
+  isProcessing = signal(false);
 
   displayedColumns = [
     'codigoBarra', 'Referencia', 'descripcion', 'departamento',
@@ -125,68 +128,69 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     }
   }
 
-  private initializeTable(data: any[]) {
+
+  private async initializeTable(data: any[]) {
+    this.isProcessing.set(true);
+    this.progress.set(0);
     let totalStockGlobal = 0;
     let totalConteoGlobal = 0;
+    const allFormattedData: any[] = [];
+    const chunkSize = 200; // Tu tamaño de lote
+    const total = data.length;
 
-    console.log(data);
+    for (let i = 0; i < total; i += chunkSize) {
+      const chunk = data.slice(i, i + chunkSize);
 
-    const formattedData = data.map(item => {
-      const stock = Number(item.cStock) || 0;
-      const conteo = Number(item.cConteo) || 0;
+      const formattedChunk = chunk.map(item => {
+        const stock = Number(item.cStock) || 0;
+        const conteo = Number(item.cConteo) || 0;
 
-      // Acumulamos los valores en cada iteración
-      totalStockGlobal += stock;
-      totalConteoGlobal += conteo;
+        // Acumulamos los valores en cada iteración
+        totalStockGlobal += stock;
+        totalConteoGlobal += conteo;
 
-      const objReturn: Record<string, any> = {
-        ...item,
-        cStock: stock,
-        cConteo: conteo,
-        CTotalStock: item.cConteo == item.cStock ? stock : conteo - stock
-      }
+        const objReturn: Record<string, any> = {
+          ...item,
+          cStock: stock,
+          cConteo: conteo,
+          CTotalStock: item.cConteo == item.cStock ? stock : conteo - stock
+        }
 
-      return objReturn;
-    });
+        return objReturn;
+      });
 
-    // Guardamos los totales en señales (Signals) para el Dashboard
+      allFormattedData.push(...formattedChunk);
+
+      // CORRECCIÓN: Calcular el progreso basado en cuántos elementos hemos procesado YA
+      // Math.min asegura que no pase del 100% si el último lote es más pequeño
+      const processedSoFar = Math.min(i + chunkSize, total);
+      this.progress.set(processedSoFar / total);
+
+      // Dar respiro al navegador
+      await new Promise(resolve => requestAnimationFrame(resolve));
+    }
+
+    // FORZAR 100% al terminar (por si acaso hubiera decimales mínimos)
+    this.progress.set(1);
+
     this.totalStock.set(totalStockGlobal);
     this.totalConteo.set(totalConteoGlobal);
     this.totalDiferencia.set(totalConteoGlobal - totalStockGlobal);
 
-    this.dataSource.data = formattedData;
-    this.dataSource.paginator = this.paginator;
-    this.dataSource.sort = this.sort;
+    // ... (Asignación a la tabla y cálculos de totales)
+    this.dataSource.data = allFormattedData;
+
+    if (this.progress() == 1) {
+
+      this.updateSingleRecord(this.pocketScan);
+      this.isProcessing.set(false);
+      this.showTable.set(true);
+    }
   }
 
+
   private updateSingleRecord(pocketScans: any[]) {
-    let totalStockGlobal = 0;
-    let totalConteoGlobal = 0;
-    const data = [...this.dataSource.data];
-    let cambioDetectado = false;
     this.proccessScan(pocketScans);
-    pocketScans.forEach(scan => {
-      const index = data.findIndex(item => item.cCodigoBarra === scan.sku);
-
-      if (index !== -1) {
-        cambioDetectado = true;
-        const item = data[index];
-
-        const stock = Number(item.cStock) || 0;
-        const conteo = Number(item.cConteo) || 0;
-
-        totalStockGlobal += stock;
-
-        //item.cConteo = Number(scan.total_cantidad);
-        //item.cTotalConteo = item.cConteo == item.cStock ? stock : item.cConteo - stock;
-
-        //this.totalConteo.set(totalConteoGlobal);
-        //this.totalDiferencia.set(totalConteoGlobal - this.totalStock());
-      } else {
-        cambioDetectado = true;
-
-      }
-    });
   }
 
   proccessScan(dataPocket: Array<any>) {
@@ -227,15 +231,16 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
 
         totalConteoGlobal += scan.total_cantidad;
 
-        data[index].cConteo = Number(scan.total_cantidad);
-        data[index].cTotalConteo = data[index].cConteo == data[index].cStock ? data[index].cStock : data[index].cConteo - data[index].cStock;
+        data[index].cConteo += Number(scan.total_cantidad);
+        
+        data[index].cTotalConteo = data[index].cConteo - data[index].cStock;
 
       } else {
         let newItem: any = {
           CTotalStock: 0,
           cCodigoArticulo: 0,
           cCodigoBarra: scan.sku,
-          cCodigoTienda: this.dataSource.data[0]['cCodigoTienda'],
+          cCodigoTienda: ((this.dataSource.data || [])[0] || {})['cCodigoTienda'],
           cColor: "",
           cConteo: 1,
           cDepartamento: "",
