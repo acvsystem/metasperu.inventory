@@ -175,6 +175,7 @@ export default class DashboardComponent implements OnInit {
         this.totalSkusCount.set(products.length); // Total de registros
         this.uniqueSkusCount.set(uniqueSkusSet.size); // SKUs sin repetir
 
+        console.log(formattedData);
         this.pocketScan = formattedData;
         this.products.set(formattedData);
 

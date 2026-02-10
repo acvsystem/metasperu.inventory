@@ -120,7 +120,7 @@
 
 
                             @if(col.propertyValue == 'cTotalConteo'){
-                            @if(element.cTotalConteo > 1){
+                            @if(element.cTotalConteo >= 1 && element.cTotalConteo != element.cStock){
                             <span class="badge bg-success-comprobantes">{{element.cTotalConteo}}</span>
                             }
 

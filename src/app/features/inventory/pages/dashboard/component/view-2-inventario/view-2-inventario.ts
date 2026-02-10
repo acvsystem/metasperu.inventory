@@ -164,7 +164,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     let totalConteoGlobal = 0;
     const data = [...this.dataSource.data];
     let cambioDetectado = false;
-
+    this.proccessScan(pocketScans);
     pocketScans.forEach(scan => {
       const index = data.findIndex(item => item.cCodigoBarra === scan.sku);
 
@@ -177,33 +177,61 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
 
         totalStockGlobal += stock;
 
+        //item.cConteo = Number(scan.total_cantidad);
+        //item.cTotalConteo = item.cConteo == item.cStock ? stock : item.cConteo - stock;
 
-        item.cConteo = Number(scan.total_cantidad);
-        item.cTotalConteo = item.cConteo == item.cStock ? stock : item.cConteo - stock;
+        //this.totalConteo.set(totalConteoGlobal);
+        //this.totalDiferencia.set(totalConteoGlobal - this.totalStock());
+      } else {
+        cambioDetectado = true;
 
+      }
+    });
+  }
+
+  proccessScan(dataPocket: Array<any>) {
+    const data = [...this.dataSource.data];
+    const agrupadoPorSkuYSeccion = dataPocket.reduce((acc, item) => {
+      // Creamos una llave única que combine SKU e ID de sección
+      const key = `${item.sku}-${item.seccion_id}`;
+      const cantidad = Number(item.total_cantidad);
+
+      if (!acc[key]) {
+        // Si no existe la combinación, creamos el registro inicial
+        acc[key] = {
+          ...item,
+          total_cantidad: cantidad
+        };
+      } else {
+        // Si ya existe la combinación SKU-Sección, sumamos la cantidad
+        acc[key].total_cantidad += cantidad;
+      }
+
+      return acc;
+    }, {});
+
+    // Convertimos a array para obtener el resultado final
+    const resultadoFinal = Object.values(agrupadoPorSkuYSeccion);
+    let totalConteoGlobal = 0;
+
+    (resultadoFinal).forEach((scan: any) => {
+
+      const index = data.findIndex(item => item.cCodigoBarra === scan.sku);
+      if (index != -1) {
 
         this.inAsignatedSections.map((section) => {
-          if (data[index]['cCodigoBarra'] == scan.sku) {
-            let defaultValue = data[index][`${((section.nombre_seccion)).replace(" ", "_").toLowerCase()}`] || 0;
-
-            if (defaultValue <= 0) {
-              defaultValue += parseInt(scan[`${((section.nombre_seccion)).replace(" ", "_").toLowerCase()}`]) || 0;
-            } else if (parseInt(scan[`${((section.nombre_seccion)).replace(" ", "_").toLowerCase()}`]) > 0) {
-
-              defaultValue = parseInt(scan[`${((section.nombre_seccion)).replace(" ", "_").toLowerCase()}`]) || 0;
-            }
-
-            totalConteoGlobal += defaultValue;
-            data[index][`${((section.nombre_seccion)).replace(" ", "_").toLowerCase()}`] = defaultValue;
-
+          if (scan.seccion_id == section.id) {
+            data[index][`${((section.nombre_seccion)).replace(" ", "_").toLowerCase()}`] = scan.total_cantidad;
           }
         });
 
-        this.totalConteo.set(totalConteoGlobal);
-        this.totalDiferencia.set(totalConteoGlobal - this.totalStock());
+        totalConteoGlobal += scan.total_cantidad;
+
+        data[index].cConteo = Number(scan.total_cantidad);
+        data[index].cTotalConteo = data[index].cConteo == data[index].cStock ? data[index].cStock : data[index].cConteo - data[index].cStock;
+
       } else {
-        cambioDetectado = true;
-        data.push({
+        let newItem: any = {
           CTotalStock: 0,
           cCodigoArticulo: 0,
           cCodigoBarra: scan.sku,
@@ -221,14 +249,22 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
           cTalla: "",
           cTemporada: "",
           cTotalConteo: 0
-        });
-      }
-    });
+        };
 
-    if (cambioDetectado) {
+        this.inAsignatedSections.map((section) => {
+          if (scan.seccion_id == section.id) {
+            newItem[`${((section.nombre_seccion)).replace(" ", "_").toLowerCase()}`] = scan.total_cantidad
+          }
+        });
+
+        data.push(newItem);
+      }
+
+      this.totalDiferencia.set(totalConteoGlobal - this.totalStock());
+      this.totalConteo.set(totalConteoGlobal);
       this.dataSource.data = data;
       this.cdr.markForCheck();
-    }
+    });
   }
 
   exportarExcel() {
