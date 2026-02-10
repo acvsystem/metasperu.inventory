@@ -146,21 +146,14 @@ export default class DashboardComponent implements OnInit {
    */
   loadData() {
     this.isLoading.set(true);
-
     this.invService.getSessionSummary(this.sessionCode).subscribe({
       next: (res) => {
         const products = res.products;
-        const uniqueSkusSet = new Set<string>();
 
         const formattedData = products.map((item: any) => {
           const seccionObj = this.arAsignatedSections.find(s => s.id === item.seccion_id);
 
-          if (item.sku) {
-            uniqueSkusSet.add(item.sku);
-          }
-
           const objReturn: Record<string, any> = {
-            id: item.id,
             seccion_id: item.seccion_id,
             sku: item.sku,
             user: item.usuario,
@@ -174,11 +167,10 @@ export default class DashboardComponent implements OnInit {
             objReturn[`${((section.nombre_seccion)).replace(" ", "_").toLowerCase()}`] = seccionObj.nombre_seccion == section.nombre_seccion ? item.total_cantidad : 0;
           });
 
+
+
           return objReturn;
         }).reverse();
-
-        this.totalSkusCount.set(products.length); // Total de registros
-        this.uniqueSkusCount.set(uniqueSkusSet.size); // SKUs sin repetir
 
         this.pocketScan = formattedData;
         this.products.set(formattedData);
@@ -190,7 +182,7 @@ export default class DashboardComponent implements OnInit {
         this.isLoading.set(false);
       },
       error: (err) => {
-
+        console.error('Error cargando resumen:', err);
         this.isLoading.set(false);
       }
     });

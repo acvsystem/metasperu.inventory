@@ -104,6 +104,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
 
     if (changes['pocketScan'] && changes['pocketScan'].currentValue) {
       this.updateSingleRecord(this.pocketScan);
+     
     }
 
     if (changes['inAsignatedSections'] && changes['inAsignatedSections'].currentValue) {
@@ -187,11 +188,12 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     let totalConteoGlobal = 0;
     const data = [...this.dataSource.data];
     let cambioDetectado = false;
-
-    pocketScans.forEach(scan => {
+    console.log(pocketScans);
+    pocketScans.forEach(async scan => {
       const index = data.findIndex(item => item.cCodigoBarra === scan.sku);
 
       if (index !== -1) {
+
         cambioDetectado = true;
         const item = data[index];
 
@@ -200,25 +202,20 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
 
         totalStockGlobal += stock;
 
-
         item.cConteo = Number(scan.total_cantidad);
         item.cTotalConteo = item.cConteo == item.cStock ? stock : item.cConteo - stock;
 
+        const cantidadEntrante = Number(scan.total_cantidad) || 0;
 
-        this.inAsignatedSections.map((section) => {
-          if (data[index]['cCodigoBarra'] == scan.sku) {
-            let defaultValue = data[index][`${((section.nombre_seccion)).replace(" ", "_").toLowerCase()}`] || 0;
+        this.inAsignatedSections.forEach((section) => {
+          const sectionKey = section.nombre_seccion.replace(/\s+/g, "_").toLowerCase();
 
-            if (defaultValue <= 0) {
-              defaultValue += parseInt(scan[`${((section.nombre_seccion)).replace(" ", "_").toLowerCase()}`]) || 0;
-            } else if (parseInt(scan[`${((section.nombre_seccion)).replace(" ", "_").toLowerCase()}`]) > 0) {
+          // Solo sumamos en la columna que corresponde a la sección del escaneo
+          if (section.id === scan.seccion_id) {
 
-              defaultValue = parseInt(scan[`${((section.nombre_seccion)).replace(" ", "_").toLowerCase()}`]) || 0;
-            }
+            const valorActualSeccion = Number(data[index][sectionKey]) || 0;
 
-            totalConteoGlobal += defaultValue;
-            data[index][`${((section.nombre_seccion)).replace(" ", "_").toLowerCase()}`] = defaultValue;
-
+            data[index][sectionKey] = valorActualSeccion + cantidadEntrante;
           }
         });
 
