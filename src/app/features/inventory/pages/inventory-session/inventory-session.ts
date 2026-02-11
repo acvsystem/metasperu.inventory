@@ -24,6 +24,7 @@ import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatMenu } from '@angular/material/menu';
 import { MatMenuModule } from '@angular/material/menu';
+import { InventorySocketService } from '@metasperu/services/inventory-socket.service';
 
 export interface PeriodicElement {
   codigo_sesion: string;
@@ -103,12 +104,12 @@ export default class InventorySession {
     const indexHeader: any = this.dataColumns.findIndex((t) => t.matColumnDef == column);
     this.dataColumns[indexHeader]['filterActive'] = filterValue.length ? true : false;
     this.filterValues[property?.propertyValue] = filterValue.trim().toLowerCase();
-    
+
     this.dataSource.filter = JSON.stringify(this.filterValues);
 
-        this.dataSource.filterPredicate = (data: any, filter: string) => {
+    this.dataSource.filterPredicate = (data: any, filter: string) => {
       const searchTerms = JSON.parse(filter);
-      
+
       return Object.keys(searchTerms).every(columnKey => {
         const cellValue = data[columnKey]?.toString().toLowerCase() || '';
         return cellValue.includes(searchTerms[columnKey]);
@@ -188,17 +189,9 @@ export default class InventorySession {
     });
   }
 
-  getStoreInvetory(session_code: string, serie_store: string) {
-    this.inventoryService.getStoreInventory({ session_code: session_code, serie_store: serie_store }).subscribe({
-      next: (res) => {
-      },
-      error: (err) => { console.log(err); }
-    });
-  }
-
   goToDashboard() {
     // Redirigir al monitor en vivo con el código recién creado
-    this.router.navigate(['/admin/dashboard', this.generatedCode()]);
+    this.router.navigate(['/inventory/dashboard', this.generatedCode()]);
   }
 
   applyFilter(data: any) {

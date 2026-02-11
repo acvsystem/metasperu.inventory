@@ -71,6 +71,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
   }
 
   ngOnInit() {
+    console.log(this.onDataView.length);
     this.initializeTable(this.onDataView);
     this.asignSectionColum();
     this.updateSingleRecord(this.pocketScan);
@@ -93,7 +94,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    console.log(this.onDataView);
+
     if (changes['onDataView'] && changes['onDataView'].currentValue) {
       this.initializeTable(changes['onDataView'].currentValue);
     }
@@ -216,9 +217,25 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
 
     // Convertimos a array para obtener el resultado final
     const resultadoFinal = Object.values(agrupadoPorSkuYSeccion);
+
+
+    const totalesPorSku: any = resultadoFinal.reduce((acc: any, item: any) => {
+      const sku = item.sku;
+      acc[sku] = (acc[sku] || 0) + Number(item.total_cantidad);
+      return acc;
+    }, {});
+
+    // 3. Insertamos la propiedad total_conteo en cada elemento
+    const resultadoFinal2 = resultadoFinal.map((item: any) => {
+      return {
+        ...item,
+        total_conteo: totalesPorSku[item.sku] // Asignamos la suma global del SKU
+      };
+    });
+
     let totalConteoGlobal = 0;
 
-    (resultadoFinal).forEach((scan: any) => {
+    (resultadoFinal2).forEach((scan: any) => {
 
       const index = data.findIndex(item => item.cCodigoBarra === scan.sku);
       if (index != -1) {
@@ -231,9 +248,9 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
 
         totalConteoGlobal += scan.total_cantidad;
 
-        data[index].cConteo += Number(scan.total_cantidad);
-        
-        data[index].cTotalConteo = data[index].cConteo - data[index].cStock;
+        data[index].cConteo = Number(scan.total_conteo);
+
+        data[index].cTotalConteo = data[index].cTotalConteo == data[index].cStock ? data[index].cStock : data[index].cConteo - data[index].cStock;
 
       } else {
         let newItem: any = {
@@ -264,6 +281,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
 
         data.push(newItem);
       }
+
 
       this.totalDiferencia.set(totalConteoGlobal - this.totalStock());
       this.totalConteo.set(totalConteoGlobal);

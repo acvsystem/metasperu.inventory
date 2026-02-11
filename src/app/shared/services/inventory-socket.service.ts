@@ -45,7 +45,7 @@ export class InventorySocketService {
 
         // ESCUCHAR EL EVENTO INVENTARIO EXACTO DEL BACKEND
         this.socket.on('res_inv_store', (data: any) => {
-            console.log('📦 Inventario recibido:', data);
+            console.log('📦 Inventario recibido socket:', data);
             this.syncInventarioStore.set(data);
             //this.syncNotification.set(data); // Guardamos la data (count, last_scans)
         });

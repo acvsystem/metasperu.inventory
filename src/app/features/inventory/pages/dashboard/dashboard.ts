@@ -60,6 +60,7 @@ export default class DashboardComponent implements OnInit {
   private toastCtrl = inject(ToastController);
 
   // Propiedades y Signals
+  isDatabase = false;
   sessionCode = '';
   serieStore = '';
   pocketScan: any;
@@ -84,7 +85,7 @@ export default class DashboardComponent implements OnInit {
     this.products().reduce((acc, curr) => acc + Number(curr.total_cantidad), 0)
   );
 
-  constructor(public dialog: MatDialog) {
+  constructor(public dialog: MatDialog, private socketInv: InventorySocketService) {
 
     // Registrar iconos de Ionic
     addIcons({ radioOutline, cubeOutline, barcodeOutline, refreshOutline, checkmarkDoneCircle, hourglassOutline });
@@ -102,7 +103,10 @@ export default class DashboardComponent implements OnInit {
         this.presentToast(`Se sincronizaron ${notification.count} productos nuevos.`);
       }
 
-      this.dataInventario = this.socketService.syncInventarioStore();
+      if (!this.isDatabase) {
+        this.dataInventario = this.socketService.syncInventarioStore();
+      }
+
     });
   }
 
@@ -113,7 +117,7 @@ export default class DashboardComponent implements OnInit {
     this.asignedSections();
     this.loadData();
     if (!this.sessionCode) {
-      this.router.navigate(['/admin/sessions']);
+      this.router.navigate(['/inventory/session']);
       return;
     }
 
@@ -121,7 +125,14 @@ export default class DashboardComponent implements OnInit {
     this.socketService.joinSession(this.sessionCode);
 
     this.invService.getStoreInventory({ session_code: this.sessionCode, serie_store: this.serieStore }).subscribe({
-      next: (res) => {
+      next: (res: any) => {
+        if (Object.keys(res).includes('inventario')) {
+          this.dataInventario = [];
+          const inventario = res?.inventario;
+          console.log('📦 Inventario recibido bd:', inventario.length);
+          this.isDatabase = true;
+          this.dataInventario = inventario;
+        }
       },
       error: (err) => { console.log(err); }
     });
