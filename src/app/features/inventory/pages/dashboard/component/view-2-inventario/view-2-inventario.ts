@@ -1,4 +1,4 @@
-import { Component, Input, SimpleChanges, ViewChild, OnInit, OnChanges, AfterViewInit, ChangeDetectorRef, inject, signal } from '@angular/core';
+import { Component, Input, SimpleChanges, ViewChild, OnInit, OnChanges, AfterViewInit, ChangeDetectorRef, inject, signal, output, EventEmitter, Output } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
@@ -12,6 +12,7 @@ import { MatMenu } from '@angular/material/menu';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatBadgeModule } from '@angular/material/badge';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 export interface tableColumns {
   matColumnDef: string;
@@ -23,7 +24,7 @@ export interface tableColumns {
 @Component({
   selector: 'view-2-inventario',
   standalone: true,
-  imports: [MatTableModule, IonCardContent, IonGrid, IonCard, MatBadgeModule, MatMenuModule, IonIcon, MatFormFieldModule, MtInput, MatPaginatorModule, MatIconModule, MatSortModule, IonCol, IonRow, CommonModule, MatMenu],
+  imports: [MatTableModule, MatCheckboxModule, IonCardContent, IonGrid, IonCard, MatBadgeModule, MatMenuModule, IonIcon, MatFormFieldModule, MtInput, MatPaginatorModule, MatIconModule, MatSortModule, IonCol, IonRow, CommonModule, MatMenu],
   templateUrl: './view-2-inventario.html',
   styleUrl: './view-2-inventario.scss',
 })
@@ -31,6 +32,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
   @Input() onDataView: Array<any> = [];
   @Input() pocketScan: any = null; // Objeto que llega del Socket: { cCodigoBarra: '...' }
   @Input() inAsignatedSections: Array<any> = [];
+  @Output() onChangeInventario: EventEmitter<any> = new EventEmitter();
   isInsertColum: boolean = false;
   dataSource = new MatTableDataSource<any>([]);
   inFilter: string = "";
@@ -42,7 +44,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
   showTable = signal(false);
   progress = signal(0);
   isProcessing = signal(false);
-
+  checkedOffline: any = "";
   displayedColumns = [
     'codigoBarra', 'Referencia', 'descripcion', 'departamento',
     'seccion', 'familia', 'subfamilia', 'temporada',
@@ -71,8 +73,17 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
   }
 
   ngOnInit() {
-    console.log(this.onDataView.length);
+    this.onDataView = [];
+    const offlineData = localStorage.getItem('offline_inventory');
+
+    if (offlineData) {
+      const inventario = JSON.parse(offlineData);
+      this.onDataView = inventario;
+      console.log('📦 Inventario recibido Importado:', inventario.length);
+    }
+
     this.initializeTable(this.onDataView);
+
     this.asignSectionColum();
     this.updateSingleRecord(this.pocketScan);
 
@@ -106,6 +117,10 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     if (changes['inAsignatedSections'] && changes['inAsignatedSections'].currentValue) {
       this.asignSectionColum();
     }
+  }
+
+  onChangeInv() {
+    this.onChangeInventario.emit();
   }
 
   applyFilterTable(event: Event, column: string) {
@@ -295,14 +310,24 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     const dataParaExportar = this.dataSource.data.map(item => {
 
       const objReturn: Record<string, any> = {
-        'Referencia': item.cReferencia,
-        'Código de Barras': item.cCodigoBarra,
-        'Descripción': item.cDescripcion,
-        'Departamento': item.cDepartamento,
-        'Familia': item.cFamilia,
-        'Stock Sistema': item.cStock,
-        'Conteo Físico': item.cConteo,
-        'Total Cruce': item.cTotalConteo
+        cCodigoArticulo: item.cCodigoArticulo,
+        cCodigoBarra: item.cCodigoBarra,
+        cCodigoTienda: item.cCodigoTienda,
+        cColor: item.cColor,
+        cConteo: item.cConteo,
+        cDepartamento: item.cDepartamento,
+        cDescripcion: item.cDescripcion,
+        cFamilia: item.cFamilia,
+        cReferencia: item.cReferencia,
+        cSeccion: item.cSeccion,
+        cSessionCode: item.cSessionCode,
+        cStock: item.cStock,
+        cSubFamilia: item.cSubFamilia,
+        cTalla: item.cTalla,
+        cTemporada: item.cTemporada,
+        cTotalConteo: item.cTotalConteo,
+        codigo_sesion: item.codigo_sesion,
+        id: item.id
       };
 
       this.inAsignatedSections.map((section) => {
@@ -345,6 +370,38 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     this.inFilter = value ?? "";
     const filterValue = value;
     this.dataSource.filter = filterValue.trim().toLowerCase();
+  }
+
+  importExcelInventario(event: any) {
+    console.log(event);
+    this.onDataView = [];
+    const file = event.target.files[0];
+    const reader = new FileReader();
+
+    reader.onload = async (e: any) => {
+      // 1. Leer el archivo
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+
+      // 2. Obtener la primera hoja
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+
+      // 3. Convertir a JSON (Array de objetos)
+      const rawData: any[] = XLSX.utils.sheet_to_json(worksheet);
+
+      // 5. GUARDAR PARA MODO OFFLINE
+      localStorage.setItem('offline_inventory', JSON.stringify(rawData));
+
+      console.log(rawData);
+      // 6. Cargar en la tabla
+      this.onDataView = rawData;
+      console.log('📦 Inventario Importado:', rawData.length);
+
+      await this.initializeTable(rawData);
+    };
+
+    reader.readAsArrayBuffer(file);
   }
 
 }

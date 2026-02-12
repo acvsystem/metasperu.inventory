@@ -7,11 +7,23 @@
         <ion-row>
             <ion-col sizeXs="12" sizeSm="12" sizeMd="6" sizeLg="6">
                 <div style="display: flex;align-items: end;height: 100%;">
-                    <button mat-raised-button class="btn-excel" (click)="exportarExcel()">
+                    <input type="file" #fileInput style="display: none" (change)="importExcelInventario($event); $event.target.value = ''"
+                        accept=".xlsx, .xls">
+                    <button mat-raised-button class="btn-excel-upload" (click)="fileInput.click()">
+                        <mat-icon>upload</mat-icon>
+                        <span>Importar Inventario</span>
+                    </button>
+
+                    <button mat-raised-button class=" btn-excel" (click)="exportarExcel()">
                         <mat-icon>file_download</mat-icon>
                         <span>Exportar Excel</span>
                         <span class="record-count">{{ dataSource.data.length | number }} items</span>
                     </button>
+
+                    <button mat-raised-button class="btn-update-inventory" (click)="onChangeInv()">
+                        <mat-icon>repeat</mat-icon>
+                    </button>
+
                 </div>
             </ion-col>
             <ion-col sizeXs="12" sizeSm="12" sizeMd="6" sizeLg="6">

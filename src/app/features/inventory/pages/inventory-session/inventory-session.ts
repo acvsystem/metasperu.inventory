@@ -245,6 +245,7 @@ export default class InventorySession {
 
     if (!element?.codigo_sesion || !store!.serie) return;
 
+    localStorage.removeItem('offline_inventory');
     this.store.setStore("codeSession", element?.codigo_sesion);
     this.store.setStore("serieStore", store!.serie);
     this.router.navigate([`/inventory/dashboard`, element?.codigo_sesion, store?.serie]);

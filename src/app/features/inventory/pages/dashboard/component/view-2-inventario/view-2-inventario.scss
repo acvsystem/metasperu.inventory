@@ -42,15 +42,47 @@
   border-bottom: 1px solid #e0e0e0;
 }
 
-.btn-excel {
-  background-color: #1d6f42 !important; // Verde Excel oficial
+.btn-excel-upload {
+  background-color: #2a8fb8 !important; // Verde Excel oficial
   color: white !important;
   line-height: 40px !important;
+  margin-right: 10px !important;
   padding: 0 20px !important;
   border-radius: 6px !important;
   transition: all 0.3s ease !important;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
   margin-bottom: 10px;
+
+  mat-icon {
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+
+  .record-count {
+    margin-left: 12px;
+    padding-left: 12px;
+    border-left: 1px solid rgba(255, 255, 255, 0.3);
+    font-size: 0.85em;
+    opacity: 0.9;
+  }
+
+  &:hover {
+    background-color: #166f92 !important;
+  }
+
+}
+
+.btn-excel {
+  background-color: #1d6f42 !important; // Verde Excel oficial
+  color: white !important;
+  line-height: 40px !important;
+  margin-right: 10px !important;
+  padding: 0 20px !important;
+  border-radius: 6px !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+  margin-bottom: 10px;
+
   mat-icon {
     margin-right: 8px;
     vertical-align: middle;
@@ -68,6 +100,42 @@
     background-color: #145a35 !important;
   }
 
+}
+
+.btn-update-inventory {
+  background-color: #c95c30 !important; // Verde Excel oficial
+  color: white !important;
+  line-height: 40px !important;
+  margin-right: 10px !important;
+  padding: 0 20px !important;
+  border-radius: 6px !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+  margin-bottom: 10px;
+
+  mat-icon {
+    vertical-align: middle;
+  }
+
+  .record-count {
+    margin-left: 12px;
+    padding-left: 12px;
+    border-left: 1px solid rgba(255, 255, 255, 0.3);
+    font-size: 0.85em;
+    opacity: 0.9;
+  }
+
+  &:hover {
+    background-color: #aa5f21 !important;
+  }
+}
+
+.checkbox-content {
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: end;
+  padding-bottom: 10px;
 }
 
 .example-container {

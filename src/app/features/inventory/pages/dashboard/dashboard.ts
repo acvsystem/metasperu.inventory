@@ -123,19 +123,10 @@ export default class DashboardComponent implements OnInit {
 
     // Unirse a la sala de socket para recibir actualizaciones en tiempo real
     this.socketService.joinSession(this.sessionCode);
-
-    this.invService.getStoreInventory({ session_code: this.sessionCode, serie_store: this.serieStore }).subscribe({
-      next: (res: any) => {
-        if (Object.keys(res).includes('inventario')) {
-          this.dataInventario = [];
-          const inventario = res?.inventario;
-          console.log('📦 Inventario recibido bd:', inventario.length);
-          this.isDatabase = true;
-          this.dataInventario = inventario;
-        }
-      },
-      error: (err) => { console.log(err); }
-    });
+    const offlineData = localStorage.getItem('offline_inventory');
+    if (!offlineData) {
+      this.loadInventary();
+    }
 
     this.dataSource.filterPredicate = (data: any, filter: string) => {
       const searchTerms = JSON.parse(filter);
@@ -147,6 +138,23 @@ export default class DashboardComponent implements OnInit {
     };
   }
 
+
+  loadInventary() {
+
+    this.invService.getStoreInventory({ session_code: this.sessionCode, serie_store: this.serieStore }).subscribe({
+      next: (res: any) => {
+        if (Object.keys(res).includes('inventario')) {
+          localStorage.removeItem('offline_inventory');
+          this.dataInventario = [];
+          const inventario = res?.inventario;
+          console.log('📦 Inventario recibido bd:', inventario.length);
+          this.isDatabase = true;
+          this.dataInventario = inventario;
+        }
+      },
+      error: (err) => { console.log(err); }
+    });
+  }
   /**
    * Carga los datos acumulados de la sesión desde el backend
    */
@@ -186,7 +194,6 @@ export default class DashboardComponent implements OnInit {
         this.totalSkusCount.set(products.length); // Total de registros
         this.uniqueSkusCount.set(uniqueSkusSet.size); // SKUs sin repetir
 
-        console.log(formattedData);
         this.pocketScan = formattedData;
         this.products.set(formattedData);
 
