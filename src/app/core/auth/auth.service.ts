@@ -52,6 +52,7 @@ export class AuthService {
                     localStorage.setItem('role', response.user.role);
                     this.invService.onMenu.emit(response.user.role);
                     var userRole = response.user.role;
+                    this.currentUser.set(response.user.username);
                 }
 
                 // 3. Actualizamos el estado del usuario y navegamos

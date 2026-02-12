@@ -17,12 +17,14 @@
   .user-info {
     display: flex;
     flex-direction: column;
+
     .label {
-      font-size: 0.7rem;
-      font-weight: bold;
+      font-size: 0.9rem;
+      /* font-weight: bold; */
       color: #666;
       letter-spacing: 0.5px;
     }
+
     .name {
       font-size: 0.9rem;
       color: #333;
@@ -33,12 +35,12 @@
 // Estilo de los items dentro del popover
 ion-popover {
   --width: 220px;
-  
+
   ion-item {
     --padding-start: 16px;
     --min-height: 44px;
     font-size: 0.9rem;
-    
+
     ion-icon {
       font-size: 1.1rem;
     }
@@ -70,13 +72,14 @@ ion-popover {
   .header-text {
     display: flex;
     flex-direction: column;
-    
+
     .system-label {
       font-size: 0.75rem;
       font-weight: 700;
       letter-spacing: 0.5px;
       color: #444;
     }
+
     .user-role {
       font-size: 0.85rem;
       color: #666;
@@ -87,11 +90,11 @@ ion-popover {
 // Estilos de los items del menú
 ion-popover ion-list {
   padding: 0;
-  
+
   ion-item {
     --min-height: 48px;
     --font-size: 0.9rem;
-    
+
     ion-icon {
       font-size: 1.2rem;
       color: #555;
@@ -115,13 +118,14 @@ ion-popover ion-list {
   align-items: center;
   gap: 12px;
   border-bottom: 1px solid #f0f0f0;
-  
+
   h2 {
     margin: 0;
     font-size: 0.8rem;
     letter-spacing: 1px;
     color: #666;
   }
+
   p {
     margin: 0;
     font-size: 0.9rem;
@@ -133,7 +137,7 @@ ion-popover ion-list {
 ion-item {
   --padding-start: 16px;
   --font-size: 0.9rem;
-  
+
   ion-icon {
     font-size: 1.2rem;
     margin-right: 12px;
@@ -379,7 +383,8 @@ ion-item {
 
 .menu-item {
   width: 100%;
-  height: 48px; /* Altura cómoda para el dedo */
+  height: 48px;
+  /* Altura cómoda para el dedo */
   background: transparent;
   border: none;
   display: flex;
@@ -388,13 +393,24 @@ ion-item {
   font-size: 16px;
   text-align: left;
   position: relative;
-  z-index: 10; /* Asegura estar por encima */
+  z-index: 10;
+  /* Asegura estar por encima */
 
   span {
-    pointer-events: none; /* El texto no intercepta el clic, lo hace el botón */
+    pointer-events: none;
+    /* El texto no intercepta el clic, lo hace el botón */
   }
 
   &:active {
     background-color: rgba(var(--ion-color-primary-rgb), 0.1);
   }
+}
+
+
+.label::first-letter {
+  text-transform: uppercase;
+}
+
+.name::first-letter {
+  text-transform: uppercase;
 }

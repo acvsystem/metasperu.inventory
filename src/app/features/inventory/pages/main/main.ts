@@ -20,7 +20,6 @@ import { addIcons } from 'ionicons';
 import { StorageService } from '@metasperu/services/store.service';
 import { ToasNotification } from '@metasperu/component/toas-notification/toas-notification';
 import { InventoryService } from '@metasperu/services/inventory.service';
-
 @Component({
   selector: 'main-layout',
   standalone: true, // Asegúrate de tener esto
@@ -45,6 +44,7 @@ export default class MainComponent {
   private store = inject(StorageService);
   private invService = inject(InventoryService);
   menuFiltrado: Array<any> = [];
+  userRole: string = '';
   user = this.authService.currentUser;
   arMenuList = [
     { nombre_menu: 'DASHBOARD', ruta: 'inventory/dashboard', roles: ['administrador', 'auditor'] },
@@ -67,7 +67,8 @@ export default class MainComponent {
 
 
   ngOnInit() {
-    const userRole = localStorage.getItem('role'); // O de tu servicio de Auth
+    const userRole = localStorage.getItem('role') || ""; // O de tu servicio de Auth
+    this.userRole = userRole
     this.menuFiltrado = this.arMenuList.filter(item => item.roles.includes(userRole as any));
 
     this.invService.onMenu.subscribe((rol) => {
