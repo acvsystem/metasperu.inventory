@@ -334,11 +334,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
         objReturn[`${((section.nombre_seccion)).replace(" ", "_").toLowerCase()}`] = item[`${((section.nombre_seccion)).replace(" ", "_").toLowerCase()}`];
       });
 
-
-
       return objReturn;
-
-
     });
 
     // 2. Creamos el libro y la hoja de trabajo
@@ -390,15 +386,35 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
       // 3. Convertir a JSON (Array de objetos)
       const rawData: any[] = XLSX.utils.sheet_to_json(worksheet);
 
+      const formattedData = rawData.map(item => ({
+        cCodigoArticulo: item.cCodigoArticulo,
+        cCodigoBarra: item.cCodigoBarra,
+        cCodigoTienda: item.cCodigoTienda,
+        cColor: item.cColor,
+        cConteo: item.cConteo,
+        cDepartamento: item.cDepartamento,
+        cDescripcion: item.cDescripcion,
+        cFamilia: item.cFamilia,
+        cReferencia: item.cReferencia,
+        cSeccion: item.cSeccion,
+        cSessionCode: item.cSessionCode,
+        cStock: item.cStock,
+        cSubFamilia: item.cSubFamilia,
+        cTalla: item.cTalla,
+        cTemporada: item.cTemporada,
+        cTotalConteo: 0,
+        codigo_sesion: item.codigo_sesion,
+        id: item.id
+      }));
+
       // 5. GUARDAR PARA MODO OFFLINE
-      localStorage.setItem('offline_inventory', JSON.stringify(rawData));
+      localStorage.setItem('offline_inventory', JSON.stringify(formattedData));
 
-      console.log(rawData);
       // 6. Cargar en la tabla
-      this.onDataView = rawData;
-      console.log('📦 Inventario Importado:', rawData.length);
+      this.onDataView = formattedData;
+      console.log('📦 Inventario Importado:', formattedData.length);
 
-      await this.initializeTable(rawData);
+      await this.initializeTable(formattedData);
     };
 
     reader.readAsArrayBuffer(file);
