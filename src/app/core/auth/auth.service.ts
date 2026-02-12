@@ -51,12 +51,18 @@ export class AuthService {
                     localStorage.setItem('auth_token', response.token);
                     localStorage.setItem('role', response.user.role);
                     this.invService.onMenu.emit(response.user.role);
+                    var userRole = response.user.role;
                 }
 
                 // 3. Actualizamos el estado del usuario y navegamos
                 // Nota: Ajusta 'response.user' según cómo devuelva los datos tu API
                 this.#user.set(response.user || response);
-                this.router.navigate(['/inventory']);
+                if (userRole == 'administrador' || userRole == 'auditor') {
+                    this.router.navigate(['/inventory/session']);
+
+                } else if (userRole == 'pocket') {
+                    this.router.navigate(['/inventory/pocket']);
+                }
             })
         );
     }
