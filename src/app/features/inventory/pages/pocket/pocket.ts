@@ -66,7 +66,7 @@ export default class Pocket {
       this.sessionCode.set(valueCode); // Correcto: usar .set()
     }
     let oldSku = localStorage.getItem('oldSku');
-    let oldCantidad = localStorage.getItem('oldSku');
+    let oldCantidad = localStorage.getItem('oldCantidad');
     this.oldSKU = oldSku || "";
     this.oldCantidad = oldCantidad || "";
 
