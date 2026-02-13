@@ -98,6 +98,7 @@ export default class Pocket {
 
   saveOldSku(sku: string, cantidad: any) {
     this.oldSKU = sku;
+    this.oldCantidad = cantidad;
     localStorage.setItem('oldSku', sku);
     localStorage.setItem('oldCantidad', cantidad);
   }
