@@ -46,6 +46,7 @@ export default class Pocket {
   OptionTypeScan: string = 'pistola';
   dataSource = new MatTableDataSource(this.registerConteo);
   displayedColumns: string[] = ['sku', 'cantidad', 'seccion', 'estado'];
+  oldSKU: string = "";
 
   constructor(
     private dialog: MatDialog,
@@ -64,7 +65,8 @@ export default class Pocket {
     } else {
       this.sessionCode.set(valueCode); // Correcto: usar .set()
     }
-
+    let olSku = localStorage.getItem('oldSku');
+    this.oldSKU = olSku || "";
     this.updatePendingCount();
     window.addEventListener('online', () => this.onNetworkChange(true));
     window.addEventListener('offline', () => this.onNetworkChange(false));
@@ -91,22 +93,26 @@ export default class Pocket {
     });
   }
 
+  saveOldSku(sku: string) {
+    this.oldSKU = sku;
+    localStorage.setItem('oldSku', sku);
+  }
   // --- FUNCIÓN DE ESCANEO AUTOMÁTICO ---
   async handleScan() {
     const sku = this.skuInput().trim();
     if (this.OptionTypeScan == 'pistola') {
+      this.saveOldSku(sku);
       if (!sku || !this.selectedSectionId) {
         this.onNotification({ error: 'error', message: 'Llene todos los campos' });
         return
       }
     } else {
+      this.saveOldSku(sku);
       if (!sku || !this.selectedSectionId || !this.inCantidad) {
         this.onNotification({ error: 'error', message: 'Llene todos los campos' });
         return
       }
     }
-
-
 
     const cantidad = this.OptionTypeScan == 'cantidad' ? parseInt(this.inCantidad) : 1;
     // 1. Guardar localmente
