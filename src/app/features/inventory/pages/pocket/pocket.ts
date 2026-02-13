@@ -47,7 +47,7 @@ export default class Pocket {
   dataSource = new MatTableDataSource(this.registerConteo);
   displayedColumns: string[] = ['sku', 'cantidad', 'seccion', 'estado'];
   oldSKU: string = "";
-
+  oldCantidad: string = "";
   constructor(
     private dialog: MatDialog,
     private pocketService: PocketInventoryService,
@@ -65,8 +65,11 @@ export default class Pocket {
     } else {
       this.sessionCode.set(valueCode); // Correcto: usar .set()
     }
-    let olSku = localStorage.getItem('oldSku');
-    this.oldSKU = olSku || "";
+    let oldSku = localStorage.getItem('oldSku');
+    let oldCantidad = localStorage.getItem('oldSku');
+    this.oldSKU = oldSku || "";
+    this.oldCantidad = oldCantidad || "";
+
     this.updatePendingCount();
     window.addEventListener('online', () => this.onNetworkChange(true));
     window.addEventListener('offline', () => this.onNetworkChange(false));
@@ -93,21 +96,20 @@ export default class Pocket {
     });
   }
 
-  saveOldSku(sku: string) {
+  saveOldSku(sku: string, cantidad: any) {
     this.oldSKU = sku;
     localStorage.setItem('oldSku', sku);
+    localStorage.setItem('oldCantidad', cantidad);
   }
   // --- FUNCIÓN DE ESCANEO AUTOMÁTICO ---
   async handleScan() {
     const sku = this.skuInput().trim();
     if (this.OptionTypeScan == 'pistola') {
-      this.saveOldSku(sku);
       if (!sku || !this.selectedSectionId) {
         this.onNotification({ error: 'error', message: 'Llene todos los campos' });
         return
       }
     } else {
-      this.saveOldSku(sku);
       if (!sku || !this.selectedSectionId || !this.inCantidad) {
         this.onNotification({ error: 'error', message: 'Llene todos los campos' });
         return
@@ -139,6 +141,7 @@ export default class Pocket {
   }
 
   async saveScanLocally(seccion_id: number, session_code: string, sku: any, cantidad: any) {
+    this.saveOldSku(sku, cantidad);
     await this.pocketService.saveScanLocally(seccion_id, session_code, sku, cantidad);
   }
 
