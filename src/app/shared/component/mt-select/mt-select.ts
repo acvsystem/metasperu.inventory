@@ -27,7 +27,9 @@ export class MtSelect {
   @Input() label: string = "";
   @Input() title: string = "";
   @Input() modalUser: string = "";
+  @Input() checkAll: boolean = false;
   isAllSelected = false;
+
   isIndeterminate = false;
   selectedStoreId = ''; // Almacena el ID seleccionado
   optionSelected = {};
@@ -56,6 +58,9 @@ export class MtSelect {
   ngOnInit() {
     this.customAlertOptions.header = this.title;
     this.filteredData = this.data;
+    if (this.checkAll) {
+      this.toggleSelectAll();
+    }
   }
 
 

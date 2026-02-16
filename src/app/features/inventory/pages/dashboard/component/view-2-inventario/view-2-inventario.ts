@@ -13,18 +13,19 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-
+import { MtSelect } from '@metasperu/component/mt-select/mt-select';
 export interface tableColumns {
   matColumnDef: string;
   titleColumn: string;
   propertyValue: string;
   filterActive?: boolean;
+  cboFilter: Array<any>;
 }
 
 @Component({
   selector: 'view-2-inventario',
   standalone: true,
-  imports: [MatTableModule, MatCheckboxModule, IonCardContent, IonGrid, IonCard, MatBadgeModule, MatMenuModule, IonIcon, MatFormFieldModule, MtInput, MatPaginatorModule, MatIconModule, MatSortModule, IonCol, IonRow, CommonModule, MatMenu],
+  imports: [MatTableModule, MatCheckboxModule, MtSelect, IonCardContent, IonGrid, IonCard, MatBadgeModule, MatMenuModule, IonIcon, MatFormFieldModule, MtInput, MatPaginatorModule, MatIconModule, MatSortModule, IonCol, IonRow, CommonModule, MatMenu],
   templateUrl: './view-2-inventario.html',
   styleUrl: './view-2-inventario.scss',
 })
@@ -51,19 +52,20 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     'talla', 'color', 'stock', 'total',
   ];
 
-  dataColumns: tableColumns[] = [{ matColumnDef: 'codigoBarra', titleColumn: 'Codigo Barra', propertyValue: 'cCodigoBarra', filterActive: false },
-  { matColumnDef: 'Referencia', titleColumn: 'Referencia', propertyValue: 'cReferencia', filterActive: false },
-  { matColumnDef: 'descripcion', titleColumn: 'Descripcion', propertyValue: 'cDescripcion', filterActive: false },
-  { matColumnDef: 'departamento', titleColumn: 'Departamento', propertyValue: 'cDepartamento', filterActive: false },
-  { matColumnDef: 'seccion', titleColumn: 'Seccion', propertyValue: 'cSeccion', filterActive: false },
-  { matColumnDef: 'familia', titleColumn: 'Familia', propertyValue: 'cFamilia', filterActive: false },
-  { matColumnDef: 'subfamilia', titleColumn: 'SubFamilia', propertyValue: 'cSubFamilia', filterActive: false },
-  { matColumnDef: 'temporada', titleColumn: 'Temporada', propertyValue: 'cTemporada', filterActive: false },
-  { matColumnDef: 'talla', titleColumn: 'Talla', propertyValue: 'cTalla', filterActive: false },
-  { matColumnDef: 'color', titleColumn: 'Color', propertyValue: 'cColor', filterActive: false },
-  { matColumnDef: 'color_scent', titleColumn: 'Color/Scent', propertyValue: 'cColorScent', filterActive: false },
-  { matColumnDef: 'stock', titleColumn: 'Stock', propertyValue: 'cStock', filterActive: false },
-  { matColumnDef: 'total', titleColumn: 'Total Conteo', propertyValue: 'cTotalConteo', filterActive: false }];
+  dataColumns: tableColumns[] = [
+    { matColumnDef: 'codigoBarra', titleColumn: 'Codigo Barra', propertyValue: 'cCodigoBarra', filterActive: false, cboFilter: [] },
+    { matColumnDef: 'Referencia', titleColumn: 'Referencia', propertyValue: 'cReferencia', filterActive: false, cboFilter: [] },
+    { matColumnDef: 'descripcion', titleColumn: 'Descripcion', propertyValue: 'cDescripcion', filterActive: false, cboFilter: [] },
+    { matColumnDef: 'departamento', titleColumn: 'Departamento', propertyValue: 'cDepartamento', filterActive: false, cboFilter: [] },
+    { matColumnDef: 'seccion', titleColumn: 'Seccion', propertyValue: 'cSeccion', filterActive: false, cboFilter: [] },
+    { matColumnDef: 'familia', titleColumn: 'Familia', propertyValue: 'cFamilia', filterActive: false, cboFilter: [] },
+    { matColumnDef: 'subfamilia', titleColumn: 'SubFamilia', propertyValue: 'cSubFamilia', filterActive: false, cboFilter: [] },
+    { matColumnDef: 'temporada', titleColumn: 'Temporada', propertyValue: 'cTemporada', filterActive: false, cboFilter: [] },
+    { matColumnDef: 'talla', titleColumn: 'Talla', propertyValue: 'cTalla', filterActive: false, cboFilter: [] },
+    { matColumnDef: 'color', titleColumn: 'Color', propertyValue: 'cColor', filterActive: false, cboFilter: [] },
+    { matColumnDef: 'color_scent', titleColumn: 'Color/Scent', propertyValue: 'cColorScent', filterActive: false, cboFilter: [] },
+    { matColumnDef: 'stock', titleColumn: 'Stock', propertyValue: 'cStock', filterActive: false, cboFilter: [] },
+    { matColumnDef: 'total', titleColumn: 'Total Conteo', propertyValue: 'cTotalConteo', filterActive: false, cboFilter: [] }];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -91,8 +93,24 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
       const searchTerms = JSON.parse(filter);
 
       return Object.keys(searchTerms).every(columnKey => {
+        // 1. Limpiamos el valor de la celda
         const cellValue = data[columnKey]?.toString().toLowerCase() || '';
-        return cellValue.includes(searchTerms[columnKey]);
+        const searchTerm = searchTerms[columnKey];
+
+        // 2. Si el filtro de esta columna está vacío, dejamos pasar la fila (true)
+        if (!searchTerm || (Array.isArray(searchTerm) && searchTerm.length === 0)) {
+          return true;
+        }
+
+        // 3. Lógica según el tipo de filtro:
+        if (Array.isArray(searchTerm)) {
+          // MULTISELECCIÓN: ¿Está el valor de la celda en el array de seleccionados?
+          // Usamos .some o .includes sobre el array de búsqueda
+          return searchTerm.map(s => s.toString().toLowerCase()).includes(cellValue);
+        } else {
+          // BÚSQUEDA SIMPLE: ¿El texto ingresado está contenido en la celda?
+          return cellValue.includes(searchTerm.toString().toLowerCase());
+        }
       });
     };
 
@@ -123,20 +141,22 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     this.onChangeInventario.emit();
   }
 
-  applyFilterTable(event: Event, column: string) {
-    const filterValue = (event.target as HTMLInputElement).value;
+  applyFilterTable(event: any, column: string, cboValue?: string) {
+
+    const filterValue = cboValue?.length ? cboValue : (event.target as HTMLInputElement).value;
 
     const property: any = this.dataColumns.find((t) => t.matColumnDef == column);
     const indexHeader: any = this.dataColumns.findIndex((t) => t.matColumnDef == column);
     this.dataColumns[indexHeader]['filterActive'] = filterValue.length ? true : false;
-    this.filterValues[property?.propertyValue] = filterValue.trim().toLowerCase();
+
+    this.filterValues[property?.propertyValue] = (cboValue || "").length ? cboValue : filterValue.trim().toLowerCase();
     this.dataSource.filter = JSON.stringify(this.filterValues);
   }
 
   private asignSectionColum() {
     if (!this.isInsertColum) {
       this.inAsignatedSections.map((section, i) => {
-        this.dataColumns.push({ matColumnDef: (section.nombre_seccion).toLowerCase(), titleColumn: section.nombre_seccion, propertyValue: `${((section.nombre_seccion)).replace(" ", "_").toLowerCase()}` });
+        this.dataColumns.push({ matColumnDef: (section.nombre_seccion).toLowerCase(), titleColumn: section.nombre_seccion, propertyValue: `${((section.nombre_seccion)).replace(" ", "_").toLowerCase()}`, cboFilter: [] });
         this.displayedColumns.push((section.nombre_seccion).toLowerCase());
       });
 
@@ -197,7 +217,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     this.dataSource.data = allFormattedData;
 
     if (this.progress() == 1) {
-
+      this.onParserFilterCbo('cDepartamento', allFormattedData);
       this.updateSingleRecord(this.pocketScan);
       this.isProcessing.set(false);
       this.showTable.set(true);
@@ -369,7 +389,6 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
   }
 
   importExcelInventario(event: any) {
-    console.log(event);
     this.onDataView = [];
     const file = event.target.files[0];
     const reader = new FileReader();
@@ -414,10 +433,30 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
       this.onDataView = formattedData;
       console.log('📦 Inventario Importado:', formattedData.length);
 
+      this.onParserFilterCbo('cDepartamento', formattedData);
       await this.initializeTable(formattedData);
     };
 
     reader.readAsArrayBuffer(file);
+  }
+
+  onParserFilterCbo(property: string, data: Array<any>) {
+    const cboFilter = [... new Set(data.map(item => item[property]))]
+      .sort()
+      .map(distrito => ({
+        key: distrito.toLowerCase(),
+        value: distrito.toLowerCase()
+      }));
+
+    const indexColumn = this.dataColumns.findIndex((c) => c.propertyValue == property);
+
+    this.dataColumns[indexColumn]['cboFilter'] = cboFilter || [];
+  }
+
+
+  async onChangeSelect(data: any) {
+    const selectData = data.map((item: any) => item.value);
+    this.applyFilterTable('', 'departamento', selectData);
   }
 
 }
