@@ -315,3 +315,13 @@ tr.example-element-row:not(.example-expanded-row):active {
     display: none;
   }
 }
+
+.fila-seleccionada {
+  background-color: #e3f2fd !important;
+  /* Un azul claro, por ejemplo */
+}
+
+/* Opcional: cambiar el color al pasar el mouse para que no se pierda el efecto */
+.fila-seleccionada:hover {
+  background-color: #bbdefb !important;
+}

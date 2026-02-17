@@ -80,6 +80,44 @@
                 <table mat-table [dataSource]="dataSource">
 
                     @for(col of dataColumns; track col){
+                    @if(col.matColumnDef == 'checking'){
+                    <ng-container matColumnDef="{{col.matColumnDef}}" sticky>
+                        <th mat-header-cell *matHeaderCellDef>
+                            <div class="head-table">
+                                {{col.titleColumn}}
+                                <div class="filter-content" slot="end">
+
+                                    <div class="btn-filter" [matMenuTriggerFor]="filterMenu">
+                                        @if(col.filterActive){
+                                        <div matBadge="1" matBadgeSize="small" style="width: 2px;"></div>
+                                        }
+                                        <i class="fa fa-filter" aria-hidden="true"></i>
+                                    </div>
+
+                                </div>
+                            </div>
+                            <mat-menu #filterMenu="matMenu">
+
+                                @if(col.cboFilter.length){
+                                <mt-select [isMultiselect]=true [checkAll]="true" [data]="col.cboFilter"
+                                    (selectdOption)="onChangeSelect($event,col.matColumnDef)"
+                                    label="Seleccione una departamento" title="Departamento"></mt-select>
+                                }@else{
+                                <mt-input id="filterTienda" (click)="$event.stopPropagation()"
+                                    (keydown)="$event.stopPropagation()" label="Filtro {{col.titleColumn}}"
+                                    placeholder="Nombre {{col.titleColumn}}" type="text"
+                                    (keyup)="applyFilterTable($event,col.matColumnDef)"></mt-input>
+                                }
+
+                            </mat-menu>
+                        </th>
+                        <td mat-cell *matCellDef="let element">
+                            <mat-checkbox class="example-margin" [checked]="element.checking == 0? false:true"
+                                (change)="onCheckedRow(element.cCodigoBarra,$event)">
+                            </mat-checkbox>
+                        </td>
+                    </ng-container>
+                    }
                     @if(col.matColumnDef == 'codigoBarra'){
                     <ng-container matColumnDef="{{col.matColumnDef}}" sticky>
                         <th mat-header-cell *matHeaderCellDef>
@@ -96,11 +134,10 @@
 
                                 </div>
                             </div>
-                            {{col.cboFilter.length}}
                             <mat-menu #filterMenu="matMenu">
 
                                 @if(col.cboFilter.length){
-                                <mt-select [data]="col.cboFilter" (selectdOption)="onChangeSelect($event)"
+                                <mt-select [data]="col.cboFilter" (selectdOption)="onChangeSelect($event,col.matColumnDef)"
                                     label="Seleccione una departamento" title="Departamento"></mt-select>
                                 }@else{
                                 <mt-input id="filterTienda" (click)="$event.stopPropagation()"
@@ -113,7 +150,7 @@
                         </th>
                         <td mat-cell *matCellDef="let element">{{element[col.propertyValue]}}</td>
                     </ng-container>
-                    }@else{
+                    }@else if(col.matColumnDef != 'checking'){
                     <ng-container matColumnDef="{{col.matColumnDef}}">
                         <th mat-header-cell *matHeaderCellDef>
                             <div class="head-table">
@@ -131,8 +168,9 @@
                             </div>
                             <mat-menu #filterMenu="matMenu">
                                 @if(col.cboFilter.length){
-                                <mt-select [isMultiselect]=true [checkAll]="true" [data]="col.cboFilter" (selectdOption)="onChangeSelect($event)"
-                                    label="Seleccione una departamento" title="Departamento"></mt-select>
+                                <mt-select [isMultiselect]=true [checkAll]="true" [data]="col.cboFilter"
+                                    (selectdOption)="onChangeSelect($event,col.matColumnDef)" label="Seleccione una departamento"
+                                    title="Departamento"></mt-select>
                                 }@else{
                                 <mt-input id="filterTienda" (click)="$event.stopPropagation()"
                                     (keydown)="$event.stopPropagation()" label="Filtro {{col.titleColumn}}"
@@ -145,24 +183,25 @@
 
                             @if(col.propertyValue == 'cTotalConteo'){
 
-                                @if(element.cConteo == 0){
-                                <span class="badge bg-yellow-comprobantes">{{element.cTotalConteo}}</span>
-                                }
-
-                                @if(element.cTotalConteo >= 1 && element.cTotalConteo != element.cStock){
-                                    <span class="badge bg-success-comprobantes">{{element.cTotalConteo}}</span>
-                                }
-
-                                @if((element.cConteo > 0 && element.cTotalConteo == 0) ||  element.cTotalConteo == element.cStock){
-                                    <span class="badge bg-warning-comprobantes">{{element.cTotalConteo}}</span>
-                                }
-
-                                @if(element.cTotalConteo < 0){ 
-                                    <span class="badge bg-danger-comprobantes">{{element.cTotalConteo}}</span>
-                                }
-                            }@else {
-                                {{element[col.propertyValue]}}
+                            @if(element.cConteo == 0){
+                            <span class="badge bg-yellow-comprobantes">{{element.cTotalConteo}}</span>
                             }
+
+                            @if(element.cTotalConteo >= 1 && element.cTotalConteo != element.cStock){
+                            <span class="badge bg-success-comprobantes">{{element.cTotalConteo}}</span>
+                            }
+
+                            @if((element.cConteo > 0 && element.cTotalConteo == 0) || element.cTotalConteo ==
+                            element.cStock){
+                            <span class="badge bg-warning-comprobantes">{{element.cTotalConteo}}</span>
+                            }
+
+                            @if(element.cTotalConteo < 0){ <span class="badge bg-danger-comprobantes">
+                                {{element.cTotalConteo}}</span>
+                                }
+                                }@else {
+                                {{element[col.propertyValue]}}
+                                }
                         </td>
                     </ng-container>
                     }
@@ -170,7 +209,8 @@
                     }
 
                     <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
-                    <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="example-element-row"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+                        [class.fila-seleccionada]="row.checking" class="example-element-row"></tr>
                 </table>
 
                 <mat-paginator [pageSizeOptions]="[10, 20, 30]" showFirstLastButtons

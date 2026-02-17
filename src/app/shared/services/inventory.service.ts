@@ -219,4 +219,13 @@ export class InventoryService {
             catchError(this.handleError)
         );
     }
+
+    putCheckedInventario(data: any): Observable<any> {
+        console.log(data);
+        return this.http.put(
+            `${this.API_URL}/checked/row/inv`, data
+        ).pipe(
+            catchError(this.handleError)
+        );
+    }
 }

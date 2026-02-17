@@ -14,6 +14,8 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MtSelect } from '@metasperu/component/mt-select/mt-select';
+import { InventoryService } from '@metasperu/services/inventory.service';
+
 export interface tableColumns {
   matColumnDef: string;
   titleColumn: string;
@@ -47,12 +49,13 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
   isProcessing = signal(false);
   checkedOffline: any = "";
   displayedColumns = [
-    'codigoBarra', 'Referencia', 'descripcion', 'departamento',
+    'checking', 'codigoBarra', 'Referencia', 'descripcion', 'departamento',
     'seccion', 'familia', 'subfamilia', 'temporada',
     'talla', 'color', 'stock', 'total',
   ];
 
   dataColumns: tableColumns[] = [
+    { matColumnDef: 'checking', titleColumn: 'Revisado', propertyValue: 'checking', filterActive: false, cboFilter: [{ key: 1, value: 'Revisado' }, { key: 0, value: 'Sin Revisar' }] },
     { matColumnDef: 'codigoBarra', titleColumn: 'Codigo Barra', propertyValue: 'cCodigoBarra', filterActive: false, cboFilter: [] },
     { matColumnDef: 'Referencia', titleColumn: 'Referencia', propertyValue: 'cReferencia', filterActive: false, cboFilter: [] },
     { matColumnDef: 'descripcion', titleColumn: 'Descripcion', propertyValue: 'cDescripcion', filterActive: false, cboFilter: [] },
@@ -70,7 +73,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
-  constructor(private cdr: ChangeDetectorRef) {
+  constructor(private cdr: ChangeDetectorRef, private invService: InventoryService) {
 
   }
 
@@ -406,6 +409,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
       const rawData: any[] = XLSX.utils.sheet_to_json(worksheet);
 
       const formattedData = rawData.map(item => ({
+        checking: 0,
         cCodigoArticulo: item.cCodigoArticulo,
         cCodigoBarra: item.cCodigoBarra,
         cCodigoTienda: item.cCodigoTienda,
@@ -454,9 +458,33 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
   }
 
 
-  async onChangeSelect(data: any) {
-    const selectData = data.map((item: any) => item.value);
-    this.applyFilterTable('', 'departamento', selectData);
+  async onChangeSelect(data: any, column: string) {
+    const selectData = data.map((item: any) => item.key);
+    this.applyFilterTable('', column, selectData);
   }
 
+  onCheckedRow(codigo_barra: string, ev: any) {
+    const index = this.dataSource.data.findIndex(item => item.cCodigoBarra == codigo_barra);
+    const idRow = this.dataSource.data[index]['id'];
+    this.dataSource.data[index]['checking'] = ev.checked;
+
+    this.invService.putCheckedInventario({ id: idRow, checked: ev.checked }).subscribe({
+      next: (value) => {
+        this.onNotification(value);
+      },
+      error: (err) => {
+        this.onNotification({ error: 'error', message: err?.message });
+      },
+    });
+  }
+
+  private onNotification(result: any) {
+    let notificationList = [{
+      isSuccess: !result?.error?.length ? true : false,
+      isError: result?.error?.length ? true : false,
+      bodyNotification: result?.message
+    }];
+
+    this.invService.onNotification.emit(notificationList);
+  }
 }
