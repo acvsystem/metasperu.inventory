@@ -43,6 +43,7 @@ export default class Pocket {
   registerConteo: Array<any> = [];
   inFilter: string = "";
   inCantidad: string = "";
+  optionSeccion: string = "";
   OptionTypeScan: string = 'pistola';
   dataSource = new MatTableDataSource(this.registerConteo);
   displayedColumns: string[] = ['sku', 'cantidad', 'seccion', 'estado'];
@@ -119,7 +120,7 @@ export default class Pocket {
 
     const cantidad = this.OptionTypeScan == 'cantidad' ? parseInt(this.inCantidad) : 1;
     // 1. Guardar localmente
-    await this.saveScanLocally(this.selectedSectionId, this.sessionCode(), sku, cantidad);
+    await this.saveScanLocally(this.selectedSectionId, this.sessionCode(), sku, this.optionSeccion == 'RECONTEO' ? cantidad * -1 : cantidad);
 
     // 2. Limpiar y refrescar contador
     this.skuInput.set('');
@@ -182,8 +183,9 @@ export default class Pocket {
   }
 
   async onChangeSelect(data: any) {
-    let selectData = data || {};
+    const selectData = data || {};
     this.selectedSectionId = (selectData || {}).key || 0;
+    this.optionSeccion = selectData?.value || "";
   }
 
   onNotification(result: any) {
