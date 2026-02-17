@@ -130,7 +130,6 @@
                                 </div>
                             </div>
                             <mat-menu #filterMenu="matMenu">
-
                                 @if(col.cboFilter.length){
                                 <mt-select [isMultiselect]=true [checkAll]="true" [data]="col.cboFilter" (selectdOption)="onChangeSelect($event)"
                                     label="Seleccione una departamento" title="Departamento"></mt-select>
@@ -144,23 +143,26 @@
                         </th>
                         <td mat-cell *matCellDef="let element">
 
-
                             @if(col.propertyValue == 'cTotalConteo'){
-                            @if(element.cTotalConteo >= 1 && element.cTotalConteo != element.cStock){
-                            <span class="badge bg-success-comprobantes">{{element.cTotalConteo}}</span>
-                            }
 
-                            @if(element.cTotalConteo == 0 || element.cTotalConteo == element.cStock){
-                            <span class="badge bg-warning-comprobantes">{{element.cTotalConteo}}</span>
-                            }
-
-                            @if(element.cTotalConteo < 0){ <span class="badge bg-danger-comprobantes">
-                                {{element.cTotalConteo}}
-                                </span>
+                                @if(element.cConteo == 0){
+                                <span class="badge bg-yellow-comprobantes">{{element.cTotalConteo}}</span>
                                 }
-                                }@else {
+
+                                @if(element.cTotalConteo >= 1 && element.cTotalConteo != element.cStock){
+                                    <span class="badge bg-success-comprobantes">{{element.cTotalConteo}}</span>
+                                }
+
+                                @if((element.cConteo > 0 && element.cTotalConteo == 0) ||  element.cTotalConteo == element.cStock){
+                                    <span class="badge bg-warning-comprobantes">{{element.cTotalConteo}}</span>
+                                }
+
+                                @if(element.cTotalConteo < 0){ 
+                                    <span class="badge bg-danger-comprobantes">{{element.cTotalConteo}}</span>
+                                }
+                            }@else {
                                 {{element[col.propertyValue]}}
-                                }
+                            }
                         </td>
                     </ng-container>
                     }
