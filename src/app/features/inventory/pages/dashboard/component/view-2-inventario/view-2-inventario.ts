@@ -68,7 +68,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     { matColumnDef: 'color', titleColumn: 'Color', propertyValue: 'cColor', filterActive: false, cboFilter: [] },
     { matColumnDef: 'color_scent', titleColumn: 'Color/Scent', propertyValue: 'cColorScent', filterActive: false, cboFilter: [] },
     { matColumnDef: 'stock', titleColumn: 'Stock', propertyValue: 'cStock', filterActive: false, cboFilter: [] },
-    { matColumnDef: 'total', titleColumn: 'Total Conteo', propertyValue: 'cTotalConteo', filterActive: false, cboFilter: [] }];
+    { matColumnDef: 'total', titleColumn: 'Total Conteo', propertyValue: 'cTotalConteo', filterActive: false, cboFilter: [{ key: 'Positivo', value: 'Positivo' }, { key: 'Negativo', value: 'Negativo' }, { key: 'cero sin escaneo', value: 'cero sin escaneo' }, { key: 'cero escaneo', value: 'cero escaneo' }] }];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -96,22 +96,38 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
       const searchTerms = JSON.parse(filter);
 
       return Object.keys(searchTerms).every(columnKey => {
-        // 1. Limpiamos el valor de la celda
-        const cellValue = data[columnKey]?.toString().toLowerCase() || '';
         const searchTerm = searchTerms[columnKey];
 
-        // 2. Si el filtro de esta columna está vacío, dejamos pasar la fila (true)
+        // 1. Si el filtro está vacío, pasa la fila
         if (!searchTerm || (Array.isArray(searchTerm) && searchTerm.length === 0)) {
           return true;
         }
 
-        // 3. Lógica según el tipo de filtro:
+        // 2. Lógica para 'cTotalConteo' con soporte para múltiples opciones
+        if (columnKey === 'cTotalConteo') {
+          const valorNumerico = data[columnKey];
+
+          // Convertimos el searchTerm a Array siempre para manejarlo igual
+          const filtrosActivos = Array.isArray(searchTerm)
+            ? searchTerm.map(s => s.toString().toLowerCase())
+            : [searchTerm.toString().toLowerCase()];
+
+          // Verificamos si el valor cumple con AL MENOS UNA de las opciones seleccionadas
+          return filtrosActivos.some(opcion => {
+            if (opcion === 'positivo') return valorNumerico > 0;
+            if (opcion === 'negativo') return valorNumerico < 0;
+            if (opcion === 'cero sin escaneo') return data['cConteo'] == 0;
+            if (opcion === 'cero escaneo') return (data['cConteo'] > 0 && data['cTotalConteo'] == 0) || data['cTotalConteo'] == data['cStock'];
+            return false;
+          });
+        }
+
+        // 3. Lógica estándar para el resto de columnas
+        const cellValue = data[columnKey]?.toString().toLowerCase() || '';
+
         if (Array.isArray(searchTerm)) {
-          // MULTISELECCIÓN: ¿Está el valor de la celda en el array de seleccionados?
-          // Usamos .some o .includes sobre el array de búsqueda
           return searchTerm.map(s => s.toString().toLowerCase()).includes(cellValue);
         } else {
-          // BÚSQUEDA SIMPLE: ¿El texto ingresado está contenido en la celda?
           return cellValue.includes(searchTerm.toString().toLowerCase());
         }
       });

@@ -191,8 +191,7 @@
                             <span class="badge bg-success-comprobantes">{{element.cTotalConteo}}</span>
                             }
 
-                            @if((element.cConteo > 0 && element.cTotalConteo == 0) || element.cTotalConteo ==
-                            element.cStock){
+                            @if((element.cConteo > 0 && element.cTotalConteo == 0) || element.cTotalConteo == element.cStock){
                             <span class="badge bg-warning-comprobantes">{{element.cTotalConteo}}</span>
                             }
 
