@@ -26,6 +26,7 @@ import { MatMenu } from '@angular/material/menu';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDialog } from '@angular/material/dialog';
 import { ModalConteo } from './component/modal-conteo/modal-conteo';
+import { MatBadgeModule } from '@angular/material/badge';
 
 export interface tableColumns {
   matColumnDef: string;
@@ -39,7 +40,7 @@ export interface tableColumns {
   selector: 'app-dashboard',
   standalone: true,
   imports: [
-    CommonModule, RouterModule, View2Inventario, MatTabsModule, Statistics,
+    CommonModule, RouterModule, View2Inventario, MatTabsModule, Statistics, MatBadgeModule,
     IonHeader, IonToolbar, IonTitle, IonContent, IonGrid, IonRow, MatSidenavModule,
     IonCol, IonCard, IonLabel, IonListHeader, MatIconModule, MatTooltipModule,
     IonButtons, IonButton, IonIcon, IonChip, IonCardContent, MatTableModule,

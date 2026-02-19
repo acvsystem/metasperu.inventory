@@ -24,7 +24,7 @@ import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatMenu } from '@angular/material/menu';
 import { MatMenuModule } from '@angular/material/menu';
-import { InventorySocketService } from '@metasperu/services/inventory-socket.service';
+import { MatBadgeModule } from '@angular/material/badge';
 
 export interface PeriodicElement {
   codigo_sesion: string;
@@ -44,7 +44,7 @@ export interface tableColumns {
 @Component({
   selector: 'app-inventory-session',
   imports: [MatDialogModule, MatButtonModule, MatIconModule, MatInputModule, MatFormFieldModule, MatTableModule, IonCol,
-    CommonModule, FormsModule, IonContent, IonHeader, IonTitle, IonRow, MatTooltipModule,
+    CommonModule, FormsModule, IonContent, IonHeader, IonTitle, IonRow, MatTooltipModule, MatBadgeModule,
     IonToolbar, IonButton, MatSelectModule, MatPaginator, MatPaginatorModule, MatSortModule,
     IonCard, MtSelect, MtInput, MatMenu, MatMenuModule
   ],

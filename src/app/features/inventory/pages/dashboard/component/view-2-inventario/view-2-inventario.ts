@@ -344,11 +344,12 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     });
   }
 
-  exportarExcel() {
-    // 1. Mapeamos los datos para que el Excel tenga nombres de columnas bonitos
-    const dataParaExportar = this.dataSource.data.map(item => {
 
+  exportarExcel() {
+    // 1. Mapeamos los datos (Tu lógica se mantiene igual)
+    const dataParaExportar = this.dataSource.data.map(item => {
       const objReturn: Record<string, any> = {
+        id: item.id,
         cCodigoArticulo: item.cCodigoArticulo,
         cCodigoBarra: item.cCodigoBarra,
         cCodigoTienda: item.cCodigoTienda,
@@ -364,30 +365,53 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
         cSubFamilia: item.cSubFamilia,
         cTalla: item.cTalla,
         cTemporada: item.cTemporada,
-        cTotalConteo: item.cTotalConteo,
-        codigo_sesion: item.codigo_sesion,
-        id: item.id
+        cTotalConteo: item.cConteo == 0 ? item.cStock * -1 : item.cTotalConteo,
+        cEstadoEscaneo: item.cConteo == 0 ? 'NO ESCANEADO' : 'ESCANEADO',
       };
-
-      this.inAsignatedSections.map((section) => {
-        objReturn[`${((section.nombre_seccion)).replace(" ", "_").toLowerCase()}`] = item[`${((section.nombre_seccion)).replace(" ", "_").toLowerCase()}`];
-      });
-
       return objReturn;
     });
 
-    // 2. Creamos el libro y la hoja de trabajo
+    // 2. Creamos la hoja de trabajo
     const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(dataParaExportar);
+
+    // 3. --- LÓGICA PARA PINTAR CELDAS ---
+    const range = XLSX.utils.decode_range(worksheet['!ref']!);
+
+    for (let R = range.s.r + 1; R <= range.e.r; ++R) { // Empezamos en +1 para saltar el encabezado
+      // Buscamos la columna 'cEstadoEscaneo'. 
+      // Si sabes que es la columna 17 (por ejemplo), puedes usarla directo.
+      const estadoCellAddress = XLSX.utils.encode_cell({ r: R, c: 16 }); // Ajusta el índice de columna
+      const cell = worksheet[estadoCellAddress];
+
+      if (cell && cell.v === 'NO ESCANEADO') {
+        // Pintamos toda la fila o solo esa celda
+        for (let C = range.s.c; C <= range.e.c; ++C) {
+          const address = XLSX.utils.encode_cell({ r: R, c: C });
+          if (!worksheet[address]) continue;
+
+          worksheet[address].s = {
+            fill: {
+              fgColor: { rgb: "FFFF0000" } // Rojo (Formato ARGB)
+            },
+            font: {
+              color: { rgb: "FFFFFF" }, // Texto blanco para que resalte
+              bold: true
+            }
+          };
+        }
+      }
+    }
+
+    // 4. Generamos el libro y descargamos
     const workbook: XLSX.WorkBook = {
       Sheets: { 'Inventario': worksheet },
       SheetNames: ['Inventario']
     };
 
-    // 3. Generamos el archivo y lo descargamos
     const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-    worksheet['!autofilter'] = { ref: XLSX.utils.encode_range(XLSX.utils.decode_range(worksheet['!ref']!)) };
     this.saveAsExcelFile(excelBuffer, 'Cruce_Inventario');
   }
+
 
   private saveAsExcelFile(buffer: any, fileName: string): void {
     const data: Blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8' });
