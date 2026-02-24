@@ -116,7 +116,7 @@ export default class DashboardComponent implements OnInit {
     this.sessionCode = this.route.snapshot.paramMap.get('code') || '';
     this.serieStore = this.route.snapshot.paramMap.get('serie') || '';
     this.asignedSections();
-    this.loadData();
+
     if (!this.sessionCode) {
       this.router.navigate(['/inventory/session']);
       return;
@@ -125,9 +125,12 @@ export default class DashboardComponent implements OnInit {
     // Unirse a la sala de socket para recibir actualizaciones en tiempo real
     this.socketService.joinSession(this.sessionCode);
     const offlineData = localStorage.getItem('offline_inventory');
+    
     if (!offlineData) {
       this.loadInventary();
     }
+
+    this.loadData();
 
     this.dataSource.filterPredicate = (data: any, filter: string) => {
       const searchTerms = JSON.parse(filter);
@@ -319,7 +322,7 @@ export default class DashboardComponent implements OnInit {
         'Código de Barras': item.sku,
         'Usuario': item.user,
         'Seccion': item.section_name,
-        'Conteo': item.total_cantidad,
+        'Conteo': item.total_cantidad * 1,
       };
     });
 

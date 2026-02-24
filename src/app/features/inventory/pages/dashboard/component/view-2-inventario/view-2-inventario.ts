@@ -90,7 +90,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     this.initializeTable(this.onDataView);
 
     this.asignSectionColum();
-    this.updateSingleRecord(this.pocketScan);
+    //this.updateSingleRecord(this.pocketScan);
 
     this.dataSource.filterPredicate = (data: any, filter: string) => {
       const searchTerms = JSON.parse(filter);
@@ -250,98 +250,90 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
 
   proccessScan(dataPocket: Array<any>) {
     const data = [...this.dataSource.data];
-    const agrupadoPorSkuYSeccion = dataPocket.reduce((acc, item) => {
-      // Creamos una llave única que combine SKU e ID de sección
-      const key = `${item.sku}-${item.seccion_id}`;
-      const cantidad = Number(item.total_cantidad);
 
-      if (!acc[key]) {
-        // Si no existe la combinación, creamos el registro inicial
-        acc[key] = {
-          ...item,
-          total_cantidad: cantidad
-        };
+    // 1. Crear un Map para búsqueda rápida de items existentes por SKU
+    const dataMap = new Map(data.map((item, index) => [item.cCodigoBarra, { item, index }]));
+
+    // 2. Agrupar dataPocket por SKU y por Seccion en un solo paso
+    const agrupado = new Map<string, any>();
+    const totalesPorSku = new Map<string, number>();
+
+    dataPocket.forEach(item => {
+      const key = `${item.sku}-${item.seccion_id}`;
+      const cantidad = Number(item.total_cantidad) || 0;
+
+      // Agrupación por SKU-Sección
+      if (!agrupado.has(key)) {
+        agrupado.set(key, { ...item, total_cantidad: cantidad });
       } else {
-        // Si ya existe la combinación SKU-Sección, sumamos la cantidad
-        acc[key].total_cantidad += cantidad;
+        agrupado.get(key).total_cantidad += cantidad;
       }
 
-      return acc;
-    }, {});
-
-    // Convertimos a array para obtener el resultado final
-    const resultadoFinal = Object.values(agrupadoPorSkuYSeccion);
-
-
-    const totalesPorSku: any = resultadoFinal.reduce((acc: any, item: any) => {
-      const sku = item.sku;
-      acc[sku] = (acc[sku] || 0) + Number(item.total_cantidad);
-      return acc;
-    }, {});
-
-    // 3. Insertamos la propiedad total_conteo en cada elemento
-    const resultadoFinal2 = resultadoFinal.map((item: any) => {
-      return {
-        ...item,
-        total_conteo: totalesPorSku[item.sku] // Asignamos la suma global del SKU
-      };
+      // Acumular total global por SKU
+      totalesPorSku.set(item.sku, (totalesPorSku.get(item.sku) || 0) + cantidad);
     });
+
+    // 3. Crear un mapa de secciones para evitar el .map interno
+    const seccionesMap = new Map(this.inAsignatedSections.map(s => [
+      s.id,
+      s.nombre_seccion.replace(/\s+/g, "_").toLowerCase()
+    ]));
 
     let totalConteoGlobal = 0;
 
-    (resultadoFinal2).forEach((scan: any) => {
+    // 4. Procesar los resultados agrupados
+    agrupado.forEach((scan) => {
+      const skuTotal = totalesPorSku.get(scan.sku) || 0;
+      const sectionProp = seccionesMap.get(scan.seccion_id);
+      const existing = dataMap.get(scan.sku);
 
-      const index = data.findIndex(item => item.cCodigoBarra === scan.sku);
-      if (index != -1) {
+      if (existing) {
+        const { item, index } = existing;
 
-        this.inAsignatedSections.map((section) => {
-          if (scan.seccion_id == section.id) {
-            data[index][`${((section.nombre_seccion)).replace(" ", "_").toLowerCase()}`] = scan.total_cantidad;
-          }
-        });
+        // Actualizar columna dinámica de sección
+        if (sectionProp) {
+          data[index][sectionProp] = scan.total_cantidad;
+        }
 
-        totalConteoGlobal += scan.total_cantidad;
+        data[index].cConteo = skuTotal;
 
-        data[index].cConteo = Number(scan.total_conteo);
-
-        data[index].cTotalConteo = data[index].cTotalConteo == data[index].cStock ? data[index].cStock : data[index].cConteo - data[index].cStock;
+        // Lógica de diferencia (corregida para evitar confusiones)
+        data[index].cTotalConteo = data[index].cConteo === data[index].cStock
+          ? data[index].cStock
+          : data[index].cConteo - data[index].cStock;
 
       } else {
-        let newItem: any = {
+        // Crear nuevo item si no existe
+        const newItem: any = {
           CTotalStock: 0,
           cCodigoArticulo: 0,
           cCodigoBarra: scan.sku,
-          cCodigoTienda: ((this.dataSource.data || [])[0] || {})['cCodigoTienda'],
+          cCodigoTienda: (data[0] || {}).cCodigoTienda || '',
           cColor: "",
-          cConteo: 1,
-          cDepartamento: "",
+          cConteo: skuTotal,
           cDescripcion: "",
-          cFamilia: "",
-          cReferencia: "",
-          cSeccion: "",
-          cSessionCode: scan.session_code,
           cStock: 0,
-          cSubFamilia: "",
-          cTalla: "",
-          cTemporada: "",
-          cTotalConteo: 0
+          cTotalConteo: 0 - 0 // Inicializar diferencia
         };
 
-        this.inAsignatedSections.map((section) => {
-          if (scan.seccion_id == section.id) {
-            newItem[`${((section.nombre_seccion)).replace(" ", "_").toLowerCase()}`] = scan.total_cantidad
-          }
-        });
+        if (sectionProp) {
+          newItem[sectionProp] = scan.total_cantidad;
+        }
 
         data.push(newItem);
+        // Actualizamos el mapa por si el mismo SKU viene en otra sección en este mismo loop
+        dataMap.set(scan.sku, { item: newItem, index: data.length - 1 });
       }
-
-
-      this.totalDiferencia.set(totalConteoGlobal - this.totalStock());
-      this.totalConteo.set(totalConteoGlobal);
-      this.dataSource.data = data;
-      this.cdr.markForCheck();
     });
+
+    // 5. Cálculos globales finales (FUERA del bucle)
+    const sumaTotalScaneada = Array.from(totalesPorSku.values()).reduce((a, b) => a + b, 0);
+
+    this.totalConteo.set(sumaTotalScaneada);
+    this.totalDiferencia.set(sumaTotalScaneada - this.totalStock());
+
+    this.dataSource.data = data;
+    this.cdr.markForCheck();
   }
 
 
