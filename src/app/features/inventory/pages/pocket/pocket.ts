@@ -42,7 +42,7 @@ export default class Pocket {
   selectedSectionId: number = 0;
   registerConteo: Array<any> = [];
   inFilter: string = "";
-  inCantidad: string = "";
+  inCantidad: any = "";
   optionSeccion: string = "";
   OptionTypeScan: string = 'pistola';
   dataSource = new MatTableDataSource(this.registerConteo);
@@ -118,9 +118,15 @@ export default class Pocket {
       }
     }
 
-    const cantidad = this.OptionTypeScan == 'cantidad' ? parseInt(this.inCantidad) : 1;
+    const cantidad = this.OptionTypeScan == 'cantidad' ? this.inCantidad * 1 : 1;
+
+    if (Number.isNaN(cantidad)) {
+      this.onNotification({ error: 'error', message: 'Lo ingresado no es un numero.' });
+      return
+    }
+
     // 1. Guardar localmente
-    await this.saveScanLocally(this.selectedSectionId, this.sessionCode(), sku, this.optionSeccion == 'RECONTEO' ? cantidad * -1 : cantidad);
+    await this.saveScanLocally(this.selectedSectionId, this.sessionCode(), sku, cantidad);
 
     // 2. Limpiar y refrescar contador
     this.skuInput.set('');
