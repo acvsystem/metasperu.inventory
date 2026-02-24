@@ -236,7 +236,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     this.dataSource.data = allFormattedData;
 
     if (this.progress() == 1) {
-      this.onParserFilterCbo('cDepartamento', allFormattedData);
+      this.onColumsFilterCbo(allFormattedData);
       this.updateSingleRecord(this.pocketScan);
       this.isProcessing.set(false);
       this.showTable.set(true);
@@ -477,14 +477,23 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
       this.onDataView = formattedData;
       console.log('📦 Inventario Importado:', formattedData.length);
 
-      this.onParserFilterCbo('cDepartamento', formattedData);
+      this.onColumsFilterCbo(formattedData);
+
       await this.initializeTable(formattedData);
     };
 
     reader.readAsArrayBuffer(file);
   }
 
+  onColumsFilterCbo(dataTable: any) {
+    this.onParserFilterCbo('cDepartamento', dataTable);
+    this.onParserFilterCbo('cSeccion', dataTable);
+    this.onParserFilterCbo('cFamilia', dataTable);
+    this.onParserFilterCbo('cSubFamilia', dataTable);
+  }
+
   onParserFilterCbo(property: string, data: Array<any>) {
+    console.log(property);
     const cboFilter = [... new Set(data.map(item => item[property]))]
       .sort()
       .map(distrito => ({
@@ -495,6 +504,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     const indexColumn = this.dataColumns.findIndex((c) => c.propertyValue == property);
 
     this.dataColumns[indexColumn]['cboFilter'] = cboFilter || [];
+
   }
 
 
