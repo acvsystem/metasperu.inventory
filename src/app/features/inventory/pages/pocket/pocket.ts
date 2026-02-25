@@ -105,7 +105,8 @@ export default class Pocket {
   }
   // --- FUNCIÓN DE ESCANEO AUTOMÁTICO ---
   async handleScan() {
-    const sku = this.skuInput().trim();
+    const sku = this.skuInput().trim().replace(/^0+/, '');;
+    console.log(sku);
     if (this.OptionTypeScan == 'pistola') {
       if (!sku || !this.selectedSectionId) {
         this.onNotification({ error: 'error', message: 'Llene todos los campos' });
