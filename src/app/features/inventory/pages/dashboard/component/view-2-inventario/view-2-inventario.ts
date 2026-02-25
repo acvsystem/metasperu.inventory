@@ -133,7 +133,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
 
           // Verificamos si el valor cumple con AL MENOS UNA de las opciones seleccionadas
           return filtrosActivos.some(opcion => {
-            if (opcion === 'positivo') return valorNumerico > 0;
+            if (opcion === 'positivo') return valorNumerico >= 1 && valorNumerico != data['cStock'];
             if (opcion === 'negativo') return valorNumerico < 0;
             if (opcion === 'cero sin escaneo') return data['cConteo'] == 0;
             if (opcion === 'cero escaneo') return (data['cConteo'] > 0 && data['cTotalConteo'] == 0) || data['cTotalConteo'] == data['cStock'];
