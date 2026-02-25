@@ -76,6 +76,18 @@
 
 }
 
+.btn-stadistics {
+  background-color: #0d6efd !important; // Verde Excel oficial
+  color: white !important;
+  line-height: 40px !important;
+  margin-right: 10px !important;
+  padding: 0 20px !important;
+  border-radius: 6px !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+  margin-bottom: 10px;
+}
+
 .btn-excel {
   background-color: #1d6f42 !important; // Verde Excel oficial
   color: white !important;
@@ -324,4 +336,9 @@ tr.example-element-row:not(.example-expanded-row):active {
 /* Opcional: cambiar el color al pasar el mouse para que no se pierda el efecto */
 .fila-seleccionada:hover {
   background-color: #bbdefb !important;
+}
+
+.mat-drawer-over {
+  width: 60% !important;
+  border-radius: 0px !important;
 }

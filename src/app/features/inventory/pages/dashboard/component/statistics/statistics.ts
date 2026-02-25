@@ -22,7 +22,7 @@ export class Statistics {
   public pieChartData: ChartData<'pie'> = { labels: [], datasets: [] };
 
   ngOnInit() {
-    
+
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -30,7 +30,6 @@ export class Statistics {
       this.processData();
     }
   }
-
 
   processData() {
     const usuarios: any = {};

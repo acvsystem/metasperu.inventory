@@ -15,6 +15,9 @@ import { MatBadgeModule } from '@angular/material/badge';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MtSelect } from '@metasperu/component/mt-select/mt-select';
 import { InventoryService } from '@metasperu/services/inventory.service';
+import { MatSidenavModule } from '@angular/material/sidenav';
+import { ChartConfiguration, ChartData, ChartType } from 'chart.js';
+import { BaseChartDirective } from 'ng2-charts';
 
 export interface tableColumns {
   matColumnDef: string;
@@ -27,7 +30,7 @@ export interface tableColumns {
 @Component({
   selector: 'view-2-inventario',
   standalone: true,
-  imports: [MatTableModule, MatCheckboxModule, MtSelect, IonCardContent, IonGrid, IonCard, MatBadgeModule, MatMenuModule, IonIcon, MatFormFieldModule, MtInput, MatPaginatorModule, MatIconModule, MatSortModule, IonCol, IonRow, CommonModule, MatMenu],
+  imports: [MatTableModule, BaseChartDirective, MatSidenavModule, MatCheckboxModule, MtSelect, IonCardContent, IonGrid, IonCard, MatBadgeModule, MatMenuModule, IonIcon, MatFormFieldModule, MtInput, MatPaginatorModule, MatIconModule, MatSortModule, IonCol, IonRow, CommonModule, MatMenu],
   templateUrl: './view-2-inventario.html',
   styleUrl: './view-2-inventario.scss',
 })
@@ -52,12 +55,24 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
   stockFilter: number = 0;
   conteoFilter: number = 0;
   diferenciaFilter: number = 0;
+  // Configuración del gráfico de Torta (Secciones)
+  public pieChartData: ChartData<'pie'> = {
+    labels: [],
+    datasets: [{ data: [], backgroundColor: [] }]
+  };
   displayedColumns = [
     'checking', 'codigoBarra', 'Referencia', 'descripcion', 'departamento',
     'seccion', 'familia', 'subfamilia', 'temporada',
     'talla', 'color', 'stock', 'total',
   ];
 
+  // Configuración del gráfico de Barras (Usuarios)
+  public barChartOptions: ChartConfiguration['options'] = {
+    responsive: true,
+    plugins: { title: { display: true, text: 'Cantidades por Usuario' } }
+  };
+
+  cboStadictics: Array<any> = [{ key: 'cDepartamento', value: 'Departamento' }, { key: 'cSeccion', value: 'Seccion' }, { key: 'cFamilia', value: 'Familia' }, { key: 'cSubFamilia', value: 'SubFamilia' }];
   dataColumns: tableColumns[] = [
     { matColumnDef: 'checking', titleColumn: 'Revisado', propertyValue: 'checking', filterActive: false, cboFilter: [{ key: 1, value: 'Revisado' }, { key: 0, value: 'Sin Revisar' }] },
     { matColumnDef: 'codigoBarra', titleColumn: 'Codigo Barra', propertyValue: 'cCodigoBarra', filterActive: false, cboFilter: [] },
@@ -363,6 +378,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
 
     this.dataSource.data = data;
     this.cdr.markForCheck();
+
   }
 
 
@@ -532,6 +548,42 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     const selectData = data.map((item: any) => item.key);
     this.applyFilterTable('', column, selectData);
   }
+
+  onChangeSelectStadistic(ev: any) {
+    const data = this.dataSource.data;
+
+    // 1. Crear un objeto para acumular las sumas
+    // Ejemplo: { 'GIFT SETS': 50, 'BEAUTY': 30 }
+    const acumulador: { [key: string]: number } = {};
+
+    data.forEach((item: any) => {
+      const depto = item[ev.key] || 'Otros';
+      const conteo = Number(item.cTotalConteo) || 0;
+
+      // Sumamos el conteo al departamento correspondiente
+      if (acumulador[depto]) {
+        acumulador[depto] += conteo;
+      } else {
+        acumulador[depto] = conteo;
+      }
+    });
+
+    // 2. Extraer solo los departamentos que tienen una suma mayor a 0
+    const etiquetas = Object.keys(acumulador).filter(key => acumulador[key] > 0);
+    const valoresSumados = etiquetas.map(key => acumulador[key]);
+
+    // 3. Actualizar el objeto que lee el HTML
+    // Mantenemos la referencia de 'pieChartData' para evitar el bucle infinito
+    this.pieChartData = {
+      labels: etiquetas,
+      datasets: [{ data: valoresSumados, backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'] }]
+    };
+
+    // 4. Refrescar la vista
+    this.cdr.markForCheck();
+
+  }
+
 
   onCheckedRow(codigo_barra: string, ev: any) {
     const index = this.dataSource.data.findIndex(item => item.cCodigoBarra == codigo_barra);
