@@ -48,6 +48,10 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
   progress = signal(0);
   isProcessing = signal(false);
   checkedOffline: any = "";
+  datosFiltradosActuales: any[] = [];
+  stockFilter: number = 0;
+  conteoFilter: number = 0;
+  diferenciaFilter: number = 0;
   displayedColumns = [
     'checking', 'codigoBarra', 'Referencia', 'descripcion', 'departamento',
     'seccion', 'familia', 'subfamilia', 'temporada',
@@ -169,7 +173,11 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     this.dataColumns[indexHeader]['filterActive'] = filterValue.length ? true : false;
 
     this.filterValues[property?.propertyValue] = (cboValue || "").length ? cboValue : filterValue.trim().toLowerCase();
+
     this.dataSource.filter = JSON.stringify(this.filterValues);
+    this.datosFiltradosActuales = this.dataSource.filteredData;
+
+    this.processDataFilter();
   }
 
   private asignSectionColum() {
@@ -182,6 +190,27 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
       this.isInsertColum = true;
     }
   }
+
+  private processDataFilter() {
+    // Calculamos los totales usando reduce
+    const totales = this.datosFiltradosActuales.reduce((acc, curr) => {
+      const conteo = Number(curr.cConteo) || 0;
+      const stock = Number(curr.cStock) || 0;
+      const diferencia = conteo - stock;
+
+      return {
+        sumaConteo: acc.sumaConteo + conteo,
+        sumaStock: acc.sumaStock + stock,
+        sumaDiferencia: acc.sumaDiferencia + diferencia
+      };
+    }, { sumaConteo: 0, sumaStock: 0, sumaDiferencia: 0 });
+
+    // Imprimir resultados
+    this.stockFilter = totales.sumaStock;
+    this.conteoFilter = totales.sumaConteo;
+    this.diferenciaFilter = totales.sumaDiferencia;
+  }
+
 
 
   private async initializeTable(data: any[]) {
@@ -485,7 +514,6 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
   }
 
   onParserFilterCbo(property: string, data: Array<any>) {
-    console.log(property);
     const cboFilter = [... new Set(data.map(item => item[property]))]
       .sort()
       .map(distrito => ({

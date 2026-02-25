@@ -35,8 +35,14 @@
                                     <div class="stat-info">
                                         <ion-icon name="cube-outline" color="primary"></ion-icon>
                                         <div>
-                                            <p>Total Stock</p>
-                                            <h2>{{totalStock()}}</h2>
+                                            <div style="display: inline-flex;">
+                                                <p style="margin-right: 19px;">Total Stock</p>|<p
+                                                    style="margin-left: 19px;">Filtrado</p>
+                                            </div>
+                                            <div style="display: inline-flex;justify-content: center;align-items: end;">
+                                                <h2>{{ totalStock() }} | </h2>
+                                                <p style="font-size: 20px;margin-left: 5px;color: green;">{{stockFilter}}</p>
+                                            </div>
                                         </div>
                                     </div>
                                 </ion-card-content>
@@ -49,8 +55,15 @@
                                     <div class="stat-info">
                                         <ion-icon name="barcode-outline" color="tertiary"></ion-icon>
                                         <div>
-                                            <p>Total Conteo</p>
-                                            <h2>{{ totalConteo() }}</h2>
+
+                                            <div style="display: inline-flex;">
+                                                <p style="margin-right: 19px;">Total Conteo</p>|<p
+                                                    style="margin-left: 19px;">Filtrado</p>
+                                            </div>
+                                            <div style="display: inline-flex;justify-content: center;align-items: end;">
+                                                <h2>{{ totalConteo() }} | </h2>
+                                                <p style="font-size: 20px;margin-left: 5px;color: green;">{{conteoFilter}}</p>
+                                            </div>
                                         </div>
                                     </div>
                                 </ion-card-content>
@@ -63,8 +76,14 @@
                                     <div class="stat-info">
                                         <ion-icon name="cube-outline" color="primary"></ion-icon>
                                         <div>
-                                            <p>Diferencias</p>
-                                            <h2>{{ totalDiferencia() }}</h2>
+                                            <div style="display: inline-flex;">
+                                                <p style="margin-right: 19px;">Diferencias</p>|<p
+                                                    style="margin-left: 19px;">Filtrado</p>
+                                            </div>
+                                            <div style="display: inline-flex;justify-content: center;align-items: end;">
+                                                <h2>{{ totalDiferencia() }} | </h2>
+                                                <p style="font-size: 20px;margin-left: 5px;color: green;">{{diferenciaFilter}}</p>
+                                            </div>
                                         </div>
                                     </div>
                                 </ion-card-content>
@@ -137,7 +156,8 @@
                             <mat-menu #filterMenu="matMenu">
 
                                 @if(col.cboFilter.length){
-                                <mt-select [data]="col.cboFilter" (selectdOption)="onChangeSelect($event,col.matColumnDef)"
+                                <mt-select [data]="col.cboFilter"
+                                    (selectdOption)="onChangeSelect($event,col.matColumnDef)"
                                     label="Seleccione una departamento" title="Departamento"></mt-select>
                                 }@else{
                                 <mt-input id="filterTienda" (click)="$event.stopPropagation()"
@@ -169,8 +189,8 @@
                             <mat-menu #filterMenu="matMenu">
                                 @if(col.cboFilter.length){
                                 <mt-select [isMultiselect]=true [checkAll]="true" [data]="col.cboFilter"
-                                    (selectdOption)="onChangeSelect($event,col.matColumnDef)" label="Seleccione una departamento"
-                                    title="Departamento"></mt-select>
+                                    (selectdOption)="onChangeSelect($event,col.matColumnDef)"
+                                    label="Seleccione una departamento" title="Departamento"></mt-select>
                                 }@else{
                                 <mt-input id="filterTienda" (click)="$event.stopPropagation()"
                                     (keydown)="$event.stopPropagation()" label="Filtro {{col.titleColumn}}"
@@ -191,7 +211,8 @@
                             <span class="badge bg-success-comprobantes">{{element.cTotalConteo}}</span>
                             }
 
-                            @if((element.cConteo > 0 && element.cTotalConteo == 0) || element.cTotalConteo == element.cStock){
+                            @if((element.cConteo > 0 && element.cTotalConteo == 0) || element.cTotalConteo ==
+                            element.cStock){
                             <span class="badge bg-warning-comprobantes">{{element.cTotalConteo}}</span>
                             }
 
