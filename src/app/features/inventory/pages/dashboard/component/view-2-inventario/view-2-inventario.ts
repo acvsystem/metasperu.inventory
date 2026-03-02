@@ -56,10 +56,16 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
   conteoFilter: number = 0;
   diferenciaFilter: number = 0;
   // Configuración del gráfico de Torta (Secciones)
-  public pieChartData: ChartData<'pie'> = {
+  pieChartData: ChartData<'pie'> = {
     labels: [],
     datasets: [{ data: [], backgroundColor: [] }]
   };
+
+  barChartData: ChartData<'bar'> = {
+    labels: [],
+    datasets: [{ data: [], backgroundColor: [] }]
+  };
+
   displayedColumns = [
     'checking', 'codigoBarra', 'Referencia', 'descripcion', 'departamento',
     'seccion', 'familia', 'subfamilia', 'temporada',
@@ -278,7 +284,6 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
 
     // ... (Asignación a la tabla y cálculos de totales)
     this.dataSource.data = allFormattedData;
-
     if (this.progress() == 1) {
       this.onColumsFilterCbo(allFormattedData);
       this.updateSingleRecord(this.pocketScan);
@@ -377,6 +382,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     this.totalDiferencia.set(sumaTotalScaneada - this.totalStock());
 
     this.dataSource.data = data;
+    this.onBarStadisctic(data);
     this.cdr.markForCheck();
 
   }
@@ -543,7 +549,6 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
 
   }
 
-
   async onChangeSelect(data: any, column: string) {
     const selectData = data.map((item: any) => item.key);
     this.applyFilterTable('', column, selectData);
@@ -584,6 +589,76 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
 
   }
 
+  onBarStadisctic(data2: any) {
+
+    if (!this.barChartData.datasets?.[0].data.length) {
+      const data = this.dataSource.data;
+
+      // 1. Inicializamos el acumulador con las categorías deseadas
+      const acumulador: { [key: string]: number } = {
+        'Almacén': 0,
+        'Venta': 0,
+        'Tester': 0,
+        'Reconteo': 0,
+        'Otros': 0
+      };
+
+      data.forEach((item: any) => {
+        // Recorremos todas las propiedades (columnas) de cada objeto
+        Object.keys(item).forEach(columna => {
+          const valor = Number(item[columna]) || 0;
+          const columnaLower = columna.toLowerCase();
+          const inicial = columna.charAt(0).toUpperCase();
+
+          // 2. Lógica de clasificación por nombre exacto o nomenclatura
+          if (columnaLower === 'tester') {
+            acumulador['Tester'] += valor;
+          } else if (columnaLower === 'reconteo') {
+            acumulador['Reconteo'] += valor;
+          } else if (columnaLower === 'otros') {
+            acumulador['Otros'] += valor;
+          } else if (columnaLower === 'ac') {
+            acumulador['Venta'] += valor;
+          } else if (inicial === 'A') {
+            acumulador['Almacén'] += valor;
+          } else if (['M', 'P', 'G'].includes(inicial)) {
+            acumulador['Venta'] += valor;
+          }
+        });
+      });
+
+      // 1. Filtrar solo las categorías que tienen stock
+      const categoriasConDatos = Object.keys(acumulador).filter(key => acumulador[key] > 0);
+
+      // 2. Crear etiquetas que incluyan el nombre y el valor total
+      // Usamos .toLocaleString() para que ponga puntos de miles (ej: 1.250)
+      const etiquetasConValores = categoriasConDatos.map(key => {
+        return `${key}: ${acumulador[key].toLocaleString()}`;
+      });
+
+      // 3. Extraer solo los números para el gráfico
+      const valoresSumados = categoriasConDatos.map(key => acumulador[key]);
+      console.log(valoresSumados);
+      // 4. Actualizamos el gráfico con una paleta de colores extendida
+      this.barChartData = {
+        labels: etiquetasConValores,
+        datasets: [{
+          label: 'Distribucion stock por area',
+          data: valoresSumados,
+          backgroundColor: [
+            '#36A2EB', // Almacén (Azul)
+            '#4BC0C0', // Venta (Verde)
+            '#FF6384', // Tester (Rosa)
+            '#FFCE56', // Reconteo (Amarillo)
+            '#9966FF'  // Otros (Morado)
+          ]
+        }]
+      };
+
+      this.cdr.markForCheck();
+    }
+
+  }
 
   onCheckedRow(codigo_barra: string, ev: any) {
     const index = this.dataSource.data.findIndex(item => item.cCodigoBarra == codigo_barra);

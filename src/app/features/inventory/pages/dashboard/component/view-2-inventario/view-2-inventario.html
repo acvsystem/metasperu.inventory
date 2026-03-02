@@ -2,6 +2,21 @@
     <mat-drawer #drawer [mode]="'over'" position="end">
         <ion-row>
             <ion-col size="12" size-md="12">
+                <div style="display: flex;justify-content: center;">
+                    <div class="row" style="display: contents;">
+                        <div style="width: 94%">
+                            <div class="card shadow p-3">
+                                <h5>Distribución por Area</h5>
+                                <canvas baseChart [data]="barChartData" [type]="'bar'">
+                                </canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </ion-col>
+        </ion-row>
+        <ion-row>
+            <ion-col size="12" size-md="12">
                 <mt-select [data]="cboStadictics" label="Seleccione un item"
                     (selectdOption)="onChangeSelectStadistic($event)" title="Departamento"></mt-select>
             </ion-col>
@@ -10,7 +25,7 @@
             <ion-col size="12" size-md="12">
                 <div style="display: flex;justify-content: center;">
                     <div class="row" style="display: contents;">
-                        <div style="width: 50%">
+                        <div style="width: 80%">
                             <div class="card shadow p-3">
                                 <h5>Distribución</h5>
                                 <canvas baseChart [data]="pieChartData" [type]="'pie'">

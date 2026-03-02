@@ -166,7 +166,7 @@
           </div>
         </mat-tab>
         <mat-tab label="Cruce inventario">
-          @if(arAsignatedSections && pocketScan){
+          @if(arAsignatedSections && pocketScan && dataInventario){
           <view-2-inventario (onChangeInventario)="loadInventary()" [inAsignatedSections]="arAsignatedSections" [pocketScan]="pocketScan"
             [onDataView]=dataInventario>
           </view-2-inventario>
