@@ -619,6 +619,8 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
             acumulador['Otros'] += valor;
           } else if (columnaLower === 'ac') {
             acumulador['Venta'] += valor;
+          } else if (columnaLower === 'defectuoso') {
+            acumulador['Defectuoso'] += valor;
           } else if (inicial === 'A') {
             acumulador['Almacén'] += valor;
           } else if (['M', 'P', 'G'].includes(inicial)) {
