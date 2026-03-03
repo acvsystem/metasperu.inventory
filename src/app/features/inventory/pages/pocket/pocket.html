@@ -16,6 +16,10 @@
                 <mat-radio-button value="pistola">Pistola</mat-radio-button>
                 <mat-radio-button value="cantidad">Cantidad</mat-radio-button>
               </mat-radio-group>
+              <div class="form-check form-switch" style="width: 100px;">
+                <input class="form-check-input" type="checkbox" role="switch"  (change)="onFiltroBar($event)" id="switchCheckChecked">
+                <label class="form-check-label" for="switchCheckChecked">Filtro SKU</label>
+              </div>
             </ion-col>
           </ion-row>
 
@@ -42,6 +46,7 @@
                 placeholder="Cantidad"></mt-input>
               }
             </ion-col>
+
           </ion-row>
 
           <ion-row>

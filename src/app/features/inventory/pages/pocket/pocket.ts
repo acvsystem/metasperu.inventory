@@ -49,6 +49,8 @@ export default class Pocket {
   displayedColumns: string[] = ['sku', 'cantidad', 'seccion', 'estado'];
   oldSKU: string = "";
   oldCantidad: string = "";
+  isckeckedSku: boolean = false;
+
   constructor(
     private dialog: MatDialog,
     private pocketService: PocketInventoryService,
@@ -97,6 +99,9 @@ export default class Pocket {
     });
   }
 
+  onFiltroBar(ev: any) {
+    this.isckeckedSku = ev?.checked || false;
+  }
   saveOldSku(sku: string, cantidad: any) {
     this.oldSKU = sku;
     this.oldCantidad = cantidad;
@@ -105,7 +110,7 @@ export default class Pocket {
   }
   // --- FUNCIÓN DE ESCANEO AUTOMÁTICO ---
   async handleScan() {
-    const sku = this.skuInput().trim().replace(/^0+/, '');;
+    const sku = this.isckeckedSku ? this.skuInput().trim().replace(/^0+/, '') : this.skuInput().trim();
     console.log(sku);
     if (this.OptionTypeScan == 'pistola') {
       if (!sku || !this.selectedSectionId) {
