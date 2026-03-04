@@ -18,6 +18,9 @@ import { InventoryService } from '@metasperu/services/inventory.service';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { ChartConfiguration, ChartData, ChartType } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDialog } from '@angular/material/dialog';
+import { ModalReport } from './component/modal-report/modal-report';
 
 export interface tableColumns {
   matColumnDef: string;
@@ -30,7 +33,7 @@ export interface tableColumns {
 @Component({
   selector: 'view-2-inventario',
   standalone: true,
-  imports: [MatTableModule, BaseChartDirective, MatSidenavModule, MatCheckboxModule, MtSelect, IonCardContent, IonGrid, IonCard, MatBadgeModule, MatMenuModule, IonIcon, MatFormFieldModule, MtInput, MatPaginatorModule, MatIconModule, MatSortModule, IonCol, IonRow, CommonModule, MatMenu],
+  imports: [MatTableModule, MatTooltipModule, BaseChartDirective, MatSidenavModule, MatCheckboxModule, MtSelect, IonCardContent, IonGrid, IonCard, MatBadgeModule, MatMenuModule, IonIcon, MatFormFieldModule, MtInput, MatPaginatorModule, MatIconModule, MatSortModule, IonCol, IonRow, CommonModule, MatMenu],
   templateUrl: './view-2-inventario.html',
   styleUrl: './view-2-inventario.scss',
 })
@@ -38,6 +41,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
   @Input() onDataView: Array<any> = [];
   @Input() pocketScan: any = null; // Objeto que llega del Socket: { cCodigoBarra: '...' }
   @Input() inAsignatedSections: Array<any> = [];
+  @Input() isReporte: boolean = false;
   @Output() onChangeInventario: EventEmitter<any> = new EventEmitter();
   isInsertColum: boolean = false;
   dataSource = new MatTableDataSource<any>([]);
@@ -98,7 +102,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
-  constructor(private cdr: ChangeDetectorRef, private invService: InventoryService) {
+  constructor(private dialog: MatDialog, private cdr: ChangeDetectorRef, private invService: InventoryService) {
 
   }
 
@@ -161,7 +165,6 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
   }
 
   ngAfterViewInit() {
-
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
   }
@@ -183,6 +186,17 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
 
   onChangeInv() {
     this.onChangeInventario.emit();
+  }
+
+  openVerification() {
+    const dialogRef = this.dialog.open(ModalReport, {
+      width: '420px',
+      panelClass: 'custom-notification-panel',
+      data: this.dataSource.data
+    });
+
+    dialogRef.afterClosed().subscribe(rs => {
+    });
   }
 
   applyFilterTable(event: any, column: string, cboValue?: string) {
@@ -281,7 +295,6 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     this.totalStock.set(totalStockGlobal);
     this.totalConteo.set(totalConteoGlobal);
     this.totalDiferencia.set(totalConteoGlobal - totalStockGlobal);
-
     // ... (Asignación a la tabla y cálculos de totales)
     this.dataSource.data = allFormattedData;
     if (this.progress() == 1) {
@@ -382,6 +395,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     this.totalDiferencia.set(sumaTotalScaneada - this.totalStock());
 
     this.dataSource.data = data;
+    this.invService.onInventoryArea.emit(data);
     this.onBarStadisctic(data);
     this.cdr.markForCheck();
 

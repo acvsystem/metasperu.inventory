@@ -131,7 +131,7 @@
                           (keyup)="applyFilterTable($event,col.matColumnDef)"></mt-input>
                       </mat-menu>
                       }@else{
-                        {{col.titleColumn}}
+                      {{col.titleColumn}}
                       }
 
                     </th>
@@ -167,10 +167,13 @@
         </mat-tab>
         <mat-tab label="Cruce inventario">
           @if(arAsignatedSections && pocketScan && dataInventario){
-          <view-2-inventario (onChangeInventario)="loadInventary()" [inAsignatedSections]="arAsignatedSections" [pocketScan]="pocketScan"
-            [onDataView]=dataInventario>
+          <view-2-inventario (onChangeInventario)="loadInventary()" [inAsignatedSections]="arAsignatedSections"
+            [pocketScan]="pocketScan" [onDataView]=dataInventario>
           </view-2-inventario>
           }
+        </mat-tab>
+        <mat-tab label="Reporte Inventario">
+          <view-3-inventario></view-3-inventario>
         </mat-tab>
       </mat-tab-group>
     </ion-content>

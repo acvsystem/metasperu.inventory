@@ -1,0 +1,17 @@
+<ion-row>
+    <ion-col>
+        <mt-select [data]="cboArea"
+            (selectdOption)="onChangeSelect($event)" label="Seleccione un Area"
+            title="Departamento"></mt-select>
+    </ion-col>
+    <ion-col>
+        <mt-select [data]="cboArea"
+            (selectdOption)="onChangeSelect($event)" label="Seleccione un Area"
+            title="Departamento"></mt-select>
+    </ion-col>
+    <ion-col>
+        <button (click)="onProcessDiff()" matTooltip="Reportes" type="button" class="btn-stadistics">
+            Procesar
+        </button>
+    </ion-col>
+</ion-row>

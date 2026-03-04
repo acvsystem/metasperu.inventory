@@ -27,7 +27,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatDialog } from '@angular/material/dialog';
 import { ModalConteo } from './component/modal-conteo/modal-conteo';
 import { MatBadgeModule } from '@angular/material/badge';
-
+import { View3Inventario } from './component/view-3-inventario/view-3-inventario';
 export interface tableColumns {
   matColumnDef: string;
   titleColumn: string;
@@ -42,7 +42,7 @@ export interface tableColumns {
   imports: [
     CommonModule, RouterModule, View2Inventario, MatTabsModule, Statistics, MatBadgeModule,
     IonHeader, IonToolbar, IonTitle, IonContent, IonGrid, IonRow, MatSidenavModule,
-    IonCol, IonCard, IonLabel, IonListHeader, MatIconModule, MatTooltipModule,
+    IonCol, IonCard, IonLabel, IonListHeader, MatIconModule, MatTooltipModule, View3Inventario,
     IonButtons, IonButton, IonIcon, IonChip, IonCardContent, MatTableModule,
     MatPaginator, MatPaginatorModule, MatSortModule, MtInput, MatMenu, MatMenuModule
   ],
@@ -125,7 +125,7 @@ export default class DashboardComponent implements OnInit {
     // Unirse a la sala de socket para recibir actualizaciones en tiempo real
     this.socketService.joinSession(this.sessionCode);
     const offlineData = localStorage.getItem('offline_inventory');
-    
+
     if (!offlineData) {
       this.loadInventary();
     }

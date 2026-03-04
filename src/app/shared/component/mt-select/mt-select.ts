@@ -28,6 +28,7 @@ export class MtSelect {
   @Input() title: string = "";
   @Input() modalUser: string = "";
   @Input() checkAll: boolean = false;
+  @Input() id: string = "";
   isAllSelected = false;
 
   isIndeterminate = false;
@@ -97,7 +98,9 @@ export class MtSelect {
 
   onSelectedOption(ev: any) {
     let selected = ev;
+    console.log(this.id);
     this.optionSelected = {
+      id: this.id,
       key: (selected || {}).key,
       value: (selected || {}).value
     };
