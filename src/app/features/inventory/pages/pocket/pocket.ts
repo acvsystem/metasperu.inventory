@@ -50,6 +50,7 @@ export default class Pocket {
   oldSKU: string = "";
   oldCantidad: string = "";
   isckeckedSku: boolean = false;
+  isPermision: boolean = false;
 
   constructor(
     private dialog: MatDialog,
@@ -76,7 +77,8 @@ export default class Pocket {
     this.updatePendingCount();
     window.addEventListener('online', () => this.onNetworkChange(true));
     window.addEventListener('offline', () => this.onNetworkChange(false));
-
+    const userRole = localStorage.getItem('role');
+    this.isPermision = userRole == 'administrador' || userRole == 'auditor' ? true : false;
   }
 
   async onNetworkChange(status: boolean) {
