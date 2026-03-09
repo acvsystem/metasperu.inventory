@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, input, Output, signal } from '@angular/core';
+import { Component, EventEmitter, Input, input, Output, signal, SimpleChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -59,11 +59,53 @@ export class MtSelect {
   ngOnInit() {
     this.customAlertOptions.header = this.title;
     this.filteredData = this.data;
+    const defaultOption: any = this.filteredData.find((f) => f.isDefault == true);
+
+    if (!this.isMultiselect) {
+      this.setDefaultItem(defaultOption?.value);
+    }
+
     if (this.checkAll) {
       this.toggleSelectAll();
     }
   }
 
+  ngOnChanges(changes: SimpleChanges) {
+
+    if (changes['data'] && changes['data'].currentValue) {
+      this.customAlertOptions.header = this.title;
+      this.filteredData = this.data;
+      const defaultOption: any = this.filteredData.find((f) => f.isDefault == true);
+
+      if (!this.isMultiselect) {
+        this.setDefaultItem(defaultOption?.value);
+      }
+
+      if (this.checkAll) {
+        this.toggleSelectAll();
+      }
+    }
+  }
+
+
+  setDefaultItem(value: string) {
+    // 1. Buscamos el item en el arreglo original
+    const item = this.data.find(i => i.value === value);
+
+    if (item) {
+      // Si es selección simple, usamos tu lógica de selectItem
+      this.selectItem(item);
+    }
+  }
+
+  updateSelectedText() {
+    const selectedNodes = this.data.filter(i => i.selected);
+    if (selectedNodes.length > 0) {
+      this.selectedText = selectedNodes.map(i => i.value).join(', ');
+    } else {
+      this.selectedText = '';
+    }
+  }
 
   openStoreModal() {
     this.filteredData = [...this.data]; // Mostramos todo al inicio
@@ -75,7 +117,6 @@ export class MtSelect {
     if (this.isMultiselect) {
       this.toggleSelection(tienda);
     } else {
-      console.log(tienda);
       this.selectedText = tienda.value;
       this.onSelectedOption(tienda); // Tu función original
       this.isModalOpen = false;
@@ -98,12 +139,12 @@ export class MtSelect {
 
   onSelectedOption(ev: any) {
     let selected = ev;
-    console.log(this.id);
     this.optionSelected = {
       id: this.id,
       key: (selected || {}).key,
       value: (selected || {}).value
     };
+    console.log(this.optionSelected);
     this.selectedText = (selected || {}).value;
     this.selectdOption.emit(this.optionSelected);
   }
@@ -133,10 +174,8 @@ export class MtSelect {
 
   toggleSelectAll() {
     this.isAllSelected = !this.isAllSelected;
-
     // Aplicamos el cambio a toda la lista (basado en lo que está filtrado o en todo)
     this.filteredData.forEach(item => item.selected = this.isAllSelected);
-
     this.checkMasterState();
   }
 
@@ -176,7 +215,6 @@ export class MtSelect {
         this.selectedText = '';
       }
     }
-
 
     // Llamamos a tu función original de salida
     this.onSelectedOptionMultiple(selectedItems);

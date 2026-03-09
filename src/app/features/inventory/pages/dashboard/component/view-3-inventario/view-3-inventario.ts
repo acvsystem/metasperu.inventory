@@ -1,13 +1,17 @@
 import { Component, inject, Input, ViewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { IonRow, IonCol, IonIcon, IonCardContent, IonCard, IonGrid } from '@ionic/angular/standalone';
 import { MtSelect } from '@metasperu/component/mt-select/mt-select';
 import { InventoryService } from '@metasperu/services/inventory.service';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
-import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatSort } from '@angular/material/sort';
+import { MtDatatable } from '@metasperu/component/mt-datatable/mt-datatable';
+import * as XLSX from 'xlsx';
+import { MatIconModule } from '@angular/material/icon';
+
 @Component({
   selector: 'view-3-inventario',
-  imports: [IonRow, IonCol, MtSelect, MatPaginator, MatPaginatorModule, MatTableModule],
+  imports: [IonRow, IonCol, MtSelect, CommonModule, MtDatatable, MatIconModule, MatPaginatorModule],
   templateUrl: './view-3-inventario.html',
   styleUrl: './view-3-inventario.scss',
 })
@@ -31,9 +35,17 @@ export class View3Inventario {
     'color',
     'stock'];
 
-  dataSource = new MatTableDataSource<any>;
+  dataProcess: Array<any> = [];
 
   cboArea: Array<any> = [
+    { key: 'Almacén', value: 'Almacén', isDefault: true },
+    { key: 'Venta', value: 'Venta' },
+    { key: 'Tester', value: 'Tester' },
+    { key: 'Reconteo', value: 'Reconteo' },
+    { key: 'Otros', value: 'Otros' }
+  ];
+
+  cboArea_2: Array<any> = [
     { key: 'Almacén', value: 'Almacén' },
     { key: 'Venta', value: 'Venta' },
     { key: 'Tester', value: 'Tester' },
@@ -41,14 +53,26 @@ export class View3Inventario {
     { key: 'Otros', value: 'Otros' }
   ];
 
+  dataColumns: tableColumns[] = [
+    { isSticky: true, matColumnDef: 'codigoBarra', titleColumn: 'Codigo Barra', propertyValue: 'cCodigoBarra', filterActive: false, isCboFilter: false, cboFilter: [] },
+    { isSticky: false, matColumnDef: 'referencia', titleColumn: 'Referencia', propertyValue: 'cReferencia', filterActive: false, isCboFilter: false, cboFilter: [] },
+    { isSticky: false, matColumnDef: 'descripcion', titleColumn: 'Descripcion', propertyValue: 'cDescripcion', filterActive: false, isCboFilter: false, cboFilter: [] },
+    { isSticky: false, matColumnDef: 'departamento', titleColumn: 'Departamento', propertyValue: 'cDepartamento', filterActive: false, isCboFilter: true, cboFilter: [] },
+    { isSticky: false, matColumnDef: 'seccion', titleColumn: 'Seccion', propertyValue: 'cSeccion', filterActive: false, isCboFilter: true, cboFilter: [] },
+    { isSticky: false, matColumnDef: 'familia', titleColumn: 'Familia', propertyValue: 'cFamilia', filterActive: false, isCboFilter: true, cboFilter: [] },
+    { isSticky: false, matColumnDef: 'subfamilia', titleColumn: 'SubFamilia', propertyValue: 'cSubFamilia', filterActive: false, isCboFilter: true, cboFilter: [] },
+    { isSticky: false, matColumnDef: 'temporada', titleColumn: 'Temporada', propertyValue: 'cTemporada', filterActive: false, isCboFilter: false, cboFilter: [] },
+    { isSticky: false, matColumnDef: 'talla', titleColumn: 'Talla', propertyValue: 'cTalla', filterActive: false, isCboFilter: false, cboFilter: [] },
+    { isSticky: false, matColumnDef: 'color', titleColumn: 'Color', propertyValue: 'cColor', filterActive: false, isCboFilter: false, cboFilter: [] },
+    { isSticky: false, matColumnDef: 'stock', titleColumn: 'Stock', propertyValue: 'cStock', filterActive: false, isCboFilter: false, cboFilter: [] }];
+
+
   constructor(private invService: InventoryService) {
 
   }
 
 
   ngAfterViewInit() {
-    this.dataSource.paginator = this.paginator;
-    this.dataSource.sort = this.sort;
   }
 
   ngOnInit() {
@@ -137,9 +161,8 @@ export class View3Inventario {
         }
       });
 
-      this.dataSource.data = dataTable;
-      this.dataSource.paginator = this.paginator;
-      this.dataSource.sort = this.sort;
+      this.dataProcess = dataTable;
+      console.log(this.dataProcess);
     }
   }
 
@@ -153,4 +176,86 @@ export class View3Inventario {
       this.cbo_2 = selectData || "";
     }
   }
+
+  exportarExcel() {
+    // 1. Mapeamos los datos (Tu lógica se mantiene igual)
+    const dataParaExportar = this.dataProcess.map(item => {
+      const objReturn: Record<string, any> = {
+        cCodigoTienda: item.cCodigoTienda,
+        cCodigoArticulo: item.cCodigoArticulo,
+        cCodigoBarra: item.cCodigoBarra,
+        cReferencia: item.cReferencia,
+        cDescripcion: item.cDescripcion,
+        cDepartamento: item.cDepartamento,
+        cSeccion: item.cSeccion,
+        cFamilia: item.cFamilia,
+        cSubFamilia: item.cSubFamilia,
+        cTemporada: item.cTemporada,
+        cTalla: item.cTalla,
+        cColor: item.cColor,
+        cStock: item.cStock
+      };
+      return objReturn;
+    });
+
+    // 2. Creamos la hoja de trabajo
+    const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(dataParaExportar);
+
+    // 3. --- LÓGICA PARA PINTAR CELDAS ---
+    const range = XLSX.utils.decode_range(worksheet['!ref']!);
+
+    for (let R = range.s.r + 1; R <= range.e.r; ++R) { // Empezamos en +1 para saltar el encabezado
+      // Buscamos la columna 'cEstadoEscaneo'. 
+      // Si sabes que es la columna 17 (por ejemplo), puedes usarla directo.
+      const estadoCellAddress = XLSX.utils.encode_cell({ r: R, c: 16 }); // Ajusta el índice de columna
+      const cell = worksheet[estadoCellAddress];
+
+      if (cell && cell.v === 'NO ESCANEADO') {
+        // Pintamos toda la fila o solo esa celda
+        for (let C = range.s.c; C <= range.e.c; ++C) {
+          const address = XLSX.utils.encode_cell({ r: R, c: C });
+          if (!worksheet[address]) continue;
+
+          worksheet[address].s = {
+            fill: {
+              fgColor: { rgb: "FFFF0000" } // Rojo (Formato ARGB)
+            },
+            font: {
+              color: { rgb: "FFFFFF" }, // Texto blanco para que resalte
+              bold: true
+            }
+          };
+        }
+      }
+    }
+
+    // 4. Generamos el libro y descargamos
+    const workbook: XLSX.WorkBook = {
+      Sheets: { 'Inventario': worksheet },
+      SheetNames: ['Inventario']
+    };
+
+    const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    this.saveAsExcelFile(excelBuffer, 'inventario_sin_exponer');
+  }
+
+  private saveAsExcelFile(buffer: any, fileName: string): void {
+    const data: Blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8' });
+    const url = window.URL.createObjectURL(data);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName + '_' + new Date().getTime() + '.xlsx';
+    link.click();
+    window.URL.revokeObjectURL(url);
+  }
+}
+
+export interface tableColumns {
+  isSticky: boolean;
+  matColumnDef: string;
+  titleColumn: string;
+  propertyValue: string;
+  filterActive: boolean;
+  isCboFilter: boolean;
+  cboFilter: Array<any>;
 }

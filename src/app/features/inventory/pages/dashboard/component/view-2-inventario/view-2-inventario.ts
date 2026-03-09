@@ -1,14 +1,12 @@
-import { Component, Input, SimpleChanges, ViewChild, OnInit, OnChanges, AfterViewInit, ChangeDetectorRef, inject, signal, output, EventEmitter, Output } from '@angular/core';
+import { Component, Input, SimpleChanges, OnInit, OnChanges, AfterViewInit, ChangeDetectorRef, signal, EventEmitter, Output } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
-import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
-import { MatSort, MatSortModule } from '@angular/material/sort';
+import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { IonRow, IonCol, IonIcon, IonCardContent, IonCard, IonGrid } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import * as XLSX from 'xlsx';
-import { MtInput } from '@metasperu/component/mt-input/mt-input';
-import { MatMenu } from '@angular/material/menu';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatBadgeModule } from '@angular/material/badge';
@@ -21,19 +19,22 @@ import { BaseChartDirective } from 'ng2-charts';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
 import { ModalReport } from './component/modal-report/modal-report';
+import { MtDatatable } from '@metasperu/component/mt-datatable/mt-datatable';
 
 export interface tableColumns {
+  isSticky: boolean;
   matColumnDef: string;
   titleColumn: string;
   propertyValue: string;
-  filterActive?: boolean;
+  filterActive: boolean;
+  isCboFilter: boolean;
   cboFilter: Array<any>;
 }
 
 @Component({
   selector: 'view-2-inventario',
   standalone: true,
-  imports: [MatTableModule, MatTooltipModule, BaseChartDirective, MatSidenavModule, MatCheckboxModule, MtSelect, IonCardContent, IonGrid, IonCard, MatBadgeModule, MatMenuModule, IonIcon, MatFormFieldModule, MtInput, MatPaginatorModule, MatIconModule, MatSortModule, IonCol, IonRow, CommonModule, MatMenu],
+  imports: [MtDatatable, MatTableModule, MatTooltipModule, BaseChartDirective, MatSidenavModule, MatCheckboxModule, MtSelect, IonCardContent, IonGrid, IonCard, MatBadgeModule, MatMenuModule, IonIcon, MatFormFieldModule, MatPaginatorModule, MatIconModule, MatSortModule, IonCol, IonRow, CommonModule],
   templateUrl: './view-2-inventario.html',
   styleUrl: './view-2-inventario.scss',
 })
@@ -45,6 +46,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
   @Output() onChangeInventario: EventEmitter<any> = new EventEmitter();
   isInsertColum: boolean = false;
   dataSource = new MatTableDataSource<any>([]);
+  dataTable: Array<any> = [];
   inFilter: string = "";
   filterValues: any = {};
   isFilterT: boolean = false;
@@ -70,11 +72,13 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     datasets: [{ data: [], backgroundColor: [] }]
   };
 
-  displayedColumns = [
+  displayedColumns: Array<string> = [
     'checking', 'codigoBarra', 'Referencia', 'descripcion', 'departamento',
     'seccion', 'familia', 'subfamilia', 'temporada',
     'talla', 'color', 'stock', 'total',
   ];
+
+  extraColumns: Array<string> = [];
 
   // Configuración del gráfico de Barras (Usuarios)
   public barChartOptions: ChartConfiguration['options'] = {
@@ -84,25 +88,26 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
 
   cboStadictics: Array<any> = [{ key: 'cDepartamento', value: 'Departamento' }, { key: 'cSeccion', value: 'Seccion' }, { key: 'cFamilia', value: 'Familia' }, { key: 'cSubFamilia', value: 'SubFamilia' }];
   dataColumns: tableColumns[] = [
-    { matColumnDef: 'checking', titleColumn: 'Revisado', propertyValue: 'checking', filterActive: false, cboFilter: [{ key: 1, value: 'Revisado' }, { key: 0, value: 'Sin Revisar' }] },
-    { matColumnDef: 'codigoBarra', titleColumn: 'Codigo Barra', propertyValue: 'cCodigoBarra', filterActive: false, cboFilter: [] },
-    { matColumnDef: 'Referencia', titleColumn: 'Referencia', propertyValue: 'cReferencia', filterActive: false, cboFilter: [] },
-    { matColumnDef: 'descripcion', titleColumn: 'Descripcion', propertyValue: 'cDescripcion', filterActive: false, cboFilter: [] },
-    { matColumnDef: 'departamento', titleColumn: 'Departamento', propertyValue: 'cDepartamento', filterActive: false, cboFilter: [] },
-    { matColumnDef: 'seccion', titleColumn: 'Seccion', propertyValue: 'cSeccion', filterActive: false, cboFilter: [] },
-    { matColumnDef: 'familia', titleColumn: 'Familia', propertyValue: 'cFamilia', filterActive: false, cboFilter: [] },
-    { matColumnDef: 'subfamilia', titleColumn: 'SubFamilia', propertyValue: 'cSubFamilia', filterActive: false, cboFilter: [] },
-    { matColumnDef: 'temporada', titleColumn: 'Temporada', propertyValue: 'cTemporada', filterActive: false, cboFilter: [] },
-    { matColumnDef: 'talla', titleColumn: 'Talla', propertyValue: 'cTalla', filterActive: false, cboFilter: [] },
-    { matColumnDef: 'color', titleColumn: 'Color', propertyValue: 'cColor', filterActive: false, cboFilter: [] },
-    { matColumnDef: 'color_scent', titleColumn: 'Color/Scent', propertyValue: 'cColorScent', filterActive: false, cboFilter: [] },
-    { matColumnDef: 'stock', titleColumn: 'Stock', propertyValue: 'cStock', filterActive: false, cboFilter: [] },
-    { matColumnDef: 'total', titleColumn: 'Total Conteo', propertyValue: 'cTotalConteo', filterActive: false, cboFilter: [{ key: 'Positivo', value: 'Positivo' }, { key: 'Negativo', value: 'Negativo' }, { key: 'cero sin escaneo', value: 'cero sin escaneo' }, { key: 'cero escaneo', value: 'cero escaneo' }] }];
-
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
-  @ViewChild(MatSort) sort!: MatSort;
+    { isSticky: true, matColumnDef: 'checking', titleColumn: 'Revisado', propertyValue: 'checking', filterActive: false, isCboFilter: false, cboFilter: [{ key: 1, value: 'Revisado' }, { key: 0, value: 'Sin Revisar' }] },
+    { isSticky: true, matColumnDef: 'codigoBarra', titleColumn: 'Codigo Barra', propertyValue: 'cCodigoBarra', filterActive: false, isCboFilter: false, cboFilter: [] },
+    { isSticky: false, matColumnDef: 'Referencia', titleColumn: 'Referencia', propertyValue: 'cReferencia', filterActive: false, isCboFilter: false, cboFilter: [] },
+    { isSticky: false, matColumnDef: 'descripcion', titleColumn: 'Descripcion', propertyValue: 'cDescripcion', filterActive: false, isCboFilter: false, cboFilter: [] },
+    { isSticky: false, matColumnDef: 'departamento', titleColumn: 'Departamento', propertyValue: 'cDepartamento', filterActive: false, isCboFilter: true, cboFilter: [] },
+    { isSticky: false, matColumnDef: 'seccion', titleColumn: 'Seccion', propertyValue: 'cSeccion', filterActive: false, isCboFilter: true, cboFilter: [] },
+    { isSticky: false, matColumnDef: 'familia', titleColumn: 'Familia', propertyValue: 'cFamilia', filterActive: false, isCboFilter: true, cboFilter: [] },
+    { isSticky: false, matColumnDef: 'subfamilia', titleColumn: 'SubFamilia', propertyValue: 'cSubFamilia', filterActive: false, isCboFilter: true, cboFilter: [] },
+    { isSticky: false, matColumnDef: 'temporada', titleColumn: 'Temporada', propertyValue: 'cTemporada', filterActive: false, isCboFilter: false, cboFilter: [] },
+    { isSticky: false, matColumnDef: 'talla', titleColumn: 'Talla', propertyValue: 'cTalla', filterActive: false, isCboFilter: false, cboFilter: [] },
+    { isSticky: false, matColumnDef: 'color', titleColumn: 'Color', propertyValue: 'cColor', filterActive: false, isCboFilter: false, cboFilter: [] },
+    { isSticky: false, matColumnDef: 'color_scent', titleColumn: 'Color/Scent', propertyValue: 'cColorScent', filterActive: false, isCboFilter: false, cboFilter: [] },
+    { isSticky: false, matColumnDef: 'stock', titleColumn: 'Stock', propertyValue: 'cStock', filterActive: false, isCboFilter: false, cboFilter: [] },
+    { isSticky: false, matColumnDef: 'total', titleColumn: 'Total Conteo', propertyValue: 'cTotalConteo', filterActive: false, isCboFilter: false, cboFilter: [{ key: 'Positivo', value: 'Positivo' }, { key: 'Negativo', value: 'Negativo' }, { key: 'cero sin escaneo', value: 'cero sin escaneo' }, { key: 'cero escaneo', value: 'cero escaneo' }] }];
 
   constructor(private dialog: MatDialog, private cdr: ChangeDetectorRef, private invService: InventoryService) {
+
+  }
+
+  ngAfterViewInit() {
 
   }
 
@@ -115,58 +120,10 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
       this.onDataView = inventario;
       console.log('📦 Inventario recibido Importado:', inventario.length);
     }
-
     this.initializeTable(this.onDataView);
 
-    this.asignSectionColum();
-    //this.updateSingleRecord(this.pocketScan);
+    // this.extraColumns = this.inAsignatedSections.map((s) => s.nombre_seccion);
 
-    this.dataSource.filterPredicate = (data: any, filter: string) => {
-      const searchTerms = JSON.parse(filter);
-
-      return Object.keys(searchTerms).every(columnKey => {
-        const searchTerm = searchTerms[columnKey];
-
-        // 1. Si el filtro está vacío, pasa la fila
-        if (!searchTerm || (Array.isArray(searchTerm) && searchTerm.length === 0)) {
-          return true;
-        }
-
-        // 2. Lógica para 'cTotalConteo' con soporte para múltiples opciones
-        if (columnKey === 'cTotalConteo') {
-          const valorNumerico = data[columnKey];
-
-          // Convertimos el searchTerm a Array siempre para manejarlo igual
-          const filtrosActivos = Array.isArray(searchTerm)
-            ? searchTerm.map(s => s.toString().toLowerCase())
-            : [searchTerm.toString().toLowerCase()];
-
-          // Verificamos si el valor cumple con AL MENOS UNA de las opciones seleccionadas
-          return filtrosActivos.some(opcion => {
-            if (opcion === 'positivo') return valorNumerico >= 1 && valorNumerico != data['cStock'];
-            if (opcion === 'negativo') return valorNumerico < 0;
-            if (opcion === 'cero sin escaneo') return data['cConteo'] == 0;
-            if (opcion === 'cero escaneo') return (data['cConteo'] > 0 && data['cTotalConteo'] == 0) || data['cTotalConteo'] == data['cStock'];
-            return false;
-          });
-        }
-
-        // 3. Lógica estándar para el resto de columnas
-        const cellValue = data[columnKey]?.toString().toLowerCase() || '';
-
-        if (Array.isArray(searchTerm)) {
-          return searchTerm.map(s => s.toString().toLowerCase()).includes(cellValue);
-        } else {
-          return cellValue.includes(searchTerm.toString().toLowerCase());
-        }
-      });
-    };
-
-  }
-
-  ngAfterViewInit() {
-    this.dataSource.paginator = this.paginator;
-    this.dataSource.sort = this.sort;
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -180,10 +137,21 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     }
 
     if (changes['inAsignatedSections'] && changes['inAsignatedSections'].currentValue) {
+      this.extraColumns = this.inAsignatedSections.map((s) => s.nombre_seccion);
       this.asignSectionColum();
     }
   }
 
+  asignSectionColum() {
+    if (!this.isInsertColum) {
+      this.inAsignatedSections.map((section, i) => {
+        this.dataColumns.push({ isSticky: false, matColumnDef: (section.nombre_seccion).toLowerCase(), titleColumn: section.nombre_seccion, propertyValue: `${((section.nombre_seccion)).replace(" ", "_").toLowerCase()}`, filterActive: false, isCboFilter: false, cboFilter: [] });
+        this.displayedColumns.push((section.nombre_seccion).toLowerCase());
+      });
+
+      this.isInsertColum = true;
+    }
+  }
   onChangeInv() {
     this.onChangeInventario.emit();
   }
@@ -199,36 +167,11 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     });
   }
 
-  applyFilterTable(event: any, column: string, cboValue?: string) {
 
-    const filterValue = cboValue?.length ? cboValue : (event.target as HTMLInputElement).value;
 
-    const property: any = this.dataColumns.find((t) => t.matColumnDef == column);
-    const indexHeader: any = this.dataColumns.findIndex((t) => t.matColumnDef == column);
-    this.dataColumns[indexHeader]['filterActive'] = filterValue.length ? true : false;
-
-    this.filterValues[property?.propertyValue] = (cboValue || "").length ? cboValue : filterValue.trim().toLowerCase();
-
-    this.dataSource.filter = JSON.stringify(this.filterValues);
-    this.datosFiltradosActuales = this.dataSource.filteredData;
-
-    this.processDataFilter();
-  }
-
-  private asignSectionColum() {
-    if (!this.isInsertColum) {
-      this.inAsignatedSections.map((section, i) => {
-        this.dataColumns.push({ matColumnDef: (section.nombre_seccion).toLowerCase(), titleColumn: section.nombre_seccion, propertyValue: `${((section.nombre_seccion)).replace(" ", "_").toLowerCase()}`, cboFilter: [] });
-        this.displayedColumns.push((section.nombre_seccion).toLowerCase());
-      });
-
-      this.isInsertColum = true;
-    }
-  }
-
-  private processDataFilter() {
+  processDataFilter(currentData: any) {
     // Calculamos los totales usando reduce
-    const totales = this.datosFiltradosActuales.reduce((acc, curr) => {
+    const totales = currentData.reduce((acc: any, curr: any) => {
       const conteo = Number(curr.cConteo) || 0;
       const stock = Number(curr.cStock) || 0;
       const diferencia = conteo - stock;
@@ -245,8 +188,6 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     this.conteoFilter = totales.sumaConteo;
     this.diferenciaFilter = totales.sumaDiferencia;
   }
-
-
 
   private async initializeTable(data: any[]) {
     this.isProcessing.set(true);
@@ -298,7 +239,6 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     // ... (Asignación a la tabla y cálculos de totales)
     this.dataSource.data = allFormattedData;
     if (this.progress() == 1) {
-      this.onColumsFilterCbo(allFormattedData);
       this.updateSingleRecord(this.pocketScan);
       this.isProcessing.set(false);
       this.showTable.set(true);
@@ -394,7 +334,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     this.totalConteo.set(sumaTotalScaneada);
     this.totalDiferencia.set(sumaTotalScaneada - this.totalStock());
 
-    this.dataSource.data = data;
+    this.dataTable = data;
     this.invService.onInventoryArea.emit(data);
     this.onBarStadisctic(data);
     this.cdr.markForCheck();
@@ -480,13 +420,6 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     window.URL.revokeObjectURL(url);
   }
 
-  applyFilter(data: any) {
-    if (!data) return;
-    const { id, value } = data;
-    this.inFilter = value ?? "";
-    const filterValue = value;
-    this.dataSource.filter = filterValue.trim().toLowerCase();
-  }
 
   importExcelInventario(event: any) {
     this.onDataView = [];
@@ -533,40 +466,13 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
       // 6. Cargar en la tabla
       this.onDataView = formattedData;
       console.log('📦 Inventario Importado:', formattedData.length);
-
-      this.onColumsFilterCbo(formattedData);
-
       await this.initializeTable(formattedData);
     };
 
     reader.readAsArrayBuffer(file);
   }
 
-  onColumsFilterCbo(dataTable: any) {
-    this.onParserFilterCbo('cDepartamento', dataTable);
-    this.onParserFilterCbo('cSeccion', dataTable);
-    this.onParserFilterCbo('cFamilia', dataTable);
-    this.onParserFilterCbo('cSubFamilia', dataTable);
-  }
 
-  onParserFilterCbo(property: string, data: Array<any>) {
-    const cboFilter = [... new Set(data.map(item => item[property]))]
-      .sort()
-      .map(distrito => ({
-        key: distrito.toLowerCase(),
-        value: distrito.toLowerCase()
-      }));
-
-    const indexColumn = this.dataColumns.findIndex((c) => c.propertyValue == property);
-
-    this.dataColumns[indexColumn]['cboFilter'] = cboFilter || [];
-
-  }
-
-  async onChangeSelect(data: any, column: string) {
-    const selectData = data.map((item: any) => item.key);
-    this.applyFilterTable('', column, selectData);
-  }
 
   onChangeSelectStadistic(ev: any) {
     const data = this.dataSource.data;
@@ -676,28 +582,5 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
 
   }
 
-  onCheckedRow(codigo_barra: string, ev: any) {
-    const index = this.dataSource.data.findIndex(item => item.cCodigoBarra == codigo_barra);
-    const idRow = this.dataSource.data[index]['id'];
-    this.dataSource.data[index]['checking'] = ev.checked;
 
-    this.invService.putCheckedInventario({ id: idRow, checked: ev.checked }).subscribe({
-      next: (value) => {
-        this.onNotification(value);
-      },
-      error: (err) => {
-        this.onNotification({ error: 'error', message: err?.message });
-      },
-    });
-  }
-
-  private onNotification(result: any) {
-    let notificationList = [{
-      isSuccess: !result?.error?.length ? true : false,
-      isError: result?.error?.length ? true : false,
-      bodyNotification: result?.message
-    }];
-
-    this.invService.onNotification.emit(notificationList);
-  }
 }

@@ -34,7 +34,7 @@
 
                     <div class="separator"></div>
                     @for (item of filteredData; track item.value) {
-
+                        
                     @if(isMultiselect){
                     <ion-item (click)="toggleItem(item)" class="selectable-item">
                         <ion-checkbox slot="start" [checked]="item.selected" mode="md"></ion-checkbox>

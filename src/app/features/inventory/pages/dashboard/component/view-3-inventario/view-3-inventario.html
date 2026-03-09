@@ -1,7 +1,7 @@
 <ion-row>
     <ion-col sizeXs="12" sizeSm="12" sizeMd="12" sizeLg="12">
         <div class="header-container only-mobil">
-            <h2>Reporte de Inventario</h2>
+            <h2>Productos sin exhibir</h2>
         </div>
     </ion-col>
 </ion-row>
@@ -11,96 +11,25 @@
             title="Departamento"></mt-select>
     </ion-col>
     <ion-col sizeXs="12" sizeSm="12" sizeMd="2" sizeLg="2">
-        <mt-select id='cbo2' [data]="cboArea" (selectdOption)="onChangeSelect($event)" label="Seleccione un Area"
+        <mt-select id='cbo2' [data]="cboArea_2" (selectdOption)="onChangeSelect($event)" label="Seleccione un Area"
             title="Departamento"></mt-select>
     </ion-col>
-    <ion-col sizeXs="12" sizeSm="12" sizeMd="2" sizeLg="2">
+    <ion-col sizeXs="12" sizeSm="12" sizeMd="1" sizeLg="1" style="justify-content: center;align-items: center;display: flex;">
         <button mat-raised-button class="btn-excel-upload" (click)="onProcessDiff()">
             <span>Procesar</span>
+        </button>
+    </ion-col>
+    <ion-col sizeXs="12" sizeSm="12" sizeMd="2" sizeLg="2" style="justify-content: center;align-items: center;display: flex;">
+        <button mat-raised-button class=" btn-excel" (click)="exportarExcel()">
+            <mat-icon>file_download</mat-icon>
+            <span>Exportar Excel</span>
+            <span class="record-count">{{ dataProcess.length | number }} items</span>
         </button>
     </ion-col>
 </ion-row>
 <ion-row>
     <ion-col>
-        <div class="mat-elevation-z8">
-            <table mat-table [dataSource]="dataSource">
-
-                <!-- Position Column -->
-                <ng-container matColumnDef="codigoBarra">
-                    <th mat-header-cell *matHeaderCellDef> Codigo barra </th>
-                    <td mat-cell *matCellDef="let element"> {{element.cCodigoBarra}} </td>
-                </ng-container>
-
-                <!-- Name Column -->
-                <ng-container matColumnDef="referencia">
-                    <th mat-header-cell *matHeaderCellDef> Referencia </th>
-                    <td mat-cell *matCellDef="let element"> {{element.cReferencia}} </td>
-                </ng-container>
-
-                <!-- Weight Column -->
-                <ng-container matColumnDef="descripcion">
-                    <th mat-header-cell *matHeaderCellDef> Descripcion </th>
-                    <td mat-cell *matCellDef="let element"> {{element.cDescripcion}} </td>
-                </ng-container>
-
-                <!-- Symbol Column -->
-                <ng-container matColumnDef="departamento">
-                    <th mat-header-cell *matHeaderCellDef> Departamento </th>
-                    <td mat-cell *matCellDef="let element"> {{element.cDepartamento}} </td>
-                </ng-container>
-
-                <!-- Symbol Column -->
-                <ng-container matColumnDef="seccion">
-                    <th mat-header-cell *matHeaderCellDef> Seccion </th>
-                    <td mat-cell *matCellDef="let element"> {{element.cSeccion}} </td>
-                </ng-container>
-
-                <!-- Symbol Column -->
-                <ng-container matColumnDef="familia">
-                    <th mat-header-cell *matHeaderCellDef> Familia </th>
-                    <td mat-cell *matCellDef="let element"> {{element.cFamilia}} </td>
-                </ng-container>
-
-
-                <!-- Symbol Column -->
-                <ng-container matColumnDef="subfamilia">
-                    <th mat-header-cell *matHeaderCellDef> SubFamilia </th>
-                    <td mat-cell *matCellDef="let element"> {{element.cSubFamilia}} </td>
-                </ng-container>
-
-
-                <!-- Symbol Column -->
-                <ng-container matColumnDef="temporada">
-                    <th mat-header-cell *matHeaderCellDef> Temporada </th>
-                    <td mat-cell *matCellDef="let element"> {{element.cTemporada}} </td>
-                </ng-container>
-
-
-                <!-- Symbol Column -->
-                <ng-container matColumnDef="talla">
-                    <th mat-header-cell *matHeaderCellDef> Talla </th>
-                    <td mat-cell *matCellDef="let element"> {{element.cTalla}} </td>
-                </ng-container>
-
-                <!-- Symbol Column -->
-                <ng-container matColumnDef="color">
-                    <th mat-header-cell *matHeaderCellDef> Color </th>
-                    <td mat-cell *matCellDef="let element"> {{element.cColor}} </td>
-                </ng-container>
-
-                <!-- Symbol Column -->
-                <ng-container matColumnDef="stock">
-                    <th mat-header-cell *matHeaderCellDef> Stock </th>
-                    <td mat-cell *matCellDef="let element"> {{element.cStock}} </td>
-                </ng-container>
-
-                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-                <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-            </table>
-
-            <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons
-                aria-label="Select page of periodic elements">
-            </mat-paginator>
-        </div>
+        <mt-datatable [dataIn]="dataProcess" [dataColumnsIn]="dataColumns"
+            [extraColumns]="displayedColumns"></mt-datatable>
     </ion-col>
 </ion-row>
