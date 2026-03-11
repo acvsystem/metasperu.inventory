@@ -344,7 +344,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
 
   exportarExcel() {
     // 1. Mapeamos los datos (Tu lógica se mantiene igual)
-    const dataParaExportar = this.dataSource.data.map(item => {
+    const dataParaExportar = this.dataTable.map(item => {
       const objReturn: Record<string, any> = {
         id: item.id,
         cCodigoArticulo: item.cCodigoArticulo,
