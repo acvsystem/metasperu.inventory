@@ -169,13 +169,19 @@ export default class InventorySession {
   }
 
   async startInventory() {
-
     if (!this.selectedStoreId) return;
 
     this.isLoading.set(true);
-    // Buscamos el nombre de la tienda basado en el ID para enviarlo al backend
+
     const store = this.stores.find(s => s.key === +this.selectedStoreId);
-    const assignedSection = this.sectionsSelected;
+
+    // --- FILTRO DE DUPLICADOS PARA OBJETOS ---
+    // Filtramos usando un Map tomando como llave única el 'id' (o cambia 'id' por 'nombre_seccion' si prefieres)
+    const assignedSection = Array.from(
+      new Map(this.sectionsSelected.map(item => [item.nombre_seccion, item])).values()
+    );
+    // ------------------------------------------
+
     this.inventoryService.createSession(store!.key, assignedSection).subscribe({
       next: (res) => {
         this.generatedCode.set(res.session_code);
@@ -185,7 +191,10 @@ export default class InventorySession {
         this.loeadSessions();
         this.showNotification();
       },
-      error: (err) => { this.isLoading.set(false); }
+      error: (err) => {
+        this.isLoading.set(false);
+        console.error("Error al crear sesión:", err);
+      }
     });
   }
 

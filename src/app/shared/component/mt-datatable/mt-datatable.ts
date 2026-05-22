@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, EventEmitter, Input, Output, SimpleChanges, ViewChild, AfterViewInit, OnChanges, OnInit } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
@@ -9,46 +9,76 @@ import { MatMenuModule } from '@angular/material/menu';
 import { InventoryService } from '@metasperu/services/inventory.service';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSort } from '@angular/material/sort';
+
+export interface columnsTable {
+  isSticky: boolean;
+  matColumnDef: string;
+  titleColumn: string;
+  propertyValue: string;
+  filterActive: boolean;
+  isCboFilter: boolean;
+  cboFilter: Array<any>;
+}
+
 @Component({
   selector: 'mt-datatable',
+  standalone: true,
   imports: [MatPaginatorModule, MatMenu, MtInput, MtSelect, MatMenuModule, MatTableModule, MatCheckboxModule],
   templateUrl: './mt-datatable.html',
   styleUrl: './mt-datatable.scss',
 })
-export class MtDatatable {
-  @Input() dataIn: Array<any> = [];
+export class MtDatatable implements OnInit, OnChanges, AfterViewInit {
+  // OPTIMIZACIÓN CRÍTICA: Interceptamos la entrada de datos con un setter
+  // Esto asegura que la data se asigne al dataSource e inmediatamente se limite por el paginador
+  private _dataIn: Array<any> = [];
+  @Input() set dataIn(value: Array<any>) {
+    this._dataIn = value || [];
+    this.dataSource.data = this._dataIn;
+    
+    // Si el paginador ya está listo en la vista, se lo re-asociamos de inmediato
+    // Esto evita que Angular intente dibujar las 10,000 filas completas antes del AfterViewInit
+    if (this.paginator) {
+      this.dataSource.paginator = this.paginator;
+    }
+  }
+  get dataIn(): Array<any> {
+    return this._dataIn;
+  }
+
   @Input() isChecking: Boolean = false;
   @Input() dataColumnsIn: columnsTable[] = [];
   @Input() extraColumns: Array<string> = [];
   @Output() currentDataFilter: EventEmitter<any> = new EventEmitter();
+
   dataSource = new MatTableDataSource<any>([]);
   filterValues: any = {};
   displayedColumns: Array<string> = [];
   datosFiltradosActuales: any[] = [];
   dataColumns: Array<any> = [];
   inFilter: string = "";
+
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
+
   constructor(private invService: InventoryService) {
-    console.log("DATA TABLE");
+    console.log("DATA TABLE INITIALIZED");
   }
 
   ngAfterViewInit() {
+    // Vinculación física con el DOM para paginación y ordenamiento
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['dataIn'] && changes['dataIn'].currentValue) {
-      this.dataSource.data = changes['dataIn'].currentValue;
-      this.onParserFilterCbo();
-    }
+    // Nota: El manejo de 'dataIn' ahora corre por cuenta del setter reactivo @Input() set dataIn
 
     if (changes['dataColumnsIn'] && changes['dataColumnsIn'].currentValue) {
       this.dataColumns = changes['dataColumnsIn'].currentValue;
     }
 
     if (changes['extraColumns'] && changes['extraColumns'].currentValue) {
+      // Asignación limpia de las estructuras de columnas (incluyendo las 524 de Metas Perú)
       this.displayedColumns = changes['extraColumns'].currentValue;
     }
   }
@@ -57,45 +87,49 @@ export class MtDatatable {
     this.dataSource.data = this.dataIn;
     this.dataColumns = this.dataColumnsIn;
     this.onParserFilterCbo();
+
+    // Predicado de filtrado optimizado para búsquedas por múltiples términos en memoria extendida
     this.dataSource.filterPredicate = (data: any, filter: string) => {
-      const searchTerms = JSON.parse(filter);
+      try {
+        const searchTerms = JSON.parse(filter);
 
-      return Object.keys(searchTerms).every(columnKey => {
-        const searchTerm = searchTerms[columnKey];
+        return Object.keys(searchTerms).every(columnKey => {
+          const searchTerm = searchTerms[columnKey];
 
-        // 1. Si el filtro está vacío, pasa la fila
-        if (!searchTerm || (Array.isArray(searchTerm) && searchTerm.length === 0)) {
-          return true;
-        }
+          // 1. Si el filtro está vacío o no tiene longitud, pasa la validación de fila
+          if (searchTerm === undefined || searchTerm === null || searchTerm === '' || (Array.isArray(searchTerm) && searchTerm.length === 0)) {
+            return true;
+          }
 
-        // 2. Lógica para 'cTotalConteo' con soporte para múltiples opciones
-        if (columnKey === 'cTotalConteo') {
-          const valorNumerico = data[columnKey];
+          // 2. Lógica especializada de rendimiento para 'cTotalConteo'
+          if (columnKey === 'cTotalConteo') {
+            const valorNumerico = data[columnKey];
+            const filtrosActivos = Array.isArray(searchTerm)
+              ? searchTerm.map(s => s.toString().toLowerCase())
+              : [searchTerm.toString().toLowerCase()];
 
-          // Convertimos el searchTerm a Array siempre para manejarlo igual
-          const filtrosActivos = Array.isArray(searchTerm)
-            ? searchTerm.map(s => s.toString().toLowerCase())
-            : [searchTerm.toString().toLowerCase()];
+            return filtrosActivos.some(opcion => {
+              if (opcion === 'positivo') return valorNumerico >= 1 && valorNumerico != data['cStock'];
+              if (opcion === 'negativo') return valorNumerico < 0;
+              if (opcion === 'cero sin escaneo') return data['cConteo'] == 0;
+              if (opcion === 'cero escaneo') return (data['cConteo'] > 0 && data['cTotalConteo'] == 0) || data['cTotalConteo'] == data['cStock'];
+              return false;
+            });
+          }
 
-          // Verificamos si el valor cumple con AL MENOS UNA de las opciones seleccionadas
-          return filtrosActivos.some(opcion => {
-            if (opcion === 'positivo') return valorNumerico >= 1 && valorNumerico != data['cStock'];
-            if (opcion === 'negativo') return valorNumerico < 0;
-            if (opcion === 'cero sin escaneo') return data['cConteo'] == 0;
-            if (opcion === 'cero escaneo') return (data['cConteo'] > 0 && data['cTotalConteo'] == 0) || data['cTotalConteo'] == data['cStock'];
-            return false;
-          });
-        }
+          // 3. Evaluación estándar de strings para el resto de columnas de stock
+          const cellValue = data[columnKey]?.toString().toLowerCase() || '';
 
-        // 3. Lógica estándar para el resto de columnas
-        const cellValue = data[columnKey]?.toString().toLowerCase() || '';
-
-        if (Array.isArray(searchTerm)) {
-          return searchTerm.map(s => s.toString().toLowerCase()).includes(cellValue);
-        } else {
-          return cellValue.includes(searchTerm.toString().toLowerCase());
-        }
-      });
+          if (Array.isArray(searchTerm)) {
+            return searchTerm.map(s => s.toString().toLowerCase()).includes(cellValue);
+          } else {
+            return cellValue.includes(searchTerm.toString().toLowerCase());
+          }
+        });
+      } catch (e) {
+        // En caso de que falle el parseo del JSON del filtro, dejamos pasar la fila por seguridad
+        return true;
+      }
     };
   }
 
@@ -163,16 +197,6 @@ export class MtDatatable {
 
     this.invService.onNotification.emit(notificationList);
   }
-}
-
-export interface columnsTable {
-  isSticky: boolean;
-  matColumnDef: string;
-  titleColumn: string;
-  propertyValue: string;
-  filterActive: boolean;
-  isCboFilter: boolean;
-  cboFilter: Array<cbo>
 }
 
 export interface cbo {

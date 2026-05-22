@@ -115,7 +115,7 @@ export default class DashboardComponent implements OnInit {
     // Obtener el código de la URL: /admin/dashboard/XYZ123
     this.sessionCode = this.route.snapshot.paramMap.get('code') || '';
     this.serieStore = this.route.snapshot.paramMap.get('serie') || '';
-    this.asignedSections();
+    //this.asignedSections();
 
     if (!this.sessionCode) {
       this.router.navigate(['/inventory/session']);
@@ -347,5 +347,9 @@ export default class DashboardComponent implements OnInit {
     link.download = fileName + '_' + new Date().getTime() + '.xlsx';
     link.click();
     window.URL.revokeObjectURL(url);
+  }
+tabIndex = 0;
+  onTabChange(index: number) {
+    this.tabIndex = index;
   }
 }

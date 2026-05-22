@@ -57,7 +57,7 @@
                             <button mat-raised-button class=" btn-excel" (click)="exportarExcel()">
                                 <mat-icon>file_download</mat-icon>
                                 <span>Exportar Excel</span>
-                                <span class="record-count">{{ dataSource.data.length | number }} items</span>
+                                <span class="record-count">{{ dataTable.length | number }} items</span>
                             </button>
 
                             <button mat-raised-button class="btn-update-inventory" (click)="onChangeInv()">
@@ -149,8 +149,11 @@
                     </ion-col>
                 </ion-row>
 
+                @if(dataColumns.length > 0 && displayedColumns.length > 0){
                 <mt-datatable (currentDataFilter)="processDataFilter($event)" [isChecking]="true" [dataIn]="dataTable"
                     [dataColumnsIn]="dataColumns" [extraColumns]="displayedColumns"></mt-datatable>
+                }
+
 
                 <br><br><br>
             </ion-col>
