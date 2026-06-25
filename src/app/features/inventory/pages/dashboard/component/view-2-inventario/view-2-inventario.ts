@@ -112,6 +112,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
   ngAfterViewInit() { }
 
   ngOnInit() {
+    console.log('v.1.0.0');
     this.onDataView = [];
     const offlineData = localStorage.getItem('offline_inventory');
 
