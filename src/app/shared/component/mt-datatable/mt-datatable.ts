@@ -112,7 +112,7 @@ export class MtDatatable implements OnInit, OnChanges, AfterViewInit {
               if (opcion === 'positivo') return valorNumerico >= 1 && valorNumerico != data['cStock'];
               if (opcion === 'negativo') return valorNumerico < 0;
               if (opcion === 'cero sin escaneo') return data['cConteo'] == 0;
-              if (opcion === 'cero escaneo') return (data['cConteo'] == 0 && data['cTotalConteo'] == 0) ;
+              if (opcion === 'cero escaneo') return  data['cTotalConteo'] == data['cStock'];
               return false;
             });
           }

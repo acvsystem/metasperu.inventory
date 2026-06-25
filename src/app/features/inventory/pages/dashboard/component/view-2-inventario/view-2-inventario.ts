@@ -78,7 +78,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
   displayedColumns: Array<string> = [
     'checking', 'codigoBarra', 'Referencia', 'descripcion', 'departamento',
     'seccion', 'familia', 'subfamilia', 'temporada',
-    'talla', 'color', 'stock', 'total',
+    'talla', 'color', 'stock', 'total','conteo',
   ];
 
   extraColumns: Array<string> = [];
@@ -104,7 +104,8 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     { isSticky: false, matColumnDef: 'color', titleColumn: 'Color', propertyValue: 'cColor', filterActive: false, isCboFilter: false, cboFilter: [] },
     { isSticky: false, matColumnDef: 'color_scent', titleColumn: 'Color/Scent', propertyValue: 'cColorScent', filterActive: false, isCboFilter: false, cboFilter: [] },
     { isSticky: false, matColumnDef: 'stock', titleColumn: 'Stock', propertyValue: 'cStock', filterActive: false, isCboFilter: false, cboFilter: [] },
-    { isSticky: false, matColumnDef: 'total', titleColumn: 'Total Conteo', propertyValue: 'cTotalConteo', filterActive: false, isCboFilter: false, cboFilter: [{ key: 'Positivo', value: 'Positivo' }, { key: 'Negativo', value: 'Negativo' }, { key: 'cero sin escaneo', value: 'cero sin escaneo' }, { key: 'cero escaneo', value: 'cero escaneo' }] }
+    { isSticky: false, matColumnDef: 'total', titleColumn: 'Total Conteo', propertyValue: 'cTotalConteo', filterActive: false, isCboFilter: false, cboFilter: [{ key: 'Positivo', value: 'Positivo' }, { key: 'Negativo', value: 'Negativo' }, { key: 'cero sin escaneo', value: 'cero sin escaneo' }, { key: 'cero escaneo', value: 'cero escaneo' }] },
+    { isSticky: false, matColumnDef: 'conteo', titleColumn: 'Conteo', propertyValue: 'cConteo', filterActive: false, isCboFilter: false, cboFilter: [] }
   ];
 
   constructor(private dialog: MatDialog, private cdr: ChangeDetectorRef, private invService: InventoryService) { }
@@ -195,9 +196,11 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
   }
 
   processDataFilter(currentData: any) {
+    console.log('Procesando datos filtrados:', currentData);
     const totales = currentData.reduce((acc: any, curr: any) => {
       const conteo = Number(curr.cConteo) || 0;
       const stock = Number(curr.cStock) || 0;
+  
       return {
         sumaConteo: acc.sumaConteo + conteo,
         sumaStock: acc.sumaStock + stock,
@@ -224,6 +227,10 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     this.dataTable = data.map(item => {
       const stock = Number(item.cStock) || 0;
       const conteo = Number(item.cConteo) || 0;
+
+      if(item.cCodigoBarra === '667559097457') {
+        console.log('🔍 SKU Especial Encontrado:', item);
+      }
 
       totalStockGlobal += stock;
       totalConteoGlobal += conteo;
