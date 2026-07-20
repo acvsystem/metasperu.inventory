@@ -21,6 +21,14 @@ import { MatDialog } from '@angular/material/dialog';
 import { ModalReport } from './component/modal-report/modal-report';
 import { MtDatatable } from '@metasperu/component/mt-datatable/mt-datatable';
 
+const toNumber = (value: any) => {
+  const numericValue = typeof value === 'string' ? value.replace(',', '.').trim() : value;
+  const numberValue = Number(numericValue);
+  return Number.isFinite(numberValue) ? numberValue : 0;
+};
+
+const sectionColumnKey = (name: string) => (name || '').trim().replace(/\s+/g, '_').toLowerCase();
+
 export interface tableColumns {
   isSticky: boolean;
   matColumnDef: string;
@@ -108,6 +116,12 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     { isSticky: false, matColumnDef: 'conteo', titleColumn: 'Conteo', propertyValue: 'cConteo', filterActive: false, isCboFilter: false, cboFilter: [] }
   ];
 
+  private readonly baseDisplayedColumns = [...this.displayedColumns];
+  private readonly baseDataColumns = this.dataColumns.map(column => ({
+    ...column,
+    cboFilter: [...column.cboFilter]
+  }));
+
   constructor(private dialog: MatDialog, private cdr: ChangeDetectorRef, private invService: InventoryService) { }
 
   ngAfterViewInit() { }
@@ -134,7 +148,6 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     }
 
     if (changes['inAsignatedSections'] && changes['inAsignatedSections'].currentValue) {
-      this.extraColumns = this.inAsignatedSections.map((s) => s.nombre_seccion);
       this.asignSectionColum();
     }
   }
@@ -143,16 +156,28 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     // 1. Si no hay secciones asignadas, no hacemos nada
     if (!this.inAsignatedSections || this.inAsignatedSections.length === 0) return;
 
-    // 2. Creamos un Set con las columnas base que YA existen en la tabla para no repetirlas
-    // Esto incluye: 'checking', 'codigoBarra', 'Referencia', etc.
+    const activeSections = this.getActiveAssignedSections();
+    this.dataColumns = this.baseDataColumns.map(column => ({
+      ...column,
+      cboFilter: [...column.cboFilter]
+    }));
+    this.displayedColumns = [...this.baseDisplayedColumns];
+    this.extraColumns = activeSections.map((s) => s.nombre_seccion);
+
+    if (activeSections.length === 0) {
+      this.isInsertColum = true;
+      this.cdr.markForCheck();
+      return;
+    }
+
     const columnasExistentes = new Set<string>(this.displayedColumns);
 
     const nuevasColumnas: tableColumns[] = [];
     const nuevosDefs: string[] = [];
 
-    this.inAsignatedSections.forEach((section) => {
+    activeSections.forEach((section) => {
       // Convertimos a minúsculas y limpiamos espacios tal como lo procesa tu código
-      const colDef = section.nombre_seccion.trim().toLowerCase();
+      const colDef = sectionColumnKey(section.nombre_seccion);
 
       // 3. CONTROL CRÍTICO: Solo agregamos la columna si NO existe ya en el Set
       if (!columnasExistentes.has(colDef)) {
@@ -163,7 +188,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
           isSticky: false,
           matColumnDef: colDef,
           titleColumn: section.nombre_seccion,
-          propertyValue: section.nombre_seccion.replace(/\s+/g, "_").toLowerCase(),
+          propertyValue: colDef,
           filterActive: false,
           isCboFilter: false,
           cboFilter: []
@@ -183,6 +208,23 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     this.cdr.markForCheck();
   }
 
+  private getActiveAssignedSections() {
+    const activeKeys = new Set<string>();
+
+    this.dataTable.forEach((item) => {
+      this.inAsignatedSections.forEach((section) => {
+        const sectionKey = sectionColumnKey(section.nombre_seccion);
+        if (toNumber(item[sectionKey]) !== 0) {
+          activeKeys.add(sectionKey);
+        }
+      });
+    });
+
+    return this.inAsignatedSections.filter((section) =>
+      activeKeys.has(sectionColumnKey(section.nombre_seccion))
+    );
+  }
+
   onChangeInv() {
     this.onChangeInventario.emit();
   }
@@ -198,8 +240,8 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
   processDataFilter(currentData: any) {
     console.log('Procesando datos filtrados:', currentData);
     const totales = currentData.reduce((acc: any, curr: any) => {
-      const conteo = Number(curr.cConteo) || 0;
-      const stock = Number(curr.cStock) || 0;
+      const conteo = toNumber(curr.cConteo);
+      const stock = toNumber(curr.cStock);
   
       return {
         sumaConteo: acc.sumaConteo + conteo,
@@ -225,8 +267,8 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
 
     // OPTIMIZACIÓN: Mapeo lineal de CPU a la velocidad de la luz. Elimina la fragmentación por chunks de 200.
     this.dataTable = data.map(item => {
-      const stock = Number(item.cStock) || 0;
-      const conteo = Number(item.cConteo) || 0;
+      const stock = toNumber(item.cStock);
+      const conteo = toNumber(item.cConteo);
 
       if(item.cCodigoBarra === '667559097457') {
         console.log('🔍 SKU Especial Encontrado:', item);
@@ -239,7 +281,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
         ...item,
         cStock: stock,
         cConteo: conteo,
-        cTotalConteo: item.cTotalConteo !== undefined ? item.cTotalConteo : (conteo === stock ? stock : conteo - stock)
+        cTotalConteo: conteo - stock
       };
     });
 
@@ -253,6 +295,8 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
 
     if (this.pocketScan) {
       this.updateSingleRecord(this.pocketScan);
+    } else {
+      this.asignSectionColum();
     }
 
     this.cdr.markForCheck();
@@ -271,7 +315,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
 
     dataPocket.forEach(item => {
       const key = `${item.sku}-${item.seccion_id}`;
-      const cantidad = Number(item.total_cantidad) || 0;
+      const cantidad = toNumber(item.total_cantidad);
 
       if (!agrupado.has(key)) {
         agrupado.set(key, { ...item, total_cantidad: cantidad });
@@ -284,7 +328,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
 
     const seccionesMap = new Map(this.inAsignatedSections.map(s => [
       s.id,
-      s.nombre_seccion.replace(/\s+/g, "_").toLowerCase()
+      sectionColumnKey(s.nombre_seccion)
     ]));
 
     agrupado.forEach((scan) => {
@@ -298,9 +342,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
           data[index][sectionProp] = scan.total_cantidad;
         }
         data[index].cConteo = skuTotal;
-        data[index].cTotalConteo = data[index].cConteo === data[index].cStock
-          ? data[index].cStock
-          : data[index].cConteo - data[index].cStock;
+        data[index].cTotalConteo = toNumber(data[index].cConteo) - toNumber(data[index].cStock);
       } else {
         const newItem: any = {
           cCodigoArticulo: 0,
@@ -310,7 +352,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
           cConteo: skuTotal,
           cDescripcion: "",
           cStock: 0,
-          cTotalConteo: 0
+          cTotalConteo: skuTotal
         };
 
         if (sectionProp) {
@@ -322,12 +364,15 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
       }
     });
 
-    const sumaTotalScaneada = Array.from(totalesPorSku.values()).reduce((a, b) => a + b, 0);
+    const sumaTotalScaneada = data.reduce((acc, item) => acc + toNumber(item.cConteo), 0);
+    const sumaStock = data.reduce((acc, item) => acc + toNumber(item.cStock), 0);
 
     this.totalConteo.set(sumaTotalScaneada);
-    this.totalDiferencia.set(sumaTotalScaneada - this.totalStock());
+    this.totalStock.set(sumaStock);
+    this.totalDiferencia.set(sumaTotalScaneada - sumaStock);
 
     this.dataTable = data;
+    this.asignSectionColum();
     this.invService.onInventoryArea.emit(data);
     this.onBarStadisctic(data);
     this.cdr.markForCheck();
@@ -352,8 +397,8 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
         cSubFamilia: item.cSubFamilia,
         cTalla: item.cTalla,
         cTemporada: item.cTemporada,
-        cTotalConteo: item.cConteo == 0 ? item.cStock * -1 : item.cTotalConteo,
-        cEstadoEscaneo: item.cConteo == 0 ? 'NO ESCANEADO' : 'ESCANEADO',
+        cTotalConteo: toNumber(item.cConteo) - toNumber(item.cStock),
+        cEstadoEscaneo: toNumber(item.cConteo) == 0 ? 'NO ESCANEADO' : 'ESCANEADO',
       };
     });
 
@@ -425,7 +470,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
         cSubFamilia: item.cSubFamilia,
         cTalla: item.cTalla,
         cTemporada: item.cTemporada,
-        cTotalConteo: 0,
+        cTotalConteo: toNumber(item.cConteo) - toNumber(item.cStock),
         codigo_sesion: item.codigo_sesion,
         id: item.id
       }));
@@ -443,7 +488,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
 
     this.dataTable.forEach((item: any) => {
       const depto = item[ev.key] || 'Otros';
-      const conteo = Number(item.cTotalConteo) || 0;
+      const conteo = toNumber(item.cTotalConteo);
 
       if (acumulador[depto]) {
         acumulador[depto] += conteo;
@@ -464,18 +509,18 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
   }
 
   onBarStadisctic(data2: any) {
-    if (!this.barChartData.datasets?.[0].data.length) {
       const acumulador: { [key: string]: number } = {
         'Almacén': 0,
         'Venta': 0,
         'Tester': 0,
         'Reconteo': 0,
+        'Defectuoso': 0,
         'Otros': 0
       };
 
       this.dataTable.forEach((item: any) => {
         Object.keys(item).forEach(columna => {
-          const valor = Number(item[columna]) || 0;
+          const valor = toNumber(item[columna]);
           const columnaLower = columna.toLowerCase();
           const inicial = columna.charAt(0).toUpperCase();
 
@@ -511,6 +556,5 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
       };
 
       this.cdr.markForCheck();
-    }
   }
 }

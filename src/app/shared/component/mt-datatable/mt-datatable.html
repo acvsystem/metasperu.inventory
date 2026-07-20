@@ -20,7 +20,7 @@
                         {{col.titleColumn}}
                         <div class="filter-content" slot="end">
 
-                            <div class="btn-filter" [matMenuTriggerFor]="filterMenu">
+                            <div class="btn-filter" [matMenuTriggerFor]="filterMenu" (click)="ensureCboFilter(col)">
                                 @if(col.filterActive){
                                 <div matBadge="1" matBadgeSize="small" style="width: 2px;"></div>
                                 }
@@ -50,12 +50,11 @@
                     <span class="badge bg-yellow-comprobantes">{{element.cTotalConteo}}</span>
                     }
 
-                    @if(element.cTotalConteo >= 1 && element.cTotalConteo != element.cStock){
+                    @if(element.cTotalConteo > 0){
                     <span class="badge bg-success-comprobantes">{{element.cTotalConteo}}</span>
                     }
 
-                    @if((element.cConteo > 0 && element.cTotalConteo == 0) || element.cTotalConteo ==
-                    element.cStock){
+                    @if(element.cConteo > 0 && element.cTotalConteo == 0){
                     <span class="badge bg-warning-comprobantes">{{element.cTotalConteo}}</span>
                     }
 

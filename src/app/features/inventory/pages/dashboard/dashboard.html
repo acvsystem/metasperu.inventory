@@ -166,14 +166,18 @@
           </div>
         </mat-tab>
         <mat-tab label="Cruce inventario" >
-          @if(arAsignatedSections && pocketScan && dataInventario){
-          <view-2-inventario (onChangeInventario)="loadInventary()" [inAsignatedSections]="arAsignatedSections"
-            [pocketScan]="pocketScan" [onDataView]=dataInventario>
-          </view-2-inventario>
-          }
+          <ng-template matTabContent>
+            @if(arAsignatedSections && pocketScan && dataInventario){
+            <view-2-inventario (onChangeInventario)="loadInventary()" [inAsignatedSections]="arAsignatedSections"
+              [pocketScan]="pocketScan" [onDataView]=dataInventario>
+            </view-2-inventario>
+            }
+          </ng-template>
         </mat-tab>
         <mat-tab label="Productos sin exhibir" >
-          <view-3-inventario></view-3-inventario>
+          <ng-template matTabContent>
+            <view-3-inventario></view-3-inventario>
+          </ng-template>
         </mat-tab>
       </mat-tab-group>
     </ion-content>

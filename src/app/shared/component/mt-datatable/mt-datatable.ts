@@ -20,6 +20,12 @@ export interface columnsTable {
   cboFilter: Array<any>;
 }
 
+const toNumber = (value: any) => {
+  const numericValue = typeof value === 'string' ? value.replace(',', '.').trim() : value;
+  const numberValue = Number(numericValue);
+  return Number.isFinite(numberValue) ? numberValue : 0;
+};
+
 @Component({
   selector: 'mt-datatable',
   standalone: true,
@@ -34,6 +40,8 @@ export class MtDatatable implements OnInit, OnChanges, AfterViewInit {
   @Input() set dataIn(value: Array<any>) {
     this._dataIn = value || [];
     this.dataSource.data = this._dataIn;
+    this.parsedFilterColumns.clear();
+    this.resetCboFilters();
     
     // Si el paginador ya está listo en la vista, se lo re-asociamos de inmediato
     // Esto evita que Angular intente dibujar las 10,000 filas completas antes del AfterViewInit
@@ -56,6 +64,7 @@ export class MtDatatable implements OnInit, OnChanges, AfterViewInit {
   datosFiltradosActuales: any[] = [];
   dataColumns: Array<any> = [];
   inFilter: string = "";
+  private parsedFilterColumns = new Set<string>();
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -75,6 +84,7 @@ export class MtDatatable implements OnInit, OnChanges, AfterViewInit {
 
     if (changes['dataColumnsIn'] && changes['dataColumnsIn'].currentValue) {
       this.dataColumns = changes['dataColumnsIn'].currentValue;
+      this.parsedFilterColumns.clear();
     }
 
     if (changes['extraColumns'] && changes['extraColumns'].currentValue) {
@@ -86,7 +96,6 @@ export class MtDatatable implements OnInit, OnChanges, AfterViewInit {
   ngOnInit() {
     this.dataSource.data = this.dataIn;
     this.dataColumns = this.dataColumnsIn;
-    this.onParserFilterCbo();
 
     // Predicado de filtrado optimizado para búsquedas por múltiples términos en memoria extendida
     this.dataSource.filterPredicate = (data: any, filter: string) => {
@@ -103,16 +112,16 @@ export class MtDatatable implements OnInit, OnChanges, AfterViewInit {
 
           // 2. Lógica especializada de rendimiento para 'cTotalConteo'
           if (columnKey === 'cTotalConteo') {
-            const valorNumerico = data[columnKey];
+            const valorNumerico = toNumber(data[columnKey]);
             const filtrosActivos = Array.isArray(searchTerm)
               ? searchTerm.map(s => s.toString().toLowerCase())
               : [searchTerm.toString().toLowerCase()];
 
             return filtrosActivos.some(opcion => {
-              if (opcion === 'positivo') return valorNumerico >= 1 && valorNumerico != data['cStock'];
+              if (opcion === 'positivo') return valorNumerico > 0;
               if (opcion === 'negativo') return valorNumerico < 0;
-              if (opcion === 'cero sin escaneo') return data['cConteo'] == 0;
-              if (opcion === 'cero escaneo') return  data['cTotalConteo'] == data['cStock'];
+              if (opcion === 'cero sin escaneo') return toNumber(data['cConteo']) === 0;
+              if (opcion === 'cero escaneo') return toNumber(data['cConteo']) > 0 && valorNumerico === 0;
               return false;
             });
           }
@@ -158,17 +167,29 @@ export class MtDatatable implements OnInit, OnChanges, AfterViewInit {
     this.dataSource.filter = filterValue.trim().toLowerCase();
   }
 
-  onParserFilterCbo() {
-    this.dataColumns.filter((dc, indexColumn) => {
-      if (dc.isCboFilter) {
-        const cboFilter = [... new Set(this.dataIn.map(item => item[dc.propertyValue]))]
-          .sort()
-          .map(cbo => ({
-            key: (cbo || "").toLowerCase(),
-            value: (cbo || "vacio").toLowerCase()
-          }));
+  ensureCboFilter(column: any) {
+    if (!column?.isCboFilter || this.parsedFilterColumns.has(column.matColumnDef)) return;
 
-        this.dataColumns[indexColumn]['cboFilter'] = cboFilter || [];
+    const indexColumn = this.dataColumns.findIndex((dc) => dc.matColumnDef === column.matColumnDef);
+    if (indexColumn === -1) return;
+
+    const cboFilter = [...new Set(this.dataIn.map(item => item[column.propertyValue]))]
+      .sort()
+      .map(cbo => ({
+        key: (cbo || "").toString().toLowerCase(),
+        value: (cbo || "vacio").toString().toLowerCase()
+      }));
+
+    this.dataColumns[indexColumn]['cboFilter'] = cboFilter || [];
+    this.parsedFilterColumns.add(column.matColumnDef);
+  }
+
+  private resetCboFilters() {
+    if (!this.dataColumns?.length) return;
+
+    this.dataColumns.forEach((column) => {
+      if (column.isCboFilter) {
+        column.cboFilter = [];
       }
     });
   }

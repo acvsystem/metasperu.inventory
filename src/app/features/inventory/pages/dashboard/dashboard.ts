@@ -36,6 +36,8 @@ export interface tableColumns {
   id?: number;
 }
 
+const sectionColumnKey = (name: string) => (name || '').trim().replace(/\s+/g, '_').toLowerCase();
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -95,7 +97,6 @@ export default class DashboardComponent implements OnInit {
     effect(() => {
       const notification = this.socketService.syncNotification();
 
-      this.asignedSections();
       if (notification) {
         // 1. Recargamos la tabla principal para ver los nuevos totales
         this.loadData();
@@ -124,13 +125,12 @@ export default class DashboardComponent implements OnInit {
 
     // Unirse a la sala de socket para recibir actualizaciones en tiempo real
     this.socketService.joinSession(this.sessionCode);
+    this.asignedSections();
     const offlineData = localStorage.getItem('offline_inventory');
 
     if (!offlineData) {
       this.loadInventary();
     }
-
-    this.loadData();
 
     this.dataSource.filterPredicate = (data: any, filter: string) => {
       const searchTerms = JSON.parse(filter);
@@ -170,8 +170,9 @@ export default class DashboardComponent implements OnInit {
         const products = res.products;
         const uniqueSkusSet = new Set<string>();
 
+        const sectionsById = new Map(this.arAsignatedSections.map(section => [section.id, section]));
         const formattedData = products.map((item: any) => {
-          const seccionObj = this.arAsignatedSections.find(s => s.id === item.seccion_id);
+          const seccionObj = sectionsById.get(item.seccion_id);
 
           if (item.sku) {
             uniqueSkusSet.add(item.sku);
@@ -188,8 +189,9 @@ export default class DashboardComponent implements OnInit {
             section_name: seccionObj ? seccionObj.nombre_seccion : 'DESCONOCIDO'
           };
 
-          this.arAsignatedSections.map((section) => {
-            objReturn[`${((section.nombre_seccion)).replace(" ", "_").toLowerCase()}`] = seccionObj.nombre_seccion == section.nombre_seccion ? item.total_cantidad : 0;
+          this.arAsignatedSections.forEach((section) => {
+            const sectionKey = sectionColumnKey(section.nombre_seccion);
+            objReturn[sectionKey] = seccionObj?.id === section.id ? Number(item.total_cantidad) || 0 : 0;
           });
 
           return objReturn;
@@ -280,6 +282,7 @@ export default class DashboardComponent implements OnInit {
     this.invService.getAssignedSections(this.sessionCode).subscribe({
       next: (res) => {
         this.arAsignatedSections = res;
+        this.loadData();
       },
       error: (err) => {
         this.onNotification({ error: 'error', message: err?.message });

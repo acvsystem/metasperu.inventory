@@ -85,8 +85,8 @@ export class View3Inventario {
   }
 
   onValidarItem(sku: string, data: any, columna: string) {
-    const valid = data[columna].findIndex((d: any) => d == sku);
-    return valid == -1 ? true : false;
+    const values = data[columna];
+    return values instanceof Set ? !values.has(sku) : values.findIndex((d: any) => d == sku) == -1;
   }
 
   obtenerCodigosFaltantes(dataA: Array<any>, dataB: Array<any>) {
@@ -101,12 +101,13 @@ export class View3Inventario {
     const data = this.dataIn;
 
     // 1. Inicializamos el acumulador con las categorías deseadas
-    const acumulador: { [key: string]: Array<any> } = {
+    const acumulador: { [key: string]: any } = {
       'Almacén': [],
-      'Venta': [],
-      'Tester': [],
-      'Reconteo': [],
-      'Otros': []
+      'Venta': new Set(),
+      'Tester': new Set(),
+      'Reconteo': new Set(),
+      'Defectuoso': new Set(),
+      'Otros': new Set()
     };
 
     data.forEach((item: any) => {
@@ -119,23 +120,23 @@ export class View3Inventario {
         // 2. Lógica de clasificación por nombre exacto o nomenclatura
         if (columnaLower === 'tester') {
           if (this.onValidarItem(item.cCodigoBarra, acumulador, 'Tester')) {
-            acumulador['Tester'].push(item.cCodigoBarra);
+            acumulador['Tester'].add(item.cCodigoBarra);
           }
         } else if (columnaLower === 'reconteo') {
           if (this.onValidarItem(item.cCodigoBarra, acumulador, 'Reconteo')) {
-            acumulador['Reconteo'].push(item.cCodigoBarra);
+            acumulador['Reconteo'].add(item.cCodigoBarra);
           }
         } else if (columnaLower === 'otros') {
           if (this.onValidarItem(item.cCodigoBarra, acumulador, 'Otros')) {
-            acumulador['Otros'].push(item.cCodigoBarra);
+            acumulador['Otros'].add(item.cCodigoBarra);
           }
         } else if (columnaLower === 'ac') {
           if (this.onValidarItem(item.cCodigoBarra, acumulador, 'Venta')) {
-            acumulador['Venta'].push(item.cCodigoBarra);
+            acumulador['Venta'].add(item.cCodigoBarra);
           }
         } else if (columnaLower === 'defectuoso') {
           if (this.onValidarItem(item.cCodigoBarra, acumulador, 'Defectuoso')) {
-            acumulador['Defectuoso'].push(item.cCodigoBarra);
+            acumulador['Defectuoso'].add(item.cCodigoBarra);
           }
         } else if (inicial === 'A') {
           if (this.onValidarItem(item.cCodigoBarra, acumulador, 'Almacén')) {
@@ -143,23 +144,22 @@ export class View3Inventario {
           }
         } else if (['M', 'P', 'G'].includes(inicial)) {
           if (this.onValidarItem(item.cCodigoBarra, acumulador, 'Venta')) {
-            acumulador['Venta'].push(item.cCodigoBarra);
+            acumulador['Venta'].add(item.cCodigoBarra);
           }
         }
       });
     });
 
-    this.dataParse = acumulador;
+    this.dataParse = Object.fromEntries(
+      Object.entries(acumulador).map(([key, value]) => [key, Array.from(value)])
+    );
   }
 
   onProcessDiff() {
     const diferencia = this.obtenerCodigosFaltantes(this.dataParse[this.cbo_1], this.dataParse[this.cbo_2]);
     if (diferencia.length) {
-      const dataTable = this.dataIn.filter((d) => {
-        if (diferencia.includes(d.cCodigoBarra)) {
-          return d;
-        }
-      });
+      const diferenciaSet = new Set(diferencia);
+      const dataTable = this.dataIn.filter((d) => diferenciaSet.has(d.cCodigoBarra));
 
       this.dataProcess = dataTable;
       console.log(this.dataProcess);
