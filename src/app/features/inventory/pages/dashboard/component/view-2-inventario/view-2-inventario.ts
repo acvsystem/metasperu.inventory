@@ -20,6 +20,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
 import { ModalReport } from './component/modal-report/modal-report';
 import { MtDatatable } from '@metasperu/component/mt-datatable/mt-datatable';
+import { MtLoader } from '@metasperu/component/mt-loader/mt-loader';
 
 const toNumber = (value: any) => {
   const numericValue = typeof value === 'string' ? value.replace(',', '.').trim() : value;
@@ -42,7 +43,7 @@ export interface tableColumns {
 @Component({
   selector: 'view-2-inventario',
   standalone: true,
-  imports: [MtDatatable, MatTableModule, MatTooltipModule, BaseChartDirective, MatSidenavModule, MatCheckboxModule, MtSelect, IonCardContent, IonGrid, IonCard, MatBadgeModule, MatMenuModule, IonIcon, MatFormFieldModule, MatPaginatorModule, MatIconModule, MatSortModule, IonCol, IonRow, CommonModule],
+  imports: [MtDatatable, MtLoader, MatTableModule, MatTooltipModule, BaseChartDirective, MatSidenavModule, MatCheckboxModule, MtSelect, IonCardContent, IonGrid, IonCard, MatBadgeModule, MatMenuModule, IonIcon, MatFormFieldModule, MatPaginatorModule, MatIconModule, MatSortModule, IonCol, IonRow, CommonModule],
   templateUrl: './view-2-inventario.html',
   styleUrl: './view-2-inventario.scss',
 })
@@ -58,13 +59,15 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
   inFilter: string = "";
   filterValues: any = {};
   isFilterT: boolean = false;
-
+  isLoading: boolean = true;
+  titleLoader: string = 'Cargando Inventario...';
   totalStock = signal<number>(0);
   totalConteo = signal<number>(0);
   totalDiferencia = signal<number>(0);
   showTable = signal(false);
   progress = signal(0);
   isProcessing = signal(false);
+  private tableBuildToken = 0;
 
   datosFiltradosActuales: any[] = [];
   stockFilter: number = 0;
@@ -86,7 +89,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
   displayedColumns: Array<string> = [
     'checking', 'codigoBarra', 'Referencia', 'descripcion', 'departamento',
     'seccion', 'familia', 'subfamilia', 'temporada',
-    'talla', 'color', 'stock', 'total','conteo',
+    'talla', 'color', 'stock', 'total', 'conteo',
   ];
 
   extraColumns: Array<string> = [];
@@ -112,7 +115,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     { isSticky: false, matColumnDef: 'color', titleColumn: 'Color', propertyValue: 'cColor', filterActive: false, isCboFilter: false, cboFilter: [] },
     { isSticky: false, matColumnDef: 'color_scent', titleColumn: 'Color/Scent', propertyValue: 'cColorScent', filterActive: false, isCboFilter: false, cboFilter: [] },
     { isSticky: false, matColumnDef: 'stock', titleColumn: 'Stock', propertyValue: 'cStock', filterActive: false, isCboFilter: false, cboFilter: [] },
-    { isSticky: false, matColumnDef: 'total', titleColumn: 'Total Conteo', propertyValue: 'cTotalConteo', filterActive: false, isCboFilter: false, cboFilter: [{ key: 'Positivo', value: 'Positivo' }, { key: 'Negativo', value: 'Negativo' }, { key: 'cero sin escaneo', value: 'cero sin escaneo' }, { key: 'cero escaneo', value: 'cero escaneo' }] },
+    { isSticky: false, matColumnDef: 'total', titleColumn: 'Total Conteo', propertyValue: 'cTotalConteo', filterActive: false, isCboFilter: false, cboFilter: [{ key: 'Positivo', value: 'Positivo' }, { key: 'Negativo', value: 'Negativo' }, { key: 'cero sin escaneo', value: 'Cero sin escaneo' }, { key: 'cero con escaneo', value: 'Cero con escaneo' }] },
     { isSticky: false, matColumnDef: 'conteo', titleColumn: 'Conteo', propertyValue: 'cConteo', filterActive: false, isCboFilter: false, cboFilter: [] }
   ];
 
@@ -127,20 +130,25 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
   ngAfterViewInit() { }
 
   ngOnInit() {
+    
     console.log('v.1.0.0');
-    this.onDataView = [];
+    
     const offlineData = localStorage.getItem('offline_inventory');
 
     if (offlineData) {
       this.onDataView = JSON.parse(offlineData);
       console.log('📦 Inventario recibido Importado:', this.onDataView.length);
     }
-    this.initializeTable(this.onDataView);
+    if (this.onDataView?.length) {
+      this.scheduleInitializeTable(this.onDataView);
+    } else {
+      this.isLoading = false;
+    }
   }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['onDataView'] && changes['onDataView'].currentValue) {
-      this.initializeTable(changes['onDataView'].currentValue);
+      this.scheduleInitializeTable(changes['onDataView'].currentValue);
     }
 
     if (changes['pocketScan'] && changes['pocketScan'].currentValue) {
@@ -242,7 +250,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     const totales = currentData.reduce((acc: any, curr: any) => {
       const conteo = toNumber(curr.cConteo);
       const stock = toNumber(curr.cStock);
-  
+
       return {
         sumaConteo: acc.sumaConteo + conteo,
         sumaStock: acc.sumaStock + stock,
@@ -256,8 +264,29 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     this.cdr.markForCheck();
   }
 
+  private scheduleInitializeTable(data: any[]) {
+    const token = ++this.tableBuildToken;
+    this.isLoading = true;
+    this.isProcessing.set(true);
+    this.showTable.set(false);
+    this.cdr.detectChanges();
+
+    setTimeout(() => {
+      if (token !== this.tableBuildToken) return;
+
+      this.initializeTable(data);
+      this.isLoading = false;
+      this.cdr.markForCheck();
+    });
+  }
+
   private initializeTable(data: any[]) {
-    if (!data || data.length === 0) return;
+    if (!data || data.length === 0) {
+      this.dataTable = [];
+      this.isProcessing.set(false);
+      this.showTable.set(false);
+      return;
+    }
 
     this.isProcessing.set(true);
     this.progress.set(0);
@@ -270,7 +299,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
       const stock = toNumber(item.cStock);
       const conteo = toNumber(item.cConteo);
 
-      if(item.cCodigoBarra === '667559097457') {
+      if (item.cCodigoBarra === '667559097457') {
         console.log('🔍 SKU Especial Encontrado:', item);
       }
 
@@ -509,52 +538,52 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
   }
 
   onBarStadisctic(data2: any) {
-      const acumulador: { [key: string]: number } = {
-        'Almacén': 0,
-        'Venta': 0,
-        'Tester': 0,
-        'Reconteo': 0,
-        'Defectuoso': 0,
-        'Otros': 0
-      };
+    const acumulador: { [key: string]: number } = {
+      'Almacén': 0,
+      'Venta': 0,
+      'Tester': 0,
+      'Reconteo': 0,
+      'Defectuoso': 0,
+      'Otros': 0
+    };
 
-      this.dataTable.forEach((item: any) => {
-        Object.keys(item).forEach(columna => {
-          const valor = toNumber(item[columna]);
-          const columnaLower = columna.toLowerCase();
-          const inicial = columna.charAt(0).toUpperCase();
+    this.dataTable.forEach((item: any) => {
+      Object.keys(item).forEach(columna => {
+        const valor = toNumber(item[columna]);
+        const columnaLower = columna.toLowerCase();
+        const inicial = columna.charAt(0).toUpperCase();
 
-          if (columnaLower === 'tester') {
-            acumulador['Tester'] += valor;
-          } else if (columnaLower === 'reconteo') {
-            acumulador['Reconteo'] += valor;
-          } else if (columnaLower === 'otros') {
-            acumulador['Otros'] += valor;
-          } else if (columnaLower === 'ac') {
-            acumulador['Venta'] += valor;
-          } else if (columnaLower === 'defectuoso') {
-            acumulador['Defectuoso'] += valor;
-          } else if (inicial === 'A') {
-            acumulador['Almacén'] += valor;
-          } else if (['M', 'P', 'G'].includes(inicial)) {
-            acumulador['Venta'] += valor;
-          }
-        });
+        if (columnaLower === 'tester') {
+          acumulador['Tester'] += valor;
+        } else if (columnaLower === 'reconteo') {
+          acumulador['Reconteo'] += valor;
+        } else if (columnaLower === 'otros') {
+          acumulador['Otros'] += valor;
+        } else if (columnaLower === 'ac') {
+          acumulador['Venta'] += valor;
+        } else if (columnaLower === 'defectuoso') {
+          acumulador['Defectuoso'] += valor;
+        } else if (inicial === 'A') {
+          acumulador['Almacén'] += valor;
+        } else if (['M', 'P', 'G'].includes(inicial)) {
+          acumulador['Venta'] += valor;
+        }
       });
+    });
 
-      const categoriasConDatos = Object.keys(acumulador).filter(key => acumulador[key] > 0);
-      const etiquetasConValores = categoriasConDatos.map(key => `${key}: ${acumulador[key].toLocaleString()}`);
-      const valoresSumados = categoriasConDatos.map(key => acumulador[key]);
+    const categoriasConDatos = Object.keys(acumulador).filter(key => acumulador[key] > 0);
+    const etiquetasConValores = categoriasConDatos.map(key => `${key}: ${acumulador[key].toLocaleString()}`);
+    const valoresSumados = categoriasConDatos.map(key => acumulador[key]);
 
-      this.barChartData = {
-        labels: etiquetasConValores,
-        datasets: [{
-          label: 'Distribucion stock por area',
-          data: valoresSumados,
-          backgroundColor: ['#36A2EB', '#4BC0C0', '#FF6384', '#FFCE56', '#9966FF']
-        }]
-      };
+    this.barChartData = {
+      labels: etiquetasConValores,
+      datasets: [{
+        label: 'Distribucion stock por area',
+        data: valoresSumados,
+        backgroundColor: ['#36A2EB', '#4BC0C0', '#FF6384', '#FFCE56', '#9966FF']
+      }]
+    };
 
-      this.cdr.markForCheck();
+    this.cdr.markForCheck();
   }
 }

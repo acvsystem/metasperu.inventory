@@ -28,6 +28,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { ModalConteo } from './component/modal-conteo/modal-conteo';
 import { MatBadgeModule } from '@angular/material/badge';
 import { View3Inventario } from './component/view-3-inventario/view-3-inventario';
+import { MtLoader } from '@metasperu/component/mt-loader/mt-loader';
 export interface tableColumns {
   matColumnDef: string;
   titleColumn: string;
@@ -43,7 +44,7 @@ const sectionColumnKey = (name: string) => (name || '').trim().replace(/\s+/g, '
   standalone: true,
   imports: [
     CommonModule, RouterModule, View2Inventario, MatTabsModule, Statistics, MatBadgeModule,
-    IonHeader, IonToolbar, IonTitle, IonContent, IonGrid, IonRow, MatSidenavModule,
+    IonHeader, IonToolbar, IonTitle, IonContent, IonGrid, IonRow, MatSidenavModule, MtLoader,
     IonCol, IonCard, IonLabel, IonListHeader, MatIconModule, MatTooltipModule, View3Inventario,
     IonButtons, IonButton, IonIcon, IonChip, IonCardContent, MatTableModule,
     MatPaginator, MatPaginatorModule, MatSortModule, MtInput, MatMenu, MatMenuModule
@@ -76,6 +77,8 @@ export default class DashboardComponent implements OnInit {
   arAsignatedSections: Array<any> = [];
   dataSource = new MatTableDataSource(this.products());
   filterValues: any = {};
+  isLoading2: boolean = true;
+  titleLoader: string = 'Cargando Inventario...';
   displayedColumns = ['sku', 'usuario', 'seccion', 'cantidad', 'accion'];
   dataColumns: tableColumns[] = [
     { matColumnDef: 'sku', titleColumn: 'Sku', propertyValue: 'sku', filterActive: false, id: 0 },
@@ -105,8 +108,12 @@ export default class DashboardComponent implements OnInit {
         this.presentToast(`Se sincronizaron ${notification.count} productos nuevos.`);
       }
 
-      if (!this.isDatabase) {
-        this.dataInventario = this.socketService.syncInventarioStore();
+      const inventarioSocket = this.socketService.syncInventarioStore();
+      if (inventarioSocket?.length) {
+        this.setCachedInventory(inventarioSocket);
+        this.dataInventario = inventarioSocket;
+        this.isDatabase = true;
+        this.isLoading2 = false;
       }
 
     });
@@ -127,8 +134,15 @@ export default class DashboardComponent implements OnInit {
     this.socketService.joinSession(this.sessionCode);
     this.asignedSections();
     const offlineData = localStorage.getItem('offline_inventory');
+    const cachedInventario = this.getCachedInventory();
 
-    if (!offlineData) {
+    if (offlineData) {
+      this.isLoading2 = false;
+    } else if (cachedInventario?.length) {
+      this.dataInventario = cachedInventario;
+      this.isDatabase = true;
+      this.isLoading2 = false;
+    } else {
       this.loadInventary();
     }
 
@@ -144,6 +158,7 @@ export default class DashboardComponent implements OnInit {
 
 
   loadInventary() {
+    this.isLoading2 = true;
 
     this.invService.getStoreInventory({ session_code: this.sessionCode, serie_store: this.serieStore }).subscribe({
       next: (res: any) => {
@@ -154,11 +169,47 @@ export default class DashboardComponent implements OnInit {
           console.log('📦 Inventario recibido bd:', inventario.length);
           this.isDatabase = true;
           this.dataInventario = inventario;
+          this.setCachedInventory(inventario);
         }
+        this.isLoading2 = false;
       },
-      error: (err) => { console.log(err); }
+      error: (err) => {
+        console.log(err);
+        this.isLoading2 = false;
+        const cachedInventario = this.getCachedInventory();
+        if (cachedInventario?.length) {
+          this.dataInventario = cachedInventario;
+          this.presentToast('No se pudo actualizar. Se muestra el inventario guardado.');
+        }
+      }
     });
   }
+
+  private get inventoryCacheKey() {
+    const serie = this.serieStore || 'sin-serie';
+    return `store_inventory_cache_${this.sessionCode}_${serie}`;
+  }
+
+  private getCachedInventory(): any[] {
+    try {
+      const cached = localStorage.getItem(this.inventoryCacheKey);
+      if (!cached) return [];
+
+      return JSON.parse(cached);
+    } catch (error) {
+      localStorage.removeItem(this.inventoryCacheKey);
+      return [];
+    }
+  }
+
+  private setCachedInventory(inventario: any[]) {
+    try {
+      localStorage.setItem(this.inventoryCacheKey, JSON.stringify(inventario || []));
+    } catch (error) {
+      console.warn('No se pudo guardar el inventario en localStorage:', error);
+    }
+  }
+
   /**
    * Carga los datos acumulados de la sesión desde el backend
    */
@@ -351,7 +402,7 @@ export default class DashboardComponent implements OnInit {
     link.click();
     window.URL.revokeObjectURL(url);
   }
-tabIndex = 0;
+  tabIndex = 0;
   onTabChange(index: number) {
     this.tabIndex = index;
   }

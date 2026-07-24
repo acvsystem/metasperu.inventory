@@ -26,6 +26,20 @@ const toNumber = (value: any) => {
   return Number.isFinite(numberValue) ? numberValue : 0;
 };
 
+const matchesTotalConteoFilter = (data: any, option: string) => {
+  const totalConteo = toNumber(data['cTotalConteo']);
+  const conteo = toNumber(data['cConteo']);
+
+  if (option === 'positivo') return totalConteo > 0;
+  if (option === 'negativo') return totalConteo < 0;
+  if (option === 'cero sin escaneo') return totalConteo === 0 && conteo === 0;
+  if (option === 'cero con escaneo' || option === 'cero escaneo') {
+    return totalConteo === 0 && conteo > 0;
+  }
+
+  return false;
+};
+
 @Component({
   selector: 'mt-datatable',
   standalone: true,
@@ -112,18 +126,11 @@ export class MtDatatable implements OnInit, OnChanges, AfterViewInit {
 
           // 2. Lógica especializada de rendimiento para 'cTotalConteo'
           if (columnKey === 'cTotalConteo') {
-            const valorNumerico = toNumber(data[columnKey]);
             const filtrosActivos = Array.isArray(searchTerm)
               ? searchTerm.map(s => s.toString().toLowerCase())
               : [searchTerm.toString().toLowerCase()];
 
-            return filtrosActivos.some(opcion => {
-              if (opcion === 'positivo') return valorNumerico > 0;
-              if (opcion === 'negativo') return valorNumerico < 0;
-              if (opcion === 'cero sin escaneo') return toNumber(data['cConteo']) === 0;
-              if (opcion === 'cero escaneo') return toNumber(data['cConteo']) > 0 && valorNumerico === 0;
-              return false;
-            });
+            return filtrosActivos.some(opcion => matchesTotalConteoFilter(data, opcion));
           }
 
           // 3. Evaluación estándar de strings para el resto de columnas de stock

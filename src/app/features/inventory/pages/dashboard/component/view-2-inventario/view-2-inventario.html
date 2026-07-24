@@ -1,3 +1,7 @@
+@if(isLoading || isProcessing()){
+<mt-loader [title]="titleLoader"></mt-loader>
+}
+
 <mat-drawer-container class="example-container" [hasBackdrop]="true" style="height: 100%;">
     <mat-drawer #drawer [mode]="'over'" position="end">
         <ion-row>
@@ -160,3 +164,5 @@
         </ion-row>
     </mat-drawer-content>
 </mat-drawer-container>
+
+
