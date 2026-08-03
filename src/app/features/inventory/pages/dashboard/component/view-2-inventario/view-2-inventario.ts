@@ -88,8 +88,8 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
 
   displayedColumns: Array<string> = [
     'checking', 'codigoBarra', 'Referencia', 'descripcion', 'departamento',
-    'seccion', 'familia', 'subfamilia', 'temporada',
-    'talla', 'color', 'stock', 'total', 'conteo',
+    'seccion', 'familia', 'subfamilia',
+    'talla', 'color', 'Esencia', 'style_description', 'stock', 'total', 'conteo',
   ];
 
   extraColumns: Array<string> = [];
@@ -110,10 +110,10 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     { isSticky: false, matColumnDef: 'seccion', titleColumn: 'Seccion', propertyValue: 'cSeccion', filterActive: false, isCboFilter: true, cboFilter: [] },
     { isSticky: false, matColumnDef: 'familia', titleColumn: 'Familia', propertyValue: 'cFamilia', filterActive: false, isCboFilter: true, cboFilter: [] },
     { isSticky: false, matColumnDef: 'subfamilia', titleColumn: 'SubFamilia', propertyValue: 'cSubFamilia', filterActive: false, isCboFilter: true, cboFilter: [] },
-    { isSticky: false, matColumnDef: 'temporada', titleColumn: 'Temporada', propertyValue: 'cTemporada', filterActive: false, isCboFilter: false, cboFilter: [] },
     { isSticky: false, matColumnDef: 'talla', titleColumn: 'Talla', propertyValue: 'cTalla', filterActive: false, isCboFilter: false, cboFilter: [] },
     { isSticky: false, matColumnDef: 'color', titleColumn: 'Color', propertyValue: 'cColor', filterActive: false, isCboFilter: false, cboFilter: [] },
-    { isSticky: false, matColumnDef: 'color_scent', titleColumn: 'Color/Scent', propertyValue: 'cColorScent', filterActive: false, isCboFilter: false, cboFilter: [] },
+    { isSticky: false, matColumnDef: 'Esencia', titleColumn: 'Esencia', propertyValue: 'cEsencia', filterActive: false, isCboFilter: false, cboFilter: [] },
+    { isSticky: false, matColumnDef: 'style_description', titleColumn: 'Style Description', propertyValue: 'cStyleDescription', filterActive: false, isCboFilter: false, cboFilter: [] },
     { isSticky: false, matColumnDef: 'stock', titleColumn: 'Stock', propertyValue: 'cStock', filterActive: false, isCboFilter: false, cboFilter: [] },
     { isSticky: false, matColumnDef: 'total', titleColumn: 'Total Conteo', propertyValue: 'cTotalConteo', filterActive: false, isCboFilter: false, cboFilter: [{ key: 'Positivo', value: 'Positivo' }, { key: 'Negativo', value: 'Negativo' }, { key: 'cero sin escaneo', value: 'Cero sin escaneo' }, { key: 'cero con escaneo', value: 'Cero con escaneo' }] },
     { isSticky: false, matColumnDef: 'conteo', titleColumn: 'Conteo', propertyValue: 'cConteo', filterActive: false, isCboFilter: false, cboFilter: [] }
@@ -130,16 +130,17 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
   ngAfterViewInit() { }
 
   ngOnInit() {
-    
+
     console.log('v.1.0.0');
-    
+
     const offlineData = localStorage.getItem('offline_inventory');
 
     if (offlineData) {
       this.onDataView = JSON.parse(offlineData);
-      console.log('📦 Inventario recibido Importado:', this.onDataView.length);
+      console.log('📦 Inventario recibido Importado:', this.onDataView);
     }
     if (this.onDataView?.length) {
+      console.log('📦 Inventario recibido Importado:', this.onDataView);
       this.scheduleInitializeTable(this.onDataView);
     } else {
       this.isLoading = false;
@@ -411,22 +412,18 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     const dataParaExportar = this.dataTable.map(item => {
       return {
         id: item.id,
-        cCodigoArticulo: item.cCodigoArticulo,
         cCodigoBarra: item.cCodigoBarra,
-        cCodigoTienda: item.cCodigoTienda,
-        cColor: item.cColor,
-        cConteo: item.cConteo,
-        cDepartamento: item.cDepartamento,
-        cDescripcion: item.cDescripcion,
-        cFamilia: item.cFamilia,
         cReferencia: item.cReferencia,
+        cDescripcion: item.cDescripcion,
+        cDepartamento: item.cDepartamento,
         cSeccion: item.cSeccion,
-        cSessionCode: item.cSessionCode,
-        cStock: item.cStock,
+        cFamilia: item.cFamilia,
         cSubFamilia: item.cSubFamilia,
         cTalla: item.cTalla,
-        cTemporada: item.cTemporada,
+        cColor: item.cColor,
+        cStock: item.cStock,
         cTotalConteo: toNumber(item.cConteo) - toNumber(item.cStock),
+        cConteo: item.cConteo,
         cEstadoEscaneo: toNumber(item.cConteo) == 0 ? 'NO ESCANEADO' : 'ESCANEADO',
       };
     });
@@ -484,23 +481,23 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
 
       const formattedData = rawData.map(item => ({
         checking: 0,
-        cCodigoArticulo: item.cCodigoArticulo,
+        cCodigoArticulo: "",
         cCodigoBarra: item.cCodigoBarra,
-        cCodigoTienda: item.cCodigoTienda,
-        cColor: item.cColor,
-        cConteo: item.cConteo,
-        cDepartamento: item.cDepartamento,
-        cDescripcion: item.cDescripcion,
-        cFamilia: item.cFamilia,
         cReferencia: item.cReferencia,
+        cDescripcion: item.cDescripcion,
+        cDepartamento: item.cDepartamento,
         cSeccion: item.cSeccion,
-        cSessionCode: item.cSessionCode,
-        cStock: item.cStock,
+        cFamilia: item.cFamilia,
         cSubFamilia: item.cSubFamilia,
         cTalla: item.cTalla,
-        cTemporada: item.cTemporada,
+        cColor: item.cColor,
+        cStock: item.cStock,
         cTotalConteo: toNumber(item.cConteo) - toNumber(item.cStock),
+        cConteo: item.cConteo,
+        cCodigoTienda: item.cCodigoTienda,
+        cSessionCode: item.cSessionCode,
         codigo_sesion: item.codigo_sesion,
+        cTemporada: "",
         id: item.id
       }));
 
