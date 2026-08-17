@@ -415,7 +415,33 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
   }
 
   exportarExcel() {
-    const dataParaExportar = this.dataTable.map(item => {
+    const dataParaExportar = this.getInventoryExportRows(this.dataTable);
+    const noEscaneados = dataParaExportar.filter(item => toNumber(item.cConteo) === 0);
+    const diferencias = dataParaExportar.filter(item => toNumber(item.cTotalConteo) !== 0);
+    const stockNegativo = dataParaExportar.filter(item => toNumber(item.cStock) < 0);
+    const skuDesconocido = dataParaExportar.filter(item => this.isUnknownSku(item));
+
+    const workbook: XLSX.WorkBook = {
+      Sheets: {},
+      SheetNames: []
+    };
+
+    const worksheet = this.createWorksheet(dataParaExportar);
+    this.paintNoScannedRows(worksheet);
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Inventario');
+
+    this.appendSheet(workbook, 'Resumen', this.getSummaryRows(dataParaExportar, noEscaneados, diferencias, stockNegativo, skuDesconocido));
+    this.appendSheet(workbook, 'No Escaneados', noEscaneados);
+    this.appendSheet(workbook, 'Diferencias', diferencias);
+    this.appendSheet(workbook, 'Stock Negativo', stockNegativo);
+    this.appendSheet(workbook, 'SKU Desconocido', skuDesconocido);
+
+    const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    this.saveAsExcelFile(excelBuffer, 'Cruce_Inventario');
+  }
+
+  private getInventoryExportRows(data: any[]) {
+    return data.map(item => {
       return {
         id: item.id,
         cCodigoBarra: item.cCodigoBarra,
@@ -435,10 +461,41 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
         cEstadoEscaneo: toNumber(item.cConteo) == 0 ? 'NO ESCANEADO' : 'ESCANEADO',
       };
     });
+  }
 
-    const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(dataParaExportar);
-    const range = XLSX.utils.decode_range(worksheet['!ref']!);
+  private getSummaryRows(data: any[], noEscaneados: any[], diferencias: any[], stockNegativo: any[], skuDesconocido: any[]) {
+    return [
+      { Indicador: 'Total productos', Valor: data.length },
+      { Indicador: 'Total stock', Valor: data.reduce((acc, item) => acc + toNumber(item.cStock), 0) },
+      { Indicador: 'Total conteo', Valor: data.reduce((acc, item) => acc + toNumber(item.cConteo), 0) },
+      { Indicador: 'Diferencia total', Valor: data.reduce((acc, item) => acc + toNumber(item.cTotalConteo), 0) },
+      { Indicador: 'No escaneados', Valor: noEscaneados.length },
+      { Indicador: 'Con diferencias', Valor: diferencias.length },
+      { Indicador: 'Stock negativo', Valor: stockNegativo.length },
+      { Indicador: 'SKU desconocido', Valor: skuDesconocido.length },
+      { Indicador: 'Fecha reporte', Valor: new Date().toLocaleString() }
+    ];
+  }
 
+  private appendSheet(workbook: XLSX.WorkBook, sheetName: string, data: any[]) {
+    const worksheet = this.createWorksheet(data);
+    XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+  }
+
+  private createWorksheet(data: any[]) {
+    const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(data.length ? data : [{}]);
+
+    if (worksheet['!ref']) {
+      worksheet['!autofilter'] = { ref: XLSX.utils.encode_range(XLSX.utils.decode_range(worksheet['!ref'])) };
+    }
+
+    return worksheet;
+  }
+
+  private paintNoScannedRows(worksheet: XLSX.WorkSheet) {
+    if (!worksheet['!ref']) return;
+
+    const range = XLSX.utils.decode_range(worksheet['!ref']);
     for (let R = range.s.r + 1; R <= range.e.r; ++R) {
       const estadoCellAddress = XLSX.utils.encode_cell({ r: R, c: 16 });
       const cell = worksheet[estadoCellAddress];
@@ -455,14 +512,12 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
         }
       }
     }
+  }
 
-    const workbook: XLSX.WorkBook = {
-      Sheets: { 'Inventario': worksheet },
-      SheetNames: ['Inventario']
-    };
-
-    const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-    this.saveAsExcelFile(excelBuffer, 'Cruce_Inventario');
+  private isUnknownSku(item: any) {
+    const hasProductCode = Boolean(item.cCodigoArticulo) && toNumber(item.cCodigoArticulo) !== 0;
+    const hasDescription = Boolean(String(item.cReferencia || item.cDescripcion || '').trim());
+    return !hasProductCode && !hasDescription;
   }
 
   private saveAsExcelFile(buffer: any, fileName: string): void {
