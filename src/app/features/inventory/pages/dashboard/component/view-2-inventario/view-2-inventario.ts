@@ -28,6 +28,12 @@ const toNumber = (value: any) => {
   return Number.isFinite(numberValue) ? numberValue : 0;
 };
 
+const inventoryDifference = (conteo: any, stock: any) => {
+  const conteoValue = toNumber(conteo);
+  const stockValue = toNumber(stock);
+  return conteoValue - Math.abs(stockValue);
+};
+
 const sectionColumnKey = (name: string) => (name || '').trim().replace(/\s+/g, '_').toLowerCase();
 
 export interface tableColumns {
@@ -255,7 +261,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
       return {
         sumaConteo: acc.sumaConteo + conteo,
         sumaStock: acc.sumaStock + stock,
-        sumaDiferencia: acc.sumaDiferencia + (conteo - stock)
+        sumaDiferencia: acc.sumaDiferencia + inventoryDifference(conteo, stock)
       };
     }, { sumaConteo: 0, sumaStock: 0, sumaDiferencia: 0 });
 
@@ -311,13 +317,13 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
         ...item,
         cStock: stock,
         cConteo: conteo,
-        cTotalConteo: conteo - stock
+        cTotalConteo: inventoryDifference(conteo, stock)
       };
     });
 
     this.totalStock.set(totalStockGlobal);
     this.totalConteo.set(totalConteoGlobal);
-    this.totalDiferencia.set(totalConteoGlobal - totalStockGlobal);
+    this.totalDiferencia.set(this.dataTable.reduce((acc, item) => acc + inventoryDifference(item.cConteo, item.cStock), 0));
 
     this.progress.set(1);
     this.isProcessing.set(false);
@@ -372,7 +378,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
           data[index][sectionProp] = scan.total_cantidad;
         }
         data[index].cConteo = skuTotal;
-        data[index].cTotalConteo = toNumber(data[index].cConteo) - toNumber(data[index].cStock);
+        data[index].cTotalConteo = inventoryDifference(data[index].cConteo, data[index].cStock);
       } else {
         const newItem: any = {
           cCodigoArticulo: 0,
@@ -399,7 +405,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
 
     this.totalConteo.set(sumaTotalScaneada);
     this.totalStock.set(sumaStock);
-    this.totalDiferencia.set(sumaTotalScaneada - sumaStock);
+    this.totalDiferencia.set(data.reduce((acc, item) => acc + inventoryDifference(item.cConteo, item.cStock), 0));
 
     this.dataTable = data;
     this.asignSectionColum();
@@ -424,7 +430,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
         cEsencia: item.cEsencia,
         cStyleDescription: item.cStyleDescription,
         cStock: item.cStock,
-        cTotalConteo: toNumber(item.cConteo) - toNumber(item.cStock),
+        cTotalConteo: inventoryDifference(item.cConteo, item.cStock),
         cConteo: item.cConteo,
         cEstadoEscaneo: toNumber(item.cConteo) == 0 ? 'NO ESCANEADO' : 'ESCANEADO',
       };
@@ -496,7 +502,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
         cEsencia: item.cEsencia,
         cStyleDescription: item.cStyleDescription,
         cStock: item.cStock,
-        cTotalConteo: toNumber(item.cConteo) - toNumber(item.cStock),
+        cTotalConteo: inventoryDifference(item.cConteo, item.cStock),
         cConteo: item.cConteo,
         cCodigoTienda: item.cCodigoTienda,
         cSessionCode: item.cSessionCode,
