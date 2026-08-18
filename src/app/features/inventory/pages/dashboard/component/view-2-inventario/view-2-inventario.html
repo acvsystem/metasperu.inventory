@@ -64,18 +64,13 @@
                                 <span class="record-count">{{ dataTable.length | number }} items</span>
                             </button>
 
-                            <button mat-raised-button class="btn-update-inventory" (click)="onChangeInv()">
+                            <button mat-raised-button class="btn-update-inventory" matTooltip="Sincronizar con Tienda" (click)="onChangeInv()">
                                 <mat-icon>repeat</mat-icon>
                             </button>
 
                             <button (click)="drawer.toggle()" matTooltip="Estadisticas" type="button"
                                 class="btn-stadistics">
                                 <i class="fa fa-bar-chart" aria-hidden="true"></i>
-                            </button>
-
-                            <button (click)="openVerification()" matTooltip="Reportes" type="button"
-                                class="btn-stadistics">
-                                <i class="fa fa-chain-broken" aria-hidden="true"></i>
                             </button>
                         </div>
                     </ion-col>

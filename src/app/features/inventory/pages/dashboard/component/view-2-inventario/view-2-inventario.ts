@@ -119,7 +119,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     { isSticky: false, matColumnDef: 'talla', titleColumn: 'Talla', propertyValue: 'cTalla', filterActive: false, isCboFilter: false, cboFilter: [] },
     { isSticky: false, matColumnDef: 'color', titleColumn: 'Color', propertyValue: 'cColor', filterActive: false, isCboFilter: false, cboFilter: [] },
     { isSticky: false, matColumnDef: 'Esencia', titleColumn: 'Esencia', propertyValue: 'cEsencia', filterActive: false, isCboFilter: false, cboFilter: [] },
-    { isSticky: false, matColumnDef: 'style_description', titleColumn: 'Style Description', propertyValue: 'cStyleDescription', filterActive: false, isCboFilter: false, cboFilter: [] },
+    { isSticky: false, matColumnDef: 'style_description', titleColumn: 'Style Description', propertyValue: 'cStyleDesc', filterActive: false, isCboFilter: false, cboFilter: [] },
     { isSticky: false, matColumnDef: 'stock', titleColumn: 'Stock', propertyValue: 'cStock', filterActive: false, isCboFilter: false, cboFilter: [] },
     { isSticky: false, matColumnDef: 'total', titleColumn: 'Total Conteo', propertyValue: 'cTotalConteo', filterActive: false, isCboFilter: false, cboFilter: [{ key: 'Positivo', value: 'Positivo' }, { key: 'Negativo', value: 'Negativo' }, { key: 'cero sin escaneo', value: 'Cero sin escaneo' }, { key: 'cero con escaneo', value: 'Cero con escaneo' }] },
     { isSticky: false, matColumnDef: 'conteo', titleColumn: 'Conteo', propertyValue: 'cConteo', filterActive: false, isCboFilter: false, cboFilter: [] }
@@ -241,7 +241,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
   }
 
   onChangeInv() {
-    this.onChangeInventario.emit();
+    this.onChangeInventario.emit(this.dataTable);
   }
 
   openVerification() {
@@ -306,10 +306,6 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
       const stock = toNumber(item.cStock);
       const conteo = toNumber(item.cConteo);
 
-      if (item.cCodigoBarra === '667559097457') {
-        console.log('🔍 SKU Especial Encontrado:', item);
-      }
-
       totalStockGlobal += stock;
       totalConteoGlobal += conteo;
 
@@ -320,6 +316,8 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
         cTotalConteo: inventoryDifference(conteo, stock)
       };
     });
+
+    this.invService.onInventoryArea.emit(data);
 
     this.totalStock.set(totalStockGlobal);
     this.totalConteo.set(totalConteoGlobal);
@@ -336,6 +334,13 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     }
 
     this.cdr.markForCheck();
+
+    this.cacheAllTableData();
+  }
+
+  private cacheAllTableData() {
+    localStorage.removeItem('all_inventory');
+    localStorage.setItem('all_inventory', JSON.stringify(this.dataTable));
   }
 
   private updateSingleRecord(pocketScans: any[]) {
@@ -409,9 +414,10 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
 
     this.dataTable = data;
     this.asignSectionColum();
-    this.invService.onInventoryArea.emit(data);
     this.onBarStadisctic(data);
     this.cdr.markForCheck();
+    this.invService.onInventoryArea.emit(data);
+    this.cacheAllTableData();
   }
 
   exportarExcel() {
@@ -454,7 +460,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
         cTalla: item.cTalla,
         cColor: item.cColor,
         cEsencia: item.cEsencia,
-        cStyleDescription: item.cStyleDescription,
+        cStyleDescription: item.cStyleDesc,
         cStock: item.cStock,
         cTotalConteo: inventoryDifference(item.cConteo, item.cStock),
         cConteo: item.cConteo,
@@ -555,7 +561,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
         cTalla: item.cTalla,
         cColor: item.cColor,
         cEsencia: item.cEsencia,
-        cStyleDescription: item.cStyleDescription,
+        cStyleDescription: item.cStyleDesc,
         cStock: item.cStock,
         cTotalConteo: inventoryDifference(item.cConteo, item.cStock),
         cConteo: item.cConteo,

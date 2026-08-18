@@ -1,4 +1,4 @@
-import { Component, inject, Input, ViewChild } from '@angular/core';
+import { Component, inject, Input, SimpleChanges, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonRow, IonCol, IonIcon, IonCardContent, IonCard, IonGrid } from '@ionic/angular/standalone';
 import { MtSelect } from '@metasperu/component/mt-select/mt-select';
@@ -16,12 +16,13 @@ import { MatIconModule } from '@angular/material/icon';
   styleUrl: './view-3-inventario.scss',
 })
 export class View3Inventario {
-  @Input() dataIn: Array<any> = [];
+  @Input() onDataView: Array<any> = [];
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
   cbo_1: string = "";
   cbo_2: string = "";
   dataParse: any = {};
+  dataIn: Array<any> = [];
   displayedColumns = [
     'codigoBarra',
     'referencia',
@@ -71,18 +72,31 @@ export class View3Inventario {
 
   }
 
-
   ngAfterViewInit() {
+
   }
 
   ngOnInit() {
-    this.invService.onInventoryArea.subscribe((data) => {
+    
+   this.dataIn = JSON.parse(localStorage.getItem('all_inventory') || '[]');
+   this.onFilterDiffArea();
+    /*this.invService.onInventoryArea.subscribe((data) => {
+      console.log('Data received in View3Inventario from InventoryService:', data);
       if (data.length) {
         this.dataIn = data || [];
         this.onFilterDiffArea();
       }
-    });
+    });*/
   }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['onDataView'] && changes['onDataView'].currentValue) {
+      console.log('onDataView changed in View3Inventario:', changes['onDataView'].currentValue);
+      this.dataIn = this.onDataView || [];
+      this.onFilterDiffArea();
+    }
+  }
+
 
   onValidarItem(sku: string, data: any, columna: string) {
     const values = data[columna];
@@ -153,6 +167,8 @@ export class View3Inventario {
     this.dataParse = Object.fromEntries(
       Object.entries(acumulador).map(([key, value]) => [key, Array.from(value)])
     );
+
+    console.log('Data parsed for View3Inventario:', this.dataParse);
   }
 
   onProcessDiff() {

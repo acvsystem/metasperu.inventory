@@ -110,6 +110,7 @@ export default class DashboardComponent implements OnInit {
 
       const inventarioSocket = this.socketService.syncInventarioStore();
       if (inventarioSocket?.length) {
+        console.log('📦 Inventario recibido socket:', inventarioSocket);
         this.setCachedInventory(inventarioSocket);
         this.dataInventario = inventarioSocket;
         this.isDatabase = true;
