@@ -59,7 +59,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
   @Input() inAsignatedSections: Array<any> = [];
   @Input() isReporte: boolean = false;
   @Output() onChangeInventario: EventEmitter<any> = new EventEmitter();
-
+  @Output() onAllDataProcess: EventEmitter<any> = new EventEmitter();
   isInsertColum: boolean = false;
   dataTable: Array<any> = [];
   inFilter: string = "";
@@ -339,8 +339,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
   }
 
   private cacheAllTableData() {
-    localStorage.removeItem('all_inventory');
-    localStorage.setItem('all_inventory', JSON.stringify(this.dataTable));
+    this.onAllDataProcess.emit(this.dataTable);
   }
 
   private updateSingleRecord(pocketScans: any[]) {

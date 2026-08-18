@@ -78,8 +78,6 @@ export class View3Inventario {
 
   ngOnInit() {
     
-   this.dataIn = JSON.parse(localStorage.getItem('all_inventory') || '[]');
-   this.onFilterDiffArea();
     /*this.invService.onInventoryArea.subscribe((data) => {
       console.log('Data received in View3Inventario from InventoryService:', data);
       if (data.length) {

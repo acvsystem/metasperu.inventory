@@ -26,7 +26,7 @@
 
     <ion-content class="ion-padding bg-light">
       <mat-tab-group (selectedIndexChange)="onTabChange($event)">
-        <mat-tab label="Inventario Pocket" >
+        <mat-tab label="Inventario Pocket">
           <ion-grid>
             <ion-row>
               <ion-col size="12" size-md="6">
@@ -165,18 +165,18 @@
             </ion-row>
           </div>
         </mat-tab>
-        <mat-tab label="Cruce inventario" >
+        <mat-tab label="Cruce inventario">
           <ng-template matTabContent>
             @if(arAsignatedSections && pocketScan && dataInventario){
-            <view-2-inventario (onChangeInventario)="loadInventary()" [inAsignatedSections]="arAsignatedSections"
-              [pocketScan]="pocketScan" [onDataView]=dataInventario>
+            <view-2-inventario (onAllDataProcess)="onAllDataProcess($event)" (onChangeInventario)="loadInventary()"
+              [inAsignatedSections]="arAsignatedSections" [pocketScan]="pocketScan" [onDataView]=dataInventario>
             </view-2-inventario>
             }
           </ng-template>
         </mat-tab>
-        <mat-tab label="Productos sin exhibir" >
+        <mat-tab label="Productos sin exhibir">
           <ng-template matTabContent>
-            <view-3-inventario></view-3-inventario>
+            <view-3-inventario [onDataView]="allDataProcess"></view-3-inventario>
           </ng-template>
         </mat-tab>
       </mat-tab-group>

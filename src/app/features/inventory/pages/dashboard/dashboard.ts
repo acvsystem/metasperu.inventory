@@ -77,6 +77,7 @@ export default class DashboardComponent implements OnInit {
   arAsignatedSections: Array<any> = [];
   dataSource = new MatTableDataSource(this.products());
   filterValues: any = {};
+  allDataProcess: Array<any> = [];
   isLoading2: boolean = true;
   titleLoader: string = 'Cargando Inventario...';
   displayedColumns = ['sku', 'usuario', 'seccion', 'cantidad', 'accion'];
@@ -157,6 +158,10 @@ export default class DashboardComponent implements OnInit {
     };
   }
 
+  onAllDataProcess(data: any[]) {
+    console.log('📦 Datos completos del inventario recibidos en Dashboard:', data);
+    this.allDataProcess = data;
+  }
 
   loadInventary() {
     this.isLoading2 = true;
