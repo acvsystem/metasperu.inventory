@@ -143,10 +143,10 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
 
     if (offlineData) {
       this.onDataView = JSON.parse(offlineData);
-      console.log('📦 Inventario recibido Importado:', this.onDataView);
+      console.log('📦 Inventario recibido Importado offlineData:', this.onDataView);
     }
     if (this.onDataView?.length) {
-      console.log('📦 Inventario recibido Importado:', this.onDataView);
+      console.log('📦 Inventario recibido Importado onDataView:', this.onDataView);
       this.scheduleInitializeTable(this.onDataView);
     } else {
       this.isLoading = false;
