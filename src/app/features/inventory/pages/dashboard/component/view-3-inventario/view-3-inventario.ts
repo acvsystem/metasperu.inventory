@@ -25,6 +25,8 @@ export class View3Inventario {
   dataIn: Array<any> = [];
   displayedColumns = [
     'codigoBarra',
+    'codigoBarra2',
+    'codigoBarra3',
     'referencia',
     'descripcion',
     'departamento',
@@ -56,6 +58,8 @@ export class View3Inventario {
 
   dataColumns: tableColumns[] = [
     { isSticky: true, matColumnDef: 'codigoBarra', titleColumn: 'Codigo Barra', propertyValue: 'cCodigoBarra', filterActive: false, isCboFilter: false, cboFilter: [] },
+    { isSticky: true, matColumnDef: 'codigoBarra2', titleColumn: 'Codigo Barra 2', propertyValue: 'cCodigoBarra2', filterActive: false, isCboFilter: false, cboFilter: [] },
+    { isSticky: true, matColumnDef: 'codigoBarra3', titleColumn: 'Codigo Barra 3', propertyValue: 'cCodigoBarra3', filterActive: false, isCboFilter: false, cboFilter: [] },
     { isSticky: false, matColumnDef: 'referencia', titleColumn: 'Referencia', propertyValue: 'cReferencia', filterActive: false, isCboFilter: false, cboFilter: [] },
     { isSticky: false, matColumnDef: 'descripcion', titleColumn: 'Descripcion', propertyValue: 'cDescripcion', filterActive: false, isCboFilter: false, cboFilter: [] },
     { isSticky: false, matColumnDef: 'departamento', titleColumn: 'Departamento', propertyValue: 'cDepartamento', filterActive: false, isCboFilter: true, cboFilter: [] },

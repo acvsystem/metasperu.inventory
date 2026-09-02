@@ -137,7 +137,7 @@ export default class DashboardComponent implements OnInit {
     this.asignedSections();
     const offlineData = localStorage.getItem('offline_inventory');
     const cachedInventario = this.getCachedInventory();
-
+    console.log('📦 Datos en cache:', cachedInventario?.length, 'Datos offline:', offlineData ? 'Sí' : 'No');
     if (offlineData) {
       this.isLoading2 = false;
     } else if (cachedInventario?.length) {
@@ -228,6 +228,7 @@ export default class DashboardComponent implements OnInit {
         const uniqueSkusSet = new Set<string>();
 
         const sectionsById = new Map(this.arAsignatedSections.map(section => [section.id, section]));
+        console.log('📦 Secciones asignadas:', this.arAsignatedSections);
         const formattedData = products.map((item: any) => {
           const seccionObj = sectionsById.get(item.seccion_id);
 

@@ -93,7 +93,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
   };
 
   displayedColumns: Array<string> = [
-    'checking', 'codigoBarra', 'Referencia', 'descripcion', 'departamento',
+    'checking', 'codigoBarra', 'codigoBarra2', 'codigoBarra3', 'Referencia', 'descripcion', 'departamento',
     'seccion', 'familia', 'subfamilia',
     'talla', 'color', 'Esencia', 'style_description', 'stock', 'total', 'conteo',
   ];
@@ -110,6 +110,8 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
   dataColumns: tableColumns[] = [
     { isSticky: true, matColumnDef: 'checking', titleColumn: 'Revisado', propertyValue: 'checking', filterActive: false, isCboFilter: false, cboFilter: [{ key: 1, value: 'Revisado' }, { key: 0, value: 'Sin Revisar' }] },
     { isSticky: true, matColumnDef: 'codigoBarra', titleColumn: 'Codigo Barra', propertyValue: 'cCodigoBarra', filterActive: false, isCboFilter: false, cboFilter: [] },
+    { isSticky: true, matColumnDef: 'codigoBarra2', titleColumn: 'Codigo Barra 2', propertyValue: 'cCodigoBarra2', filterActive: false, isCboFilter: false, cboFilter: [] },
+    { isSticky: true, matColumnDef: 'codigoBarra3', titleColumn: 'Codigo Barra 3', propertyValue: 'cCodigoBarra3', filterActive: false, isCboFilter: false, cboFilter: [] },
     { isSticky: false, matColumnDef: 'Referencia', titleColumn: 'Referencia', propertyValue: 'cReferencia', filterActive: false, isCboFilter: false, cboFilter: [] },
     { isSticky: false, matColumnDef: 'descripcion', titleColumn: 'Descripcion', propertyValue: 'cDescripcion', filterActive: false, isCboFilter: false, cboFilter: [] },
     { isSticky: false, matColumnDef: 'departamento', titleColumn: 'Departamento', propertyValue: 'cDepartamento', filterActive: false, isCboFilter: true, cboFilter: [] },
@@ -349,21 +351,57 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
 
   proccessScan(dataPocket: Array<any>) {
     const data = [...this.dataTable];
-    const dataMap = new Map(data.map((item, index) => [item.cCodigoBarra, { item, index }]));
-    const agrupado = new Map<string, any>();
-    const totalesPorSku = new Map<string, number>();
+
+    // 1. Mapa con los 3 códigos apuntando al mismo registro
+    const dataMap = new Map<string, { item: any; index: number }>();
+
+    data.forEach((item, index) => {
+      const entry = { item, index };
+      if (item.cCodigoBarra) dataMap.set(String(item.cCodigoBarra), entry);
+      if (item.cCodigoBarra2) dataMap.set(String(item.cCodigoBarra2), entry);
+      if (item.cCodigoBarra3) dataMap.set(String(item.cCodigoBarra3), entry);
+    });
+
+    // 2. Agrupamos por el registro real (no por el código escaneado)
+    const agrupado = new Map<string, any>();          // key: productKey-seccion
+    const totalesPorProducto = new Map<string, number>(); // key: productKey → total
 
     dataPocket.forEach(item => {
-      const key = `${item.sku}-${item.seccion_id}`;
+      const scannedCode = String(item.sku);
+      const existing = dataMap.get(scannedCode);
+
+      // Clave estable del producto (preferimos el código principal del registro)
+      let productKey: string;
+      if (existing) {
+        productKey = String(
+          existing.item.cCodigoBarra ||
+          existing.item.cCodigoBarra2 ||
+          existing.item.cCodigoBarra3 ||
+          scannedCode
+        );
+      } else {
+        productKey = scannedCode; // es un producto nuevo
+      }
+
+      const key = `${productKey}-${item.seccion_id}`;
       const cantidad = toNumber(item.total_cantidad);
 
       if (!agrupado.has(key)) {
-        agrupado.set(key, { ...item, total_cantidad: cantidad });
+        agrupado.set(key, {
+          ...item,
+          sku: productKey,               // importante: usamos la clave estable
+          total_cantidad: cantidad,
+          _matchedIndex: existing ? existing.index : null
+        });
       } else {
         agrupado.get(key).total_cantidad += cantidad;
       }
 
-      totalesPorSku.set(item.sku, (totalesPorSku.get(item.sku) || 0) + cantidad);
+      // Total general del producto (suma de todos los códigos que pertenecen a él)
+      totalesPorProducto.set(
+        productKey,
+        (totalesPorProducto.get(productKey) || 0) + cantidad
+      );
     });
 
     const seccionesMap = new Map(this.inAsignatedSections.map(s => [
@@ -371,22 +409,34 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
       sectionColumnKey(s.nombre_seccion)
     ]));
 
+    // 3. Aplicamos los totales al dataTable
     agrupado.forEach((scan) => {
-      const skuTotal = totalesPorSku.get(scan.sku) || 0;
+      const productKey = scan.sku;
+      const skuTotal = totalesPorProducto.get(productKey) || 0;
       const sectionProp = seccionesMap.get(scan.seccion_id);
-      const existing = dataMap.get(scan.sku);
 
-      if (existing) {
-        const { index } = existing;
+      // Preferimos el índice que ya resolvimos
+      let index: number | null = scan._matchedIndex;
+
+      if (index === null) {
+        const existing = dataMap.get(productKey);
+        index = existing ? existing.index : null;
+      }
+
+      if (index !== null) {
+        // Actualizamos el registro existente
         if (sectionProp) {
           data[index][sectionProp] = scan.total_cantidad;
         }
         data[index].cConteo = skuTotal;
         data[index].cTotalConteo = inventoryDifference(data[index].cConteo, data[index].cStock);
       } else {
+        // Producto nuevo
         const newItem: any = {
           cCodigoArticulo: 0,
-          cCodigoBarra: scan.sku,
+          cCodigoBarra: productKey,
+          cCodigoBarra2: null,
+          cCodigoBarra3: null,
           cCodigoTienda: (data[0] || {}).cCodigoTienda || '',
           cColor: "",
           cConteo: skuTotal,
@@ -400,16 +450,20 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
         }
 
         data.push(newItem);
-        dataMap.set(scan.sku, { item: newItem, index: data.length - 1 });
+        // Lo registramos en el mapa por si hay más scans del mismo código
+        dataMap.set(productKey, { item: newItem, index: data.length - 1 });
       }
     });
 
+    // 4. Totales generales (igual que antes)
     const sumaTotalScaneada = data.reduce((acc, item) => acc + toNumber(item.cConteo), 0);
     const sumaStock = data.reduce((acc, item) => acc + toNumber(item.cStock), 0);
 
     this.totalConteo.set(sumaTotalScaneada);
     this.totalStock.set(sumaStock);
-    this.totalDiferencia.set(data.reduce((acc, item) => acc + inventoryDifference(item.cConteo, item.cStock), 0));
+    this.totalDiferencia.set(
+      data.reduce((acc, item) => acc + inventoryDifference(item.cConteo, item.cStock), 0)
+    );
 
     this.dataTable = data;
     this.asignSectionColum();
@@ -450,6 +504,8 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
       return {
         id: item.id,
         cCodigoBarra: item.cCodigoBarra,
+        cCodigoBarra2: item.cCodigoBarra2,
+        cCodigoBarra3: item.cCodigoBarra3,
         cReferencia: item.cReferencia,
         cDescripcion: item.cDescripcion,
         cDepartamento: item.cDepartamento,
@@ -551,6 +607,8 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
         checking: 0,
         cCodigoArticulo: "",
         cCodigoBarra: item.cCodigoBarra,
+        cCodigoBarra2: item.cCodigoBarra2,
+        cCodigoBarra3: item.cCodigoBarra3,
         cReferencia: item.cReferencia,
         cDescripcion: item.cDescripcion,
         cDepartamento: item.cDepartamento,
