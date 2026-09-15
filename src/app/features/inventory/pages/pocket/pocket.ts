@@ -31,9 +31,10 @@ import { MatRadioModule } from '@angular/material/radio';
 export default class Pocket {
   // Referencia para mantener el foco siempre activo
   @ViewChild('barcodeInput', { static: false }) barcodeInput!: any;
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
-  @ViewChild(MatSort) sort!: MatSort;
-
+  @ViewChild('paginatorP') paginatorP!: MatPaginator;
+  @ViewChild('paginatorH') paginatorH!: MatPaginator;
+  @ViewChild('sortP') sortP!: MatSort;
+  @ViewChild('sortH') sortH!: MatSort;
   sessionCode = signal('');
   skuInput = signal('');
   pendingCount = signal(0);
@@ -47,12 +48,15 @@ export default class Pocket {
   OptionTypeScan: string = 'pistola';
   dataSource = new MatTableDataSource(this.registerConteo);
   displayedColumns: string[] = ['sku', 'cantidad', 'seccion', 'estado'];
+  displayedColumns2: string[] = ['sku', 'cantidad', 'seccion', 'estado'];
   oldSKU: string = "";
   oldCantidad: string = "";
   isckeckedSku: boolean = false;
   isPermision: boolean = false;
   countSkanSection: number = 0;
   selectedSection: any = null;
+  historyScans: any = [];
+  dataHistory = new MatTableDataSource(this.historyScans);
   constructor(
     private dialog: MatDialog,
     private pocketService: PocketInventoryService,
@@ -63,6 +67,24 @@ export default class Pocket {
     const valueCode = codePocket?.value === 'undefined' ? '' : codePocket?.value;
     this.asignedSections(valueCode).then(() => {
       this.onDataTable(valueCode);
+
+
+      this.pocketService.getHistoryScans(this.sessionCode()).then((bd: any[]) => {
+        // Usamos .map para transformar cada item del array original
+
+        const formattedData = bd.map(item => {
+          return {
+            sku: item.sku,
+            cantidad: item.quantity,
+            seccion: this.arAsignatedSections.find((s) => s.key === item.seccion_id)?.value || '',
+            estado: item.synced ? 'Sincronizado' : 'Pendiente'
+          };
+        });
+
+        this.dataHistory.data = formattedData;
+        this.dataHistory.paginator = this.paginatorH;
+        this.dataHistory.sort = this.sortH;
+      });
     });
 
     if (!valueCode?.length) {
@@ -80,6 +102,8 @@ export default class Pocket {
     window.addEventListener('offline', () => this.onNetworkChange(false));
     const userRole = localStorage.getItem('role');
     this.isPermision = userRole == 'administrador' || userRole == 'auditor' ? true : false;
+
+
   }
 
   async onNetworkChange(status: boolean) {
@@ -154,7 +178,7 @@ export default class Pocket {
     }
 
     this.inCantidad = "";
-    
+
     this.onRefreshSectionCount();
   }
 
@@ -179,7 +203,6 @@ export default class Pocket {
     return new Promise((resolve, reject) => {
       this.service.getAssignedSections(sessionCode).subscribe({
         next: (result) => {
-          console.log('asignedSections', result);
           if (result?.length) {
             this.arAsignatedSections = [];
             result.map((section: any) => {
@@ -262,9 +285,17 @@ export default class Pocket {
 
       // 3. Asignamos los datos a la tabla
       this.dataSource.data = formattedData;
-      this.dataSource.paginator = this.paginator;
-      this.dataSource.sort = this.sort;
+      this.dataSource.paginator = this.paginatorP;
+      this.dataSource.sort = this.sortP;
 
     });
+  }
+
+  applyFilterHistory(data: any) {
+    if (!data) return;
+    const { id, value } = data;
+    this.inFilter = value ?? "";
+    const filterValue = value;
+    this.dataHistory.filter = filterValue.trim().toLowerCase();
   }
 }

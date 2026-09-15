@@ -24,6 +24,9 @@ export class PocketInventoryService {
     return await db.scans.add(newScan);
   }
 
+  async getHistoryScans(sessionCode: string): Promise<ScanEntry[]> {
+    return await db.scans.where({ session_code: sessionCode }).toArray();
+  }
   // Enviar todo lo pendiente al Backend
   async syncWithBackend(sessionCode: string) {
     const pending = await db.scans
