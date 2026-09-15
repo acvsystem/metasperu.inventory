@@ -51,7 +51,8 @@ export default class Pocket {
   oldCantidad: string = "";
   isckeckedSku: boolean = false;
   isPermision: boolean = false;
-
+  countSkanSection: number = 0;
+  selectedSection: any = null;
   constructor(
     private dialog: MatDialog,
     private pocketService: PocketInventoryService,
@@ -153,7 +154,8 @@ export default class Pocket {
     }
 
     this.inCantidad = "";
-
+    
+    this.onRefreshSectionCount();
   }
 
   async saveScanLocally(seccion_id: number, session_code: string, sku: any, cantidad: any) {
@@ -177,10 +179,11 @@ export default class Pocket {
     return new Promise((resolve, reject) => {
       this.service.getAssignedSections(sessionCode).subscribe({
         next: (result) => {
+          console.log('asignedSections', result);
           if (result?.length) {
             this.arAsignatedSections = [];
             result.map((section: any) => {
-              this.arAsignatedSections.push({ key: section.id, value: section.nombre_seccion });
+              this.arAsignatedSections.push({ key: section.id, value: section.nombre_seccion, id: section.seccion_id_fk });
             });
 
             if (this.arAsignatedSections.length) {
@@ -198,8 +201,24 @@ export default class Pocket {
 
   async onChangeSelect(data: any) {
     const selectData = data || {};
+    this.selectedSection = selectData;
     this.selectedSectionId = (selectData || {}).key || 0;
     this.optionSeccion = selectData?.value || "";
+
+    if (typeof (selectData || {}).id != 'undefined') {
+      this.onRefreshSectionCount();
+    }
+  }
+
+  onRefreshSectionCount() {
+    this.service.postSectionSession(this.sessionCode(), (this.selectedSection || {}).id).subscribe({
+      next: (result) => {
+        this.countSkanSection = ((result || [])[0] || {}).total_cantidad || 0;
+      },
+      error: (err) => {
+        this.onNotification({ error: 'error', message: err?.message });
+      }
+    });
   }
 
   onNotification(result: any) {

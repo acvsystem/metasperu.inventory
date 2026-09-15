@@ -140,7 +140,7 @@ export class MtSelect {
   onSelectedOption(ev: any) {
     let selected = ev;
     this.optionSelected = {
-      id: this.id,
+      id: (selected || {}).id,
       key: (selected || {}).key,
       value: (selected || {}).value
     };

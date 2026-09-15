@@ -161,6 +161,18 @@ export class InventoryService {
         );
     }
 
+    postSectionSession(session_code: string, seccion_id: number): Observable<any> {
+        return this.http.post(
+            `${this.API_URL}/api/v1/seccion/count/session`,
+            {
+                session_code: session_code,
+                seccion_id: seccion_id
+            }
+        ).pipe(
+            catchError(this.handleError)
+        );
+    }
+
     putSections(seccion_id: number, nombreSection: string): Observable<any> {
         return this.http.put(
             `${this.API_URL}/api/v1/seccion`,
