@@ -1,20 +1,82 @@
 <div class="mantenimiento-container">
     <div class="header-actions">
-        <h3>Mantenimiento de Secciones</h3>
-
-        <button (click)="agregarSeccion()" type="button" class="btn btn-primary btn-sm">
-            <i class="fa fa-plus" aria-hidden="true"></i> Nueva Sección
-        </button>
+        <h3>Mantenimiento Zonas y Subzonas</h3>
+        <mat-button-toggle-group name="fontStyle" aria-label="Font Style">
+            <mat-button-toggle value="vista" (click)="cambiarVista('vista')">Vista</mat-button-toggle>
+            <mat-button-toggle value="zonas" (click)="cambiarVista('zonas')">Zonas</mat-button-toggle>
+            <mat-button-toggle value="subzonas" (click)="cambiarVista('subzonas')">SubZonas</mat-button-toggle>
+        </mat-button-toggle-group>
     </div>
 
+    @if(isVista){
     <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
         <ng-container matColumnDef="id">
             <th mat-header-cell *matHeaderCellDef> No. </th>
             <td mat-cell *matCellDef="let i = index"> {{i + 1}} </td>
         </ng-container>
 
-        <ng-container matColumnDef="nombre">
-            <th mat-header-cell *matHeaderCellDef> Nombre de Sección </th>
+        <ng-container matColumnDef="zona">
+            <th mat-header-cell *matHeaderCellDef> Zona </th>
+            <td mat-cell *matCellDef="let element"> {{element.nombre_zona}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="subzona">
+            <th mat-header-cell *matHeaderCellDef> Subzona </th>
+            <td mat-cell *matCellDef="let element"> {{element.nombre_seccion}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="acciones">
+            <th mat-header-cell *matHeaderCellDef> Acciones </th>
+            <td mat-cell *matCellDef="let element">
+                <button mat-icon-button color="accent" (click)="editarZS(element)">
+                    <i class="fa fa-pencil-square-o" aria-hidden="true"></i>
+                </button>
+            </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+    }
+
+    @if(isZonas){
+    <table mat-table [dataSource]="dataSourceZonas" class="mat-elevation-z8">
+        <ng-container matColumnDef="id">
+            <th mat-header-cell *matHeaderCellDef> No. </th>
+            <td mat-cell *matCellDef="let i = index"> {{i + 1}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="zona">
+            <th mat-header-cell *matHeaderCellDef> Zona </th>
+            <td mat-cell *matCellDef="let element"> {{element.nombre_zona}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="acciones">
+            <th mat-header-cell *matHeaderCellDef> Acciones </th>
+            <td mat-cell *matCellDef="let element">
+                <button mat-icon-button color="accent" (click)="editarZona(element)">
+                    <i class="fa fa-pencil-square-o" aria-hidden="true"></i>
+                </button>
+                <button mat-icon-button color="warn" (click)="eliminarZona(element)">
+                    <i class="fa fa-trash" aria-hidden="true"></i>
+                </button>
+            </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumnsZonas"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumnsZonas;"></tr>
+    </table>
+    }
+
+    @if(isSubzonas){
+    <table mat-table [dataSource]="dataSourceSubzonas" class="mat-elevation-z8">
+        <ng-container matColumnDef="id">
+            <th mat-header-cell *matHeaderCellDef> No. </th>
+            <td mat-cell *matCellDef="let i = index"> {{i + 1}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="subzona">
+            <th mat-header-cell *matHeaderCellDef> SubZona </th>
             <td mat-cell *matCellDef="let element"> {{element.nombre_seccion}} </td>
         </ng-container>
 
@@ -30,7 +92,9 @@
             </td>
         </ng-container>
 
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        <tr mat-header-row *matHeaderRowDef="displayedColumnsSubzonas"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumnsSubzonas;"></tr>
     </table>
+    }
+
 </div>

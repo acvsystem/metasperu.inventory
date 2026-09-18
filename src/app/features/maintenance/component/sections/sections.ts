@@ -5,27 +5,63 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { ModalSections } from '../modal-sections/modal-sections';
 import { InventoryService } from '@metasperu/services/inventory.service';
+import { ModalZonas } from '../modal-zonas/modal-zonas';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { ModalZonasSubzonas } from '../modal-zonas-subzonas/modal-zonas-subzonas';
 @Component({
   selector: 'app-sections',
-  imports: [MatIconModule, MatButtonModule, MatTableModule],
+  imports: [MatIconModule, MatButtonModule, MatTableModule, MatButtonToggleModule],
   templateUrl: './sections.html',
   styleUrl: './sections.scss',
 })
 export class Sections {
-  displayedColumns: string[] = ['id', 'nombre', 'acciones'];
+  displayedColumns: string[] = ['id', 'zona', 'subzona', 'acciones'];
   dataSource = new MatTableDataSource<any>([]);
 
+  displayedColumnsZonas: string[] = ['id', 'zona', 'acciones'];
+  dataSourceZonas = new MatTableDataSource<any>([]);
+
+  displayedColumnsSubzonas: string[] = ['id', 'subzona', 'acciones'];
+  dataSourceSubzonas = new MatTableDataSource<any>([]);
+
+  dataZonas: any[] = [];
+  isVista: boolean = true;
+  isZonas: boolean = false;
+  isSubzonas: boolean = false;
   constructor(public dialog: MatDialog, private service: InventoryService) { }
 
   ngOnInit() {
     this.cargarDatos();
   }
 
+
+  cambiarVista(vista: string) {
+    console.log('Vista seleccionada:', vista);
+    this.isVista = vista === 'vista';
+    this.isZonas = vista === 'zonas';
+    this.isSubzonas = vista === 'subzonas';
+    this.onZonaSub();
+    this.onZonesList();
+    this.onSubZonaList();
+  }
+
   cargarDatos() {
     // Simulación de carga desde API
+    this.onZonaSub();
+    this.onZonesList();
+    this.onSubZonaList();
+  }
 
-    this.service.getSections().subscribe((sections) => {
-      this.dataSource.data = sections;
+  onZonaSub() {
+    this.service.getZonaVista().subscribe((zonas) => {
+      this.dataSource.data = [];
+      this.dataSource.data = zonas;
+    });
+  }
+
+  onSubZonaList() {
+    this.service.getSubzonas().subscribe((subzonas) => {
+      this.dataSourceSubzonas.data = subzonas;
     });
   }
 
@@ -51,6 +87,23 @@ export class Sections {
             this.onNotification(result);
           });
         }
+      },
+      error: (err) => {
+        this.onNotification({ error: 'error', message: err?.message });
+      }
+    });
+  }
+
+  agregarZona() {
+    const dialogRef = this.dialog.open(ModalZonas, {
+
+      data: { zonas: this.dataZonas } // Objeto vacío para nueva zona
+    });
+
+    dialogRef.afterClosed().subscribe({
+
+      next: (result) => {
+        console.log('Resultado del modal de zonas:', result);
       },
       error: (err) => {
         this.onNotification({ error: 'error', message: err?.message });
@@ -109,5 +162,88 @@ export class Sections {
     }];
 
     this.service.onNotification.emit(notificationList);
+  }
+
+  onZonesList() {
+    this.service.getZonas().subscribe({
+      next: (zonas) => {
+        this.dataZonas = zonas;
+        this.dataSourceZonas.data = zonas;
+      },
+      error: (err) => {
+        this.onNotification({ error: 'error', message: err?.message });
+      }
+    });
+  }
+
+
+  editarZS(grupo: any) {
+    const dialogRef = this.dialog.open(ModalZonasSubzonas, {
+      width: '350px',
+      data: { ...grupo, title: 'Editar Zona/Subzona', zonas: this.dataZonas }
+    });
+
+    dialogRef.afterClosed().subscribe({
+
+      next: (result) => {
+        if (result) {
+          console.log('Resultado del modal de edición de Zona/Subzona:', result);
+          if (result.newZone && result.seccion_id) {
+            this.onUdpZonaSubzona(result.zona_escaneo_id, parseInt(result.newZone), result.seccion_id);
+          }
+        }
+      },
+      error: (err) => {
+        this.onNotification({ error: 'error', message: err?.message });
+      }
+    });
+  }
+
+
+  onUdpZonaSubzona(zona_escaneo_id: number, zona_id: number, seccion_id: number) {
+    this.service.putZonaSubzona(zona_escaneo_id, zona_id, seccion_id).subscribe({
+      next: (result) => {
+        this.onNotification(result);
+        this.onZonaSub();
+      },
+      error: (err) => {
+        this.onNotification({ error: 'error', message: err?.message });
+      }
+    });
+  }
+
+  editarZona(zona: any) {
+    const dialogRef = this.dialog.open(ModalZonas, {
+      width: '350px',
+      data: { ...zona, title: 'Editar Zona' }
+    });
+
+    dialogRef.afterClosed().subscribe({
+
+      next: (result) => {
+        if (result) {
+          this.onZonesList();
+          this.onNotification(result);
+        }
+      },
+      error: (err) => {
+        this.onNotification({ error: 'error', message: err?.message });
+      }
+    });
+  }
+
+  eliminarZona(zona: any) {
+    if (confirm(`¿Estás seguro de eliminar la zona "${zona.nombre_zona}"?`)) {
+
+      this.service.delZonas(zona.zona_id).subscribe({
+        next: (result) => {
+          this.dataSourceZonas.data = this.dataSourceZonas.data.filter(z => z.zona_id !== zona.zona_id);
+          this.onNotification(result);
+        },
+        error: (err) => {
+          this.onNotification({ error: 'error', message: err?.message });
+        }
+      });
+    }
   }
 }

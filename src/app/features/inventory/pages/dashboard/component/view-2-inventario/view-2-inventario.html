@@ -51,20 +51,8 @@
                 <ion-row>
                     <ion-col sizeXs="12" sizeSm="12" sizeMd="6" sizeLg="6">
                         <div style="display: flex;align-items: end;height: 100%;">
-                            <input type="file" #fileInput style="display: none"
-                                (change)="importExcelInventario($event); $event.target.value = ''" accept=".xlsx, .xls">
-                            <button mat-raised-button class="btn-excel-upload" (click)="fileInput.click()">
-                                <mat-icon>upload</mat-icon>
-                                <span>Importar Inventario</span>
-                            </button>
-
-                            <button mat-raised-button class=" btn-excel" (click)="exportarExcel()">
-                                <mat-icon>file_download</mat-icon>
-                                <span>Exportar Excel</span>
-                                <span class="record-count">{{ dataTable.length | number }} items</span>
-                            </button>
-
-                            <button mat-raised-button class="btn-update-inventory" matTooltip="Sincronizar con Tienda" (click)="onChangeInv()">
+                            <button mat-raised-button class="btn-update-inventory" matTooltip="Sincronizar con Tienda"
+                                (click)="onChangeInv()">
                                 <mat-icon>repeat</mat-icon>
                             </button>
 
@@ -72,6 +60,23 @@
                                 class="btn-stadistics">
                                 <i class="fa fa-bar-chart" aria-hidden="true"></i>
                             </button>
+                            <input type="file" #fileInput style="display: none"
+                                (change)="importExcelInventario($event); $event.target.value = ''" accept=".xlsx, .xls">
+                            <button mat-raised-button class="btn-excel-upload" (click)="fileInput.click()">
+                                <mat-icon>upload</mat-icon>
+                                <span>Importar Inventario</span>
+                            </button>
+
+                            <button mat-raised-button class=" btn-excel" (click)="exportarReporte()" matTooltip="Exportar Excel">
+                                <mat-icon>file_download</mat-icon>
+                                <span class="record-count">{{ dataTable.length | number }} items</span>
+                            </button>
+
+                            <div style="margin-bottom: 4px;display: flex;align-items: center;width: 20%;">
+                                <mt-select style="width: 100%;" [data]="arTipoExport" label="Seleccione tipo reporte " title="Secciones"
+                                    (selectdOption)="onChangeReporte($event)"></mt-select>
+                            </div>
+
                         </div>
                     </ion-col>
                     <ion-col sizeXs="12" sizeSm="12" sizeMd="6" sizeLg="6">
@@ -159,5 +164,3 @@
         </ion-row>
     </mat-drawer-content>
 </mat-drawer-container>
-
-

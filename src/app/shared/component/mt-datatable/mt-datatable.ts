@@ -56,7 +56,7 @@ export class MtDatatable implements OnInit, OnChanges, AfterViewInit {
     this.dataSource.data = this._dataIn;
     this.parsedFilterColumns.clear();
     this.resetCboFilters();
-    
+
     // Si el paginador ya está listo en la vista, se lo re-asociamos de inmediato
     // Esto evita que Angular intente dibujar las 10,000 filas completas antes del AfterViewInit
     if (this.paginator) {
@@ -91,6 +91,7 @@ export class MtDatatable implements OnInit, OnChanges, AfterViewInit {
     // Vinculación física con el DOM para paginación y ordenamiento
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
+    console.log("PAGINATOR AND SORT INITIALIZED"), this.dataSource;
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -103,14 +104,15 @@ export class MtDatatable implements OnInit, OnChanges, AfterViewInit {
 
     if (changes['extraColumns'] && changes['extraColumns'].currentValue) {
       // Asignación limpia de las estructuras de columnas (incluyendo las 524 de Metas Perú)
-      this.displayedColumns = changes['extraColumns'].currentValue;
+     this.displayedColumns = changes['extraColumns'].currentValue;
     }
   }
 
   ngOnInit() {
-    this.dataSource.data = this.dataIn;
-    this.dataColumns = this.dataColumnsIn;
 
+   // this.dataSource.data = this.dataIn;
+    this.dataColumns = this.dataColumnsIn;
+   
     // Predicado de filtrado optimizado para búsquedas por múltiples términos en memoria extendida
     this.dataSource.filterPredicate = (data: any, filter: string) => {
       try {

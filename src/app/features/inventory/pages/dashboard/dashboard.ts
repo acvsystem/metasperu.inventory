@@ -78,13 +78,15 @@ export default class DashboardComponent implements OnInit {
   dataSource = new MatTableDataSource(this.products());
   filterValues: any = {};
   allDataProcess: Array<any> = [];
+  dataExportar: Array<any> = [];
   isLoading2: boolean = true;
   titleLoader: string = 'Cargando Inventario...';
-  displayedColumns = ['sku', 'usuario', 'seccion', 'cantidad', 'accion'];
+  displayedColumns = ['sku', 'usuario', 'zona', 'subzona', 'cantidad', 'accion'];
   dataColumns: tableColumns[] = [
     { matColumnDef: 'sku', titleColumn: 'Sku', propertyValue: 'sku', filterActive: false, id: 0 },
     { matColumnDef: 'usuario', titleColumn: 'Usuario', propertyValue: 'user', filterActive: false, id: 0 },
-    { matColumnDef: 'seccion', titleColumn: 'Seccion', propertyValue: 'section_name', filterActive: false, id: 0 },
+    { matColumnDef: 'zona', titleColumn: 'Zona', propertyValue: 'nombre_zona', filterActive: false, id: 0 },
+    { matColumnDef: 'subzona', titleColumn: 'Subzona', propertyValue: 'section_name', filterActive: false, id: 0 },
     { matColumnDef: 'cantidad', titleColumn: 'Cantidad', propertyValue: 'total_cantidad', filterActive: false, id: 0 },
     { matColumnDef: 'accion', titleColumn: 'Accion', propertyValue: '', filterActive: false, id: 0 }];
 
@@ -118,6 +120,7 @@ export default class DashboardComponent implements OnInit {
         this.isLoading2 = false;
       }
 
+      console.log('📦 Datos para exportar actualizados:', this.dataExportar);
     });
   }
 
@@ -148,15 +151,33 @@ export default class DashboardComponent implements OnInit {
       this.loadInventary();
     }
 
-    this.dataSource.filterPredicate = (data: any, filter: string) => {
-      const searchTerms = JSON.parse(filter);
+    // ... tu código existente ...
 
-      return Object.keys(searchTerms).every(columnKey => {
-        const cellValue = data[columnKey]?.toString().toLowerCase() || '';
-        return cellValue.includes(searchTerms[columnKey]);
-      });
+    this.dataSource.filterPredicate = (data: any, filter: string) => {
+      let searchCriteria: any;
+      try {
+        searchCriteria = JSON.parse(filter);
+      } catch (e) {
+        searchCriteria = {};
+      }
+
+      // Evaluamos cada columna que tenga un filtro activo
+      for (let column in searchCriteria) {
+        const searchValue = searchCriteria[column];
+        if (!searchValue) continue;
+
+        const cellValue = data[column] ? data[column].toString().toLowerCase() : '';
+
+        // CAMBIO AQUÍ: Validamos coincidencia exacta de toda la celda 
+        // o puedes usar cellValue === searchValue si quieres que sea exacto al 100%.
+        if (cellValue !== searchValue) {
+          return false;
+        }
+      }
+      return true;
     };
   }
+
 
   onAllDataProcess(data: any[]) {
     console.log('📦 Datos completos del inventario recibidos en Dashboard:', data);
@@ -222,13 +243,13 @@ export default class DashboardComponent implements OnInit {
   loadData() {
     this.isLoading.set(true);
 
-    this.invService.getSessionSummary(this.sessionCode).subscribe({
+    this.invService.getSessionSummaryv2(this.sessionCode).subscribe({
       next: (res) => {
         const products = res.products;
         const uniqueSkusSet = new Set<string>();
 
         const sectionsById = new Map(this.arAsignatedSections.map(section => [section.id, section]));
-        console.log('📦 Secciones asignadas:', this.arAsignatedSections);
+        console.log('📦 products:', products);
         const formattedData = products.map((item: any) => {
           const seccionObj = sectionsById.get(item.seccion_id);
 
@@ -244,7 +265,8 @@ export default class DashboardComponent implements OnInit {
             total_cantidad: item.total_cantidad,
             ultimo_escaneo: item.ultimo_escaneo,
             veces_escaneado: item.veces_escaneado,
-            section_name: seccionObj ? seccionObj.nombre_seccion : 'DESCONOCIDO'
+            section_name: seccionObj ? seccionObj.nombre_seccion : 'DESCONOCIDO',
+            nombre_zona: item.nombre_zona
           };
 
           this.arAsignatedSections.forEach((section) => {
@@ -266,6 +288,20 @@ export default class DashboardComponent implements OnInit {
         this.dataSource.sort = this.sort;
 
         this.isLoading.set(false);
+
+
+        const dataParaExportar = this.dataSource.data.map(item => {
+          return {
+            'CODBARRAS': item.sku,
+            'USUARIO': item.user,
+            'ZONA': item.nombre_zona,
+            'SUBZONA': item.section_name,
+            'UNIDADES': item.total_cantidad * 1,
+          };
+        });
+
+        this.dataExportar = dataParaExportar;
+        console.log('📦 Datos para exportar actualizados en loadData():', this.dataExportar);
       },
       error: (err) => {
 
@@ -361,8 +397,13 @@ export default class DashboardComponent implements OnInit {
 
     const property: any = this.dataColumns.find((t) => t.matColumnDef == column);
     const indexHeader: any = this.dataColumns.findIndex((t) => t.matColumnDef == column);
+
     this.dataColumns[indexHeader]['filterActive'] = filterValue.length ? true : false;
+
+    // Guardamos el valor limpio en minúsculas
     this.filterValues[property?.propertyValue] = filterValue.trim().toLowerCase();
+
+    // Convertimos a JSON como ya lo hacías
     this.dataSource.filter = JSON.stringify(this.filterValues);
   }
 
@@ -380,13 +421,15 @@ export default class DashboardComponent implements OnInit {
     // 1. Mapeamos los datos para que el Excel tenga nombres de columnas bonitos
     const dataParaExportar = this.dataSource.data.map(item => {
       return {
-        'Código de Barras': item.sku,
-        'Usuario': item.user,
-        'Seccion': item.section_name,
-        'Conteo': item.total_cantidad * 1,
+        'CODBARRAS': item.sku,
+        'USUARIO': item.user,
+        'ZONA': item.nombre_zona,
+        'SUBZONA': item.section_name,
+        'UNIDADES': item.total_cantidad * 1,
       };
     });
 
+    this.dataExportar = dataParaExportar; // Guardamos los datos para exportar en la propiedad de la clase
     // 2. Creamos el libro y la hoja de trabajo
     const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(dataParaExportar);
     const workbook: XLSX.WorkBook = {

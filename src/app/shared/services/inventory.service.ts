@@ -93,6 +93,14 @@ export class InventoryService {
         );
     }
 
+    getSessionSummaryv2(sessionCode: string): Observable<any> {
+        return this.http.get(
+            `${this.API_URL}/v2/summary/${sessionCode}`
+        ).pipe(
+            catchError(this.handleError)
+        );
+    }
+
     getSessions(): Observable<any> {
         return this.http.get(
             `${this.API_URL}/sessions`
@@ -146,8 +154,16 @@ export class InventoryService {
         return this.http.get<Store[]>(`${this.API_URL}/request/store`, { params: httpParams });
     }
 
-    getSections(): Observable<any[]> {
+    getSubzonas(): Observable<any[]> {
         return this.http.get<any[]>(`${this.API_URL}/api/v1/seccion`);
+    }
+
+    getZonaVista(): Observable<any[]> {
+        return this.http.get<any[]>(`${this.API_URL}/api/v2/zonas/subzonas`);
+    }
+
+    getZonas(): Observable<any[]> {
+        return this.http.get<any[]>(`${this.API_URL}/api/v2/zonas`);
     }
 
     postSections(nombreSection: string): Observable<any> {
@@ -236,6 +252,28 @@ export class InventoryService {
         console.log(data);
         return this.http.put(
             `${this.API_URL}/checked/row/inv`, data
+        ).pipe(
+            catchError(this.handleError)
+        );
+    }
+
+    putZonaSubzona(zona_escaneo_id: number, zona_id: number, seccion_id: number): Observable<any> {
+        return this.http.put(
+            `${this.API_URL}/api/v2/zonas/subzonas`,
+            {
+                zona_escaneo_id: zona_escaneo_id,
+                zona_id: zona_id,
+                seccion_id: seccion_id
+            }
+        ).pipe(
+            catchError(this.handleError)
+        );
+    }
+
+
+    delZonas(zona_id: number): Observable<any> {
+        return this.http.delete(
+            `${this.API_URL}/api/v2/zona/${zona_id}`
         ).pipe(
             catchError(this.handleError)
         );

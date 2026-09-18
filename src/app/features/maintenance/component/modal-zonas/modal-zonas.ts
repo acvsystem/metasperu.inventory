@@ -5,29 +5,33 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { FormsModule } from '@angular/forms';
 import { MtInput } from '@metasperu/component/mt-input/mt-input';
+import { ModalSections } from '../modal-sections/modal-sections';
+
+export interface Zona {
+  zona_id: number | null;
+  nombre_zona: string | null;
+}
 
 @Component({
-  selector: 'modal-sections',
+  selector: 'app-modal-zonas',
   standalone: true,
   imports: [MatDialogModule, MatFormFieldModule, MatInputModule, MatButtonModule, FormsModule, MtInput],
-  templateUrl: './modal-sections.html',
-  styleUrl: './modal-sections.scss',
+  templateUrl: './modal-zonas.html',
+  styleUrl: './modal-zonas.scss',
 })
-export class ModalSections {
+export class ModalZonas {
   constructor(
-    public dialogRef: MatDialogRef<ModalSections>,
+    public dialogRef: MatDialogRef<ModalZonas>,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) { }
 
   onChangeInput(data: any) {
     if (!data) return;
     const { id, value } = data;
-    this.data.nombre_seccion = value ?? "";
+    this.data.nombre_zona = value ?? "";
   }
 
   onNoClick(): void {
     this.dialogRef.close();
   }
-
-
 }

@@ -6,7 +6,7 @@ import { MatTableModule } from '@angular/material/table';
 import { IonRow, IonCol, IonIcon, IonCardContent, IonCard, IonGrid } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
-import * as XLSX from 'xlsx';
+//import * as XLSX from 'xlsx';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatBadgeModule } from '@angular/material/badge';
@@ -21,6 +21,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { ModalReport } from './component/modal-report/modal-report';
 import { MtDatatable } from '@metasperu/component/mt-datatable/mt-datatable';
 import { MtLoader } from '@metasperu/component/mt-loader/mt-loader';
+import * as XLSX from 'xlsx-js-style';
 
 const toNumber = (value: any) => {
   const numericValue = typeof value === 'string' ? value.replace(',', '.').trim() : value;
@@ -57,6 +58,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
   @Input() onDataView: Array<any> = [];
   @Input() pocketScan: any = null; // Objeto del Socket: { sku: '...', total_cantidad: ... }
   @Input() inAsignatedSections: Array<any> = [];
+  @Input() onDataConteo: Array<any> = [];
   @Input() isReporte: boolean = false;
   @Output() onChangeInventario: EventEmitter<any> = new EventEmitter();
   @Output() onAllDataProcess: EventEmitter<any> = new EventEmitter();
@@ -99,6 +101,9 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
   ];
 
   extraColumns: Array<string> = [];
+  zonasSub: Array<string> = [];
+  dataZonas: Array<string> = [];
+  arTipoExport: Array<any> = [{ key: 'aInterna', value: 'Auditoria Interna', isDefault: true }, { key: 'aGeneral', value: 'Auditoria General' }];
 
   public barChartOptions: ChartConfiguration['options'] = {
     responsive: true,
@@ -106,6 +111,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
   };
 
   cboStadictics: Array<any> = [{ key: 'cDepartamento', value: 'Departamento' }, { key: 'cSeccion', value: 'Seccion' }, { key: 'cFamilia', value: 'Familia' }, { key: 'cSubFamilia', value: 'SubFamilia' }];
+  tipoReporte: string = 'general';
 
   dataColumns: tableColumns[] = [
     { isSticky: true, matColumnDef: 'checking', titleColumn: 'Revisado', propertyValue: 'checking', filterActive: false, isCboFilter: false, cboFilter: [{ key: 1, value: 'Revisado' }, { key: 0, value: 'Sin Revisar' }] },
@@ -153,6 +159,9 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     } else {
       this.isLoading = false;
     }
+
+    this.onZonesList();
+    this.onZonaSub();
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -220,7 +229,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
       this.dataColumns = [...this.dataColumns, ...nuevasColumnas];
       this.displayedColumns = [...this.displayedColumns, ...nuevosDefs];
     }
-
+    console.log('📊 Columnas finales para la tabla:', this.dataTable);
     this.isInsertColum = true;
     this.cdr.markForCheck();
   }
@@ -338,6 +347,8 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     this.cdr.markForCheck();
 
     this.cacheAllTableData();
+
+    this.onBarStadisctic([]);
   }
 
   private cacheAllTableData() {
@@ -466,6 +477,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     );
 
     this.dataTable = data;
+
     this.asignSectionColum();
     this.onBarStadisctic(data);
     this.cdr.markForCheck();
@@ -498,6 +510,329 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
     this.saveAsExcelFile(excelBuffer, 'Cruce_Inventario');
   }
+
+  exportarExcelGeneral() {
+    console.log(this.onDataConteo);
+    const dataParse = this.dataTable.map(item => ({
+      ...item,
+      cCodigoBarra: item.cCodigoBarra
+        ? String(item.cCodigoBarra).replace(/^0+/, '')
+        : item.cCodigoBarra
+    }));
+
+    const dataParaExportar = this.getInventoryExportRowsGeneral(dataParse);
+    const dataConteoExportar = this.onDataConteo;
+    const dataInformeDiferencias = this.getInformeDiferenciasRows(dataParse);
+    const dataConteos = this.getInventoryExportRowsConteos(dataParse);   // ← nueva
+
+    const workbook: XLSX.WorkBook = XLSX.utils.book_new();
+
+    // MATRIZ
+    const worksheet = this.createWorksheet(dataParaExportar);
+    this.paintNoScannedRows(worksheet);
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'MATRIZ');
+
+    // SUBZONAS
+    this.appendSheet(workbook, 'SUBZONAS', dataConteoExportar);
+
+    // INFORME DIFERENCIAS
+    const wsInforme = XLSX.utils.aoa_to_sheet(dataInformeDiferencias);
+    wsInforme['!cols'] = [
+      { wch: 22 }, { wch: 45 }, { wch: 20 }, { wch: 18 }, { wch: 15 }, { wch: 12 }, { wch: 15 }
+    ];
+    XLSX.utils.book_append_sheet(workbook, wsInforme, 'INFORME DIFERENCIAS');
+
+    // ===== NUEVA PESTAÑA CONTEOS =====
+    const wsConteos = this.createWorksheet(dataConteos);
+    XLSX.utils.book_append_sheet(workbook, wsConteos, 'CONTEOS');
+
+    const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    this.saveAsExcelFile(excelBuffer, 'Cruce_Inventario');
+  }
+
+  private getInformeDiferenciasRows(data: any[]): any[][] {
+    const rows: any[][] = [];
+
+    // Título principal
+    rows.push([{
+      v: 'INFORME DE DIFERENCIAS DE INVENTARIO',
+      t: 's',
+      s: {
+        font: { bold: true, sz: 14, color: { rgb: 'FFFFFF' } },
+        fill: { fgColor: { rgb: '1F4E79' } },
+        alignment: { horizontal: 'center' }
+      }
+    }]);
+    rows.push([]); // fila vacía
+
+    // ===== 1. Normalizar y agrupar el detalle por código de barras (sin ceros a la izquierda) =====
+    const detallePorCodigo: { [codigo: string]: any[] } = {};
+
+    (this.onDataConteo || []).forEach((d: any) => {
+      // Ignorar RECONTEO
+      if (
+        String(d.ZONA || '').toUpperCase() === 'RECONTEO' ||
+        String(d.SUBZONA || '').toUpperCase() === 'RECONTEO'
+      ) {
+        return;
+      }
+
+      const codigoLimpio = String(d.CODBARRAS || '').replace(/^0+/, '');
+      if (!codigoLimpio) return;
+
+      if (!detallePorCodigo[codigoLimpio]) {
+        detallePorCodigo[codigoLimpio] = [];
+      }
+      detallePorCodigo[codigoLimpio].push(d);
+    });
+
+    // ===== 2. Procesar productos =====
+    const productosConDiferencia = data
+      .map(item => {
+        const codigoLimpio = String(item.cCodigoBarra || '').replace(/^0+/, '');
+
+        // Tomamos el detalle ya agrupado (sin RECONTEO)
+        const detalles = detallePorCodigo[codigoLimpio] || [];
+
+        // Calculamos el físico sumando las unidades del detalle
+        const fisico = detalles.reduce((sum, d) => sum + toNumber(d.UNIDADES), 0);
+        const stock = toNumber(item.cStock);
+        const diferencia = stock - fisico;
+
+        return {
+          item,
+          codigoLimpio,
+          fisico,
+          stock,
+          diferencia,
+          detalles
+        };
+      })
+      // 📌 Filtramos por diferencia distinta de 0 Y que cReferencia exista y no esté en blanco
+      .filter(p => p.diferencia !== 0 && p.item.cReferencia && String(p.item.cReferencia).trim() !== '')
+      .sort((a, b) => Math.abs(b.diferencia) - Math.abs(a.diferencia));
+
+    // ===== 3. Generar las filas del informe =====
+    productosConDiferencia.forEach(p => {
+      const { item, fisico, stock, diferencia, detalles } = p;
+
+      const border = {
+        top: { style: 'thin', color: { rgb: '000000' } },
+        bottom: { style: 'thin', color: { rgb: '000000' } },
+        left: { style: 'thin', color: { rgb: '000000' } },
+        right: { style: 'thin', color: { rgb: '000000' } }
+      };
+
+      const headerStyle = {
+        font: { bold: true, color: { rgb: '000000' } },
+        fill: { fgColor: { rgb: 'D9D9D9' } },
+        border,
+        alignment: { horizontal: 'left' }
+      };
+
+      const subHeaderStyle = {
+        font: { bold: true },
+        fill: { fgColor: { rgb: 'F2F2F2' } },
+        border,
+        alignment: { horizontal: 'center' }
+      };
+
+      const normalStyle = {
+        border,
+        alignment: { horizontal: 'left' }
+      };
+
+      const totalStyle = {
+        font: { bold: true },
+        fill: { fgColor: { rgb: 'BDD7EE' } },
+        border,
+        alignment: { horizontal: 'left' }
+      };
+
+      const totalStyle2 = {
+        font: { bold: true },
+        border,
+        alignment: { horizontal: 'left' }
+      };
+
+      // Cabecera del producto
+      rows.push([
+        { v: `CodBarras: ${item.cCodigoBarra || ''}`, t: 's', s: headerStyle },
+        { v: `Referencia: ${item.cReferencia || ''}`, t: 's', s: headerStyle },
+        { v: `Descripcion: ${item.cDescripcion || ''}`, t: 's', s: headerStyle },
+        { v: `Talla: ${item.cTalla || 'NA'}`, t: 's', s: headerStyle },
+        { v: `Color: ${item.cColor || ''}`, t: 's', s: headerStyle },
+        { v: `Stock: ${stock}`, t: 's', s: headerStyle },
+        { v: `Diferencia: ${Math.abs(diferencia)}`, t: 's', s: headerStyle }
+      ]);
+
+      // Encabezado de columnas
+      rows.push([
+        { v: '', t: 's', s: '' },
+        { v: 'Zona', t: 's', s: subHeaderStyle },
+        { v: 'Subzona', t: 's', s: subHeaderStyle },
+        { v: 'Unidades Contadas', t: 's', s: subHeaderStyle }
+      ]);
+
+      // Detalle (sin RECONTEO)
+      detalles.forEach(d => {
+        rows.push([
+          { v: '', t: 's', s: '' },
+          { v: d.ZONA || '', t: 's', s: normalStyle },
+          { v: d.SUBZONA || '', t: 's', s: normalStyle },
+          { v: toNumber(d.UNIDADES), t: 'n', s: { ...normalStyle, alignment: { horizontal: 'right' } } }
+        ]);
+      });
+
+      // Totales
+      rows.push([
+        { v: '', t: 's', s: '' },
+        { v: '', t: 's', s: '' },
+        { v: 'TOTAL UNIDADES CONTADAS', t: 's', s: totalStyle2 },
+        { v: fisico, t: 'n', s: { ...totalStyle2, alignment: { horizontal: 'right' } } }
+      ]);
+
+      rows.push([
+        { v: '', t: 's', s: '' },
+        { v: '', t: 's', s: '' },
+        { v: 'DIFERENCIA - STOCK = DIFERENCIA VALIDADA', t: 's', s: totalStyle },
+        { v: Math.abs(diferencia) - stock, t: 'n', s: { ...totalStyle, alignment: { horizontal: 'right' } } }
+      ]);
+
+      rows.push([]); // espacio entre productos
+    });
+
+    return rows;
+  }
+
+  private getInventoryExportRowsConteos(data: any[]) {
+    return data.map(item => {
+      // Acumulador con las categorías fijas
+      const acumulador: { [key: string]: number } = {
+        'Almacén': 0,
+        'Venta': 0,
+        'Tester': 0,
+        'Reconteo': 0,
+        'Defectuoso': 0,
+        'Otros': 0
+      };
+
+      // Sumar las columnas del producto actual con la lógica indicada
+      Object.keys(item).forEach(columna => {
+        const valor = toNumber(item[columna]);
+        if (!valor) return;
+
+        const columnaLower = columna.toLowerCase();
+        const inicial = columna.charAt(0).toUpperCase();
+
+        if (columnaLower === 'tester') {
+          acumulador['Tester'] += valor;
+        } else if (columnaLower === 'reconteo') {
+          acumulador['Reconteo'] += valor;
+        } else if (columnaLower === 'otros') {
+          acumulador['Otros'] += valor;
+        } else if (columnaLower === 'ac') {
+          acumulador['Venta'] += valor;
+        } else if (columnaLower === 'defectuoso') {
+          acumulador['Defectuoso'] += valor;
+        } else if (inicial === 'A') {
+          acumulador['Almacén'] += valor;
+        } else if (['M', 'P', 'G'].includes(inicial)) {
+          acumulador['Venta'] += valor;
+        }
+      });
+
+      const stock = toNumber(item.cStock);
+      const totalConteo = toNumber(item.cTotalConteo);
+      const fisicos = stock + totalConteo;
+      const diffin = stock - totalConteo;
+
+      return {
+        id: item.id,
+        CODIGOBARRAS: item.cCodigoBarra,
+        REFERENCIA: item.cReferencia,
+        DESCRIPCION: item.cDescripcion,
+        TALLA: item.cTalla,
+        COLOR: item.cColor,
+        CODIGOBARRAS2: item.cCodigoBarra2,
+        CODIGOBARRAS3: item.cCodigoBarra3,
+        DEPARTAMENTO: item.cDepartamento,
+        SECCION: item.cSeccion,
+        FAMILIA: item.cFamilia,
+        SUBFAMILIA: item.cSubFamilia,
+        STYLEDESCRIPTION: item.cStyleDesc,
+        ESENCIA: item.cEsencia,
+        STOCK: stock,
+        cTotalConteo: item.cTotalConteo,
+
+        ...acumulador,                // Almacén, Venta, Tester, Reconteo, Defectuoso, Otros
+
+        FISICOS: fisicos,             // cStock + cTotalConteo
+        cEstadoEscaneado: item.cEstadoEscaneado || '',
+        RECONTEO: item.RECONTEO || item.cReconteo || '',
+        DIFFIN: diffin                // cStock - cTotalConteo
+      };
+    });
+  }
+
+  private getInventoryExportRowsGeneral(data: any[]) {
+    return data.map(item => {
+      // Acumulador limpio por producto
+      const acumulador: { [key: string]: number } = this.dataZonas.reduce((acc, z: any) => {
+        acc[z.nombre_zona] = 0;
+        return acc;
+      }, {} as { [key: string]: number });
+
+      // Sumar las columnas del producto actual
+      Object.keys(item).forEach(columna => {
+        const valor = toNumber(item[columna]);
+        if (!valor) return;
+
+        const columnaUpper = columna.toUpperCase();
+        const columnRefer: any = this.zonasSub.find(
+          (z: any) => z.nombre_seccion?.toUpperCase() === columnaUpper
+        );
+
+        if (columnRefer?.nombre_zona && acumulador.hasOwnProperty(columnRefer.nombre_zona)) {
+          acumulador[columnRefer.nombre_zona] += valor;
+        }
+      });
+
+      // ===== Cálculos nuevos =====
+      const fisico = Object.values(acumulador).reduce((sum, val) => sum + val, 0);
+      const diferencia = Math.abs(toNumber(item.cStock) - fisico); // siempre positivo
+      const estado = diferencia === 0 ? 'CORRECTO' : 'SOBRANTE';
+
+      return {
+        id: item.id,
+        CODIGOBARRAS: item.cCodigoBarra,
+        REFERENCIA: item.cReferencia,
+        DESCRIPCION: item.cDescripcion,
+        TALLA: item.cTalla,
+        COLOR: item.cColor,
+        CODIGOBARRAS2: item.cCodigoBarra2,
+        CODIGOBARRAS3: item.cCodigoBarra3,
+        DEPARTAMENTO: item.cDepartamento,
+        SECCION: item.cSeccion,
+        FAMILIA: item.cFamilia,
+        SUBFAMILIA: item.cSubFamilia,
+        STYLEDESCRIPTION: item.cStyleDesc,
+        ESENCIA: item.cEsencia,
+        STOCK: item.cStock,
+
+        ...acumulador,          // columnas de zonas
+
+        FISICO: fisico,
+        DIFERENCIA: diferencia,
+        ESTADO: estado,
+        RECONTEO: '',           // vacío
+        FISFIN: fisico,
+        DIFFIN: diferencia,
+        ESTFIN: estado
+      };
+    });
+  }
+
 
   private getInventoryExportRows(data: any[]) {
     return data.map(item => {
@@ -674,6 +1009,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
 
     this.dataTable.forEach((item: any) => {
       Object.keys(item).forEach(columna => {
+
         const valor = toNumber(item[columna]);
         const columnaLower = columna.toLowerCase();
         const inicial = columna.charAt(0).toUpperCase();
@@ -694,6 +1030,8 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
           acumulador['Venta'] += valor;
         }
       });
+
+      // console.log('📊 Datos para estadística de barras:',  acumulador);
     });
 
     const categoriasConDatos = Object.keys(acumulador).filter(key => acumulador[key] > 0);
@@ -710,5 +1048,35 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     };
 
     this.cdr.markForCheck();
+  }
+
+  async onChangeReporte(data: any) {
+    const selectData = data.key;
+    this.tipoReporte = selectData;
+    console.log('Reporte seleccionado:', selectData);
+  }
+
+  exportarReporte() {
+    if (this.tipoReporte === 'aInterna') {
+      this.exportarExcel();
+    }
+
+    if (this.tipoReporte === 'aGeneral') {
+      this.exportarExcelGeneral();
+    }
+  }
+
+  onZonaSub() {
+    this.invService.getZonaVista().subscribe((zonas) => {
+      this.zonasSub = zonas;
+    });
+  }
+
+  onZonesList() {
+    this.invService.getZonas().subscribe({
+      next: (zonas) => {
+        this.dataZonas = zonas;
+      }
+    });
   }
 }

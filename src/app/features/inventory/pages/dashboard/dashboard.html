@@ -169,7 +169,7 @@
           <ng-template matTabContent>
             @if(arAsignatedSections && pocketScan && dataInventario){
             <view-2-inventario (onAllDataProcess)="onAllDataProcess($event)" (onChangeInventario)="loadInventary()"
-              [inAsignatedSections]="arAsignatedSections" [pocketScan]="pocketScan" [onDataView]=dataInventario>
+              [inAsignatedSections]="arAsignatedSections" [pocketScan]="pocketScan" [onDataView]=dataInventario [onDataConteo]="dataExportar">
             </view-2-inventario>
             }
           </ng-template>

@@ -1,0 +1,18 @@
+<h2 mat-dialog-title>{{data.title}}</h2>
+<mat-dialog-content>
+<div class="filtros-bar">
+    <div class="filtro-item">
+        <select [(ngModel)]="selectedZona" (ngModelChange)="onZonaChange()">
+            <option *ngFor="let z of zonas" [value]="z.zona_id">
+                {{ z.nombre_zona }}
+            </option>
+        </select>
+    </div>
+
+</div>
+
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+    <button type="button" class="btn btn-light btn-sm" style="margin-right: 10px;" (click)="onNoClick()">Cancelar</button>
+    <button type="button" class="btn btn-primary btn-sm" [mat-dialog-close]="data">Guardar</button>
+</mat-dialog-actions>

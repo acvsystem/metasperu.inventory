@@ -212,7 +212,7 @@ export default class InventorySession {
   }
 
   getSections() {
-    this.inventoryService.getSections().subscribe({
+    this.inventoryService.getSubzonas().subscribe({
       next: (data) => {
         (data || []).filter((sec) => {
           (this.arSections || []).push({
