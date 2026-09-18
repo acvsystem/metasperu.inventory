@@ -29,21 +29,68 @@
         <mat-tab label="Inventario Pocket">
           <ion-grid>
             <ion-row>
-              <ion-col size="12" size-md="6">
+              <ion-col size="12" size-md="3">
                 <ion-card class="stat-card">
                   <ion-card-content>
                     <div class="stat-info">
                       <ion-icon name="cube-outline" color="primary"></ion-icon>
                       <div>
-                        <p>Total Unidades</p>
-                        <h2>{{ totalUnidades() | number }}</h2>
+                        <div style="display: inline-flex;width: 100%;">
+                          <p style="margin-right: 19px;">Total Stock</p>|<p style="margin-left: 19px;">Filtrado</p>
+                        </div>
+                        <div style="display: inline-flex;justify-content: center;align-items: end;">
+                          <h2>{{ totalStock() }} | </h2>
+                          <p style="font-size: 20px;margin-left: 5px;color: green;">
+                            {{stockFilter}}</p>
+                        </div>
                       </div>
                     </div>
                   </ion-card-content>
                 </ion-card>
               </ion-col>
 
-              <ion-col size="12" size-md="6">
+              <ion-col size="12" size-md="3">
+                <ion-card class="stat-card">
+                  <ion-card-content>
+                    <div class="stat-info">
+                      <ion-icon name="barcode-outline" color="tertiary"></ion-icon>
+                      <div>
+
+                        <div style="display: inline-flex;width: 100%;">
+                          <p style="margin-right: 19px;">Total Conteo</p>|<p style="margin-left: 19px;">Filtrado</p>
+                        </div>
+                        <div style="display: inline-flex;justify-content: center;align-items: end;">
+                          <h2>{{ totalUnidades() | number }} | </h2>
+                          <p style="font-size: 20px;margin-left: 5px;color: green;">
+                            {{conteoFilter}}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </ion-card-content>
+                </ion-card>
+              </ion-col>
+
+              <ion-col size="12" size-md="3">
+                <ion-card class="stat-card">
+                  <ion-card-content>
+                    <div class="stat-info">
+                      <ion-icon name="cube-outline" color="primary"></ion-icon>
+                      <div>
+                        <div style="display: inline-flex;width: 100%;">
+                          <p style="margin-right: 19px;">Diferencias</p>|<p style="margin-left: 19px;">Filtrado</p>
+                        </div>
+                        <div style="display: inline-flex;justify-content: center;align-items: end;">
+                          <h2>{{ totalDiferencia() }} | </h2>
+                          <p style="font-size: 20px;margin-left: 5px;color: green;">
+                            {{diferenciaFilter}}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </ion-card-content>
+                </ion-card>
+              </ion-col>
+
+              <ion-col size="12" size-md="3">
                 <ion-card class="stat-card">
                   <ion-card-content>
                     <div class="stat-info">
@@ -56,6 +103,8 @@
                   </ion-card-content>
                 </ion-card>
               </ion-col>
+
+
             </ion-row>
           </ion-grid>
 
@@ -169,7 +218,8 @@
           <ng-template matTabContent>
             @if(arAsignatedSections && pocketScan && dataInventario){
             <view-2-inventario (onAllDataProcess)="onAllDataProcess($event)" (onChangeInventario)="loadInventary()"
-              [inAsignatedSections]="arAsignatedSections" [pocketScan]="pocketScan" [onDataView]=dataInventario [onDataConteo]="dataExportar">
+              [inAsignatedSections]="arAsignatedSections" [pocketScan]="pocketScan" [onDataView]=dataInventario
+              [onDataConteo]="dataExportar">
             </view-2-inventario>
             }
           </ng-template>

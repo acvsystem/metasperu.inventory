@@ -29,6 +29,7 @@ import { ModalConteo } from './component/modal-conteo/modal-conteo';
 import { MatBadgeModule } from '@angular/material/badge';
 import { View3Inventario } from './component/view-3-inventario/view-3-inventario';
 import { MtLoader } from '@metasperu/component/mt-loader/mt-loader';
+
 export interface tableColumns {
   matColumnDef: string;
   titleColumn: string;
@@ -36,6 +37,18 @@ export interface tableColumns {
   filterActive?: boolean;
   id?: number;
 }
+
+const toNumber = (value: any) => {
+  const numericValue = typeof value === 'string' ? value.replace(',', '.').trim() : value;
+  const numberValue = Number(numericValue);
+  return Number.isFinite(numberValue) ? numberValue : 0;
+};
+
+const inventoryDifference = (conteo: any, stock: any) => {
+  const conteoValue = toNumber(conteo);
+  const stockValue = toNumber(stock);
+  return conteoValue - Math.abs(stockValue);
+};
 
 const sectionColumnKey = (name: string) => (name || '').trim().replace(/\s+/g, '_').toLowerCase();
 
@@ -55,6 +68,7 @@ const sectionColumnKey = (name: string) => (name || '').trim().replace(/\s+/g, '
 export default class DashboardComponent implements OnInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
+
   // Inyecciones de dependencias
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -73,6 +87,15 @@ export default class DashboardComponent implements OnInit {
   totalSkusCount = signal<number>(0);
   uniqueSkusCount = signal<number>(0);
   isLoading = signal(false);
+
+  totalStock = signal<number>(0);
+  totalConteo = signal<number>(0);
+  totalDiferencia = signal<number>(0);
+
+  stockFilter: number = 0;
+  conteoFilter: number = 0;
+  diferenciaFilter: number = 0;
+
   dataInventario: Array<any> = [];
   arAsignatedSections: Array<any> = [];
   dataSource = new MatTableDataSource(this.products());
@@ -95,52 +118,40 @@ export default class DashboardComponent implements OnInit {
   );
 
   constructor(public dialog: MatDialog, private socketInv: InventorySocketService) {
-
-    // Registrar iconos de Ionic
     addIcons({ radioOutline, cubeOutline, barcodeOutline, refreshOutline, checkmarkDoneCircle, hourglassOutline });
 
-    // Efecto reactivo: Cuando el socket reciba una actualización, refrescamos los datos
     effect(() => {
       const notification = this.socketService.syncNotification();
 
       if (notification) {
-        // 1. Recargamos la tabla principal para ver los nuevos totales
         this.loadData();
-
-        // 2. Opcional: Mostrar un Toast rápido informando cuántos productos llegaron
         this.presentToast(`Se sincronizaron ${notification.count} productos nuevos.`);
       }
 
       const inventarioSocket = this.socketService.syncInventarioStore();
       if (inventarioSocket?.length) {
-        console.log('📦 Inventario recibido socket:', inventarioSocket);
         this.setCachedInventory(inventarioSocket);
         this.dataInventario = inventarioSocket;
         this.isDatabase = true;
         this.isLoading2 = false;
       }
-
-      console.log('📦 Datos para exportar actualizados:', this.dataExportar);
     });
   }
 
   ngOnInit() {
-    // Obtener el código de la URL: /admin/dashboard/XYZ123
     this.sessionCode = this.route.snapshot.paramMap.get('code') || '';
     this.serieStore = this.route.snapshot.paramMap.get('serie') || '';
-    //this.asignedSections();
 
     if (!this.sessionCode) {
       this.router.navigate(['/inventory/session']);
       return;
     }
 
-    // Unirse a la sala de socket para recibir actualizaciones en tiempo real
     this.socketService.joinSession(this.sessionCode);
     this.asignedSections();
     const offlineData = localStorage.getItem('offline_inventory');
     const cachedInventario = this.getCachedInventory();
-    console.log('📦 Datos en cache:', cachedInventario?.length, 'Datos offline:', offlineData ? 'Sí' : 'No');
+
     if (offlineData) {
       this.isLoading2 = false;
     } else if (cachedInventario?.length) {
@@ -151,8 +162,7 @@ export default class DashboardComponent implements OnInit {
       this.loadInventary();
     }
 
-    // ... tu código existente ...
-
+    // Configuración del filtro con restablecimiento a 0 si no hay criterios activos
     this.dataSource.filterPredicate = (data: any, filter: string) => {
       let searchCriteria: any;
       try {
@@ -161,26 +171,46 @@ export default class DashboardComponent implements OnInit {
         searchCriteria = {};
       }
 
-      // Evaluamos cada columna que tenga un filtro activo
+      let hasActiveFilters = false;
+
       for (let column in searchCriteria) {
         const searchValue = searchCriteria[column];
-        if (!searchValue) continue;
+        if (!searchValue || searchValue.trim() === '') continue;
 
+        hasActiveFilters = true;
         const cellValue = data[column] ? data[column].toString().toLowerCase() : '';
 
-        // CAMBIO AQUÍ: Validamos coincidencia exacta de toda la celda 
-        // o puedes usar cellValue === searchValue si quieres que sea exacto al 100%.
-        if (cellValue !== searchValue) {
-          return false;
+        if (searchValue.endsWith(' ')) {
+          const exactWord = searchValue.trim();
+          const wordsInCell = cellValue.split(' ');
+          if (!wordsInCell.includes(exactWord)) {
+            return false;
+          }
+        } else {
+          if (column === 'section_name' || column === 'sku') {
+            if (cellValue !== searchValue.trim()) {
+              return false;
+            }
+          } else {
+            if (!cellValue.includes(searchValue.trim())) {
+              return false;
+            }
+          }
         }
       }
+
+      if (!hasActiveFilters) {
+        this.stockFilter = 0;
+        this.conteoFilter = 0;
+        this.diferenciaFilter = 0;
+      }
+
       return true;
     };
+    this.onLoadInventarioHeader();
   }
 
-
   onAllDataProcess(data: any[]) {
-    console.log('📦 Datos completos del inventario recibidos en Dashboard:', data);
     this.allDataProcess = data;
   }
 
@@ -193,15 +223,14 @@ export default class DashboardComponent implements OnInit {
           localStorage.removeItem('offline_inventory');
           this.dataInventario = [];
           const inventario = res?.inventario;
-          console.log('📦 Inventario recibido bd:', inventario.length);
           this.isDatabase = true;
           this.dataInventario = inventario;
           this.setCachedInventory(inventario);
+          this.onLoadInventarioHeader();
         }
         this.isLoading2 = false;
       },
-      error: (err) => {
-        console.log(err);
+      error: () => {
         this.isLoading2 = false;
         const cachedInventario = this.getCachedInventory();
         if (cachedInventario?.length) {
@@ -210,6 +239,23 @@ export default class DashboardComponent implements OnInit {
         }
       }
     });
+  }
+
+  onLoadInventarioHeader() {
+
+    let totalStockGlobal = 0;
+    let totalConteoGlobal = 0;
+
+    this.dataInventario.forEach(item => {
+      const stock = toNumber(item.cStock);
+      const conteo = toNumber(item.cConteo);
+      totalStockGlobal += stock;
+      totalConteoGlobal += conteo;
+    });
+
+    this.totalStock.set(totalStockGlobal);
+    this.totalConteo.set(totalConteoGlobal);
+    this.totalDiferencia.set(this.totalUnidades() - this.totalStock());
   }
 
   private get inventoryCacheKey() {
@@ -221,7 +267,6 @@ export default class DashboardComponent implements OnInit {
     try {
       const cached = localStorage.getItem(this.inventoryCacheKey);
       if (!cached) return [];
-
       return JSON.parse(cached);
     } catch (error) {
       localStorage.removeItem(this.inventoryCacheKey);
@@ -237,9 +282,6 @@ export default class DashboardComponent implements OnInit {
     }
   }
 
-  /**
-   * Carga los datos acumulados de la sesión desde el backend
-   */
   loadData() {
     this.isLoading.set(true);
 
@@ -247,9 +289,8 @@ export default class DashboardComponent implements OnInit {
       next: (res) => {
         const products = res.products;
         const uniqueSkusSet = new Set<string>();
-
         const sectionsById = new Map(this.arAsignatedSections.map(section => [section.id, section]));
-        console.log('📦 products:', products);
+
         const formattedData = products.map((item: any) => {
           const seccionObj = sectionsById.get(item.seccion_id);
 
@@ -277,8 +318,8 @@ export default class DashboardComponent implements OnInit {
           return objReturn;
         }).reverse();
 
-        this.totalSkusCount.set(products.length); // Total de registros
-        this.uniqueSkusCount.set(uniqueSkusSet.size); // SKUs sin repetir
+        this.totalSkusCount.set(products.length);
+        this.uniqueSkusCount.set(uniqueSkusSet.size);
 
         this.pocketScan = formattedData;
         this.products.set(formattedData);
@@ -289,40 +330,29 @@ export default class DashboardComponent implements OnInit {
 
         this.isLoading.set(false);
 
+        this.dataExportar = this.dataSource.data.map(item => ({
+          'CODBARRAS': item.sku,
+          'USUARIO': item.user,
+          'ZONA': item.nombre_zona,
+          'SUBZONA': item.section_name,
+          'UNIDADES': item.total_cantidad * 1,
+        }));
 
-        const dataParaExportar = this.dataSource.data.map(item => {
-          return {
-            'CODBARRAS': item.sku,
-            'USUARIO': item.user,
-            'ZONA': item.nombre_zona,
-            'SUBZONA': item.section_name,
-            'UNIDADES': item.total_cantidad * 1,
-          };
-        });
-
-        this.dataExportar = dataParaExportar;
-        console.log('📦 Datos para exportar actualizados en loadData():', this.dataExportar);
+        this.totalDiferencia.set(this.totalUnidades() - this.totalStock());
       },
-      error: (err) => {
-
+      error: () => {
         this.isLoading.set(false);
       }
     });
   }
 
-  /**
-   * Muestra confirmación para cerrar el inventario
-   */
   async confirmCloseSession() {
     const alert = await this.alertCtrl.create({
       header: 'Cerrar Inventario',
       message: '¿Estás seguro de finalizar esta sesión? Los operarios ya no podrán enviar más escaneos.',
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
-        {
-          text: 'Sí, Finalizar',
-          handler: () => this.closeSession()
-        }
+        { text: 'Sí, Finalizar', handler: () => this.closeSession() }
       ]
     });
     await alert.present();
@@ -342,7 +372,6 @@ export default class DashboardComponent implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe({
-
       next: (result) => {
         if (result) {
           this.invService.putPocketScan({ id: result.id, cantidad: result.cantidad }).subscribe({
@@ -386,31 +415,56 @@ export default class DashboardComponent implements OnInit {
 
   applyFilter(data: any) {
     if (!data) return;
-    const { id, value } = data;
+    const { value } = data;
     this.inFilter = value ?? "";
-    const filterValue = value;
-    this.dataSource.filter = filterValue.trim().toLowerCase();
+    this.dataSource.filter = value.trim().toLowerCase();
   }
 
   applyFilterTable(event: Event, column: string) {
     const filterValue = (event.target as HTMLInputElement).value;
-
     const property: any = this.dataColumns.find((t) => t.matColumnDef == column);
     const indexHeader: any = this.dataColumns.findIndex((t) => t.matColumnDef == column);
 
     this.dataColumns[indexHeader]['filterActive'] = filterValue.length ? true : false;
-
-    // Guardamos el valor limpio en minúsculas
     this.filterValues[property?.propertyValue] = filterValue.trim().toLowerCase();
 
-    // Convertimos a JSON como ya lo hacías
+    // Si todos los filtros están vacíos, reseteamos a 0 de inmediato
+    const allEmpty = Object.values(this.filterValues).every((val: any) => !val || val.trim() === '');
+    if (allEmpty) {
+      this.stockFilter = 0;
+      this.conteoFilter = 0;
+      this.diferenciaFilter = 0;
+    } else {
+      this.dataSource.filter = JSON.stringify(this.filterValues);
+      const dataFilter = this.dataSource.filteredData;
+      this.processDataFilter(dataFilter);
+    }
+
     this.dataSource.filter = JSON.stringify(this.filterValues);
+  }
+
+  processDataFilter(currentData: any) {
+    const totales = currentData.reduce((acc: any, curr: any) => {
+      const conteo = toNumber(curr.total_cantidad);
+      const dataSearch = this.dataInventario.find(item => item.cCodigoBarra == curr.sku);
+      const stock = dataSearch ? toNumber(dataSearch.cStock) : 0;
+
+      return {
+        sumaConteo: acc.sumaConteo + conteo,
+        sumaStock: acc.sumaStock + stock,
+        sumaDiferencia: acc.sumaDiferencia + inventoryDifference(conteo, stock)
+      };
+    }, { sumaConteo: 0, sumaStock: 0, sumaDiferencia: 0 });
+
+    this.stockFilter = totales.sumaStock;
+    this.conteoFilter = totales.sumaConteo;
+    this.diferenciaFilter = totales.sumaDiferencia;
   }
 
   private onNotification(result: any) {
     let notificationList = [{
-      isSuccess: !result?.error?.length ? true : false,
-      isError: result?.error?.length ? true : false,
+      isSuccess: !result?.error?.length,
+      isError: !!result?.error?.length,
       bodyNotification: result?.message
     }];
 
@@ -418,26 +472,21 @@ export default class DashboardComponent implements OnInit {
   }
 
   exportarExcel() {
-    // 1. Mapeamos los datos para que el Excel tenga nombres de columnas bonitos
-    const dataParaExportar = this.dataSource.data.map(item => {
-      return {
-        'CODBARRAS': item.sku,
-        'USUARIO': item.user,
-        'ZONA': item.nombre_zona,
-        'SUBZONA': item.section_name,
-        'UNIDADES': item.total_cantidad * 1,
-      };
-    });
+    const dataParaExportar = this.dataSource.data.map(item => ({
+      'CODBARRAS': item.sku,
+      'USUARIO': item.user,
+      'ZONA': item.nombre_zona,
+      'SUBZONA': item.section_name,
+      'UNIDADES': item.total_cantidad * 1,
+    }));
 
-    this.dataExportar = dataParaExportar; // Guardamos los datos para exportar en la propiedad de la clase
-    // 2. Creamos el libro y la hoja de trabajo
+    this.dataExportar = dataParaExportar;
     const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(dataParaExportar);
     const workbook: XLSX.WorkBook = {
       Sheets: { 'Inventario': worksheet },
       SheetNames: ['Inventario']
     };
 
-    // 3. Generamos el archivo y lo descargamos
     const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
     worksheet['!autofilter'] = { ref: XLSX.utils.encode_range(XLSX.utils.decode_range(worksheet['!ref']!)) };
     this.saveAsExcelFile(excelBuffer, 'Cruce_Inventario');
@@ -452,6 +501,7 @@ export default class DashboardComponent implements OnInit {
     link.click();
     window.URL.revokeObjectURL(url);
   }
+
   tabIndex = 0;
   onTabChange(index: number) {
     this.tabIndex = index;
