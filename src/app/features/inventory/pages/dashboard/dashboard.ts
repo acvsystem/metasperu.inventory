@@ -595,4 +595,73 @@ export default class DashboardComponent implements OnInit, OnDestroy {
     this.selectedSectionId = (selectData || {}).key || 0;
   }
 
+  importExcelInventario(event: any) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = async (e: any) => {
+      try {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const rawData: any[] = XLSX.utils.sheet_to_json(worksheet);
+        const codStore = localStorage.getItem('serieStore');
+        // Mapeo según la estructura de tu tabla inventario_store
+        const formattedData = rawData.map(item => ({
+          cSessionCode: this.sessionCode,           // Se fuerza el código de sesión actual
+          codigo_sesion: this.sessionCode,          // Por si tu API también lo usa
+          cCodigoTienda: codStore || item['Código Tienda'] || null,
+          cCodigoArticulo: item.cCodigoArticulo || item['Código Artículo'] || null,
+          cReferencia: item.cReferencia || item.Referencia || null,
+          cCodigoBarra: item.cCodigoBarra || item['Código Barra'] || null,
+          cCodigoBarra2: item.cCodigoBarra2 || item['Código Barra 2'] || null,
+          cCodigoBarra3: item.cCodigoBarra3 || item['Código Barra 3'] || null,
+          cDescripcion: item.cDescripcion || item.Descripción || item.Descripcion || null,
+          cDepartamento: item.cDepartamento || item.Departamento || null,
+          cSeccion: item.cSeccion || item.Sección || item.Seccion || null,
+          cFamilia: item.cFamilia || item.Familia || null,
+          cSubFamilia: item.cSubFamilia || item['Sub Familia'] || item.SubFamilia || null,
+          cTalla: item.cTalla || item.Talla || null,
+          cColor: item.cColor || item.Color || null,
+          cEsencia: item.cEsencia || item.Esencia || null,
+          cStyleDescription: item.cStyleDescription || item.cStyleDesc || item['Style Description'] || null,
+          cStock: Number(item.cStock) || 0,
+          cTemporada: item.cTemporada || item.Temporada || '',
+          cConteo: Number(item.cConteo) || 0,
+          cTotalConteo: inventoryDifference(item.cConteo, item.cStock), // Calcula la diferencia
+          checking: 0
+        }));
+
+        console.log('Datos formateados:', formattedData);
+
+        // Enviar a la API
+        await this.enviarInventarioAApi(formattedData);
+
+      } catch (error) {
+        console.error('Error al procesar el Excel:', error);
+        // Aquí puedes mostrar un toast o alerta
+      }
+    };
+
+    reader.readAsArrayBuffer(file);
+  }
+
+  async enviarInventarioAApi(formattedData: any[]) {
+    try {
+      const response = await this.invService.impInventarioSession(
+        this.sessionCode,
+        formattedData
+      ).toPromise();
+
+      this.loadInventary();
+      this.onNotification(response);
+      // Aquí puedes mostrar un mensaje de éxito
+    } catch (error) {
+      console.error('Error al importar:', error);
+    }
+  }
+
 }

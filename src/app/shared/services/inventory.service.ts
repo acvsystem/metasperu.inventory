@@ -290,4 +290,16 @@ export class InventoryService {
             catchError(this.handleError)
         );
     }
+
+    impInventarioSession(sessionCode: string, items: any[]): Observable<any> {
+        return this.http.post(
+            `${this.API_URL}/api/import/store/sesion`,   // ← Cambia esta ruta por la real de tu backend
+            {
+                sessionCode: sessionCode,
+                items: items
+            }
+        ).pipe(
+            catchError(this.handleError)
+        );
+    }
 }

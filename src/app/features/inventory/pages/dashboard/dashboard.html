@@ -119,6 +119,13 @@
             <ion-list-header>
               <ion-label>Detalle de Conteo por Producto</ion-label>
 
+              <input type="file" #fileInput style="display: none"
+                (change)="importExcelInventario($event); $event.target.value = ''" accept=".xlsx, .xls">
+              <button mat-raised-button class="btn-excel-upload" (click)="fileInput.click()">
+                <mat-icon>upload</mat-icon>
+                <span>Importar Inventario</span>
+              </button>
+
               <ion-row>
                 <ion-col sizeXs="12" sizeSm="12" sizeMd="12" sizeLg="12">
                   <mt-select [data]="cboSections" (selectdOption)="onChangeSelect($event)"
