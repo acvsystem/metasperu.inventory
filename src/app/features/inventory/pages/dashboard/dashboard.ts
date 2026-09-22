@@ -666,4 +666,104 @@ export default class DashboardComponent implements OnInit, OnDestroy {
     }
   }
 
+
+  importExcelConteo(event: any) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // limpiar input para poder reimportar el mismo archivo
+    event.target.value = '';
+
+    const reader = new FileReader();
+
+    reader.onload = async (e: any) => {
+      try {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const rawData: any[] = XLSX.utils.sheet_to_json(worksheet, { defval: null });
+
+        if (!rawData.length) {
+          console.warn('El Excel está vacío');
+          return;
+        }
+
+        // Mapeo → API resuelve subzona/usuario a IDs en el backend
+        const items = rawData
+          .map((row) => {
+            const sku = (
+              row.sku ??
+              row.SKU ??
+              row.codbarra ??
+              row.CODIGO_BARRA ??
+              row.cCodigoBarra ??
+              row.codigo_barra ??
+              ''
+            )
+              .toString()
+              .trim();
+
+            const cantidad = Number(
+              row.cantidad ??
+              row.CANTIDAD ??
+              row.qty ??
+              row.quantity ??
+              row.unidades ??
+              0
+            );
+
+            const subzona = (
+              row.subzona ??
+              row.SUBZONA ??
+              row.seccion ??
+              row.SECCION ??
+              row.nombre_seccion ??
+              ''
+            )
+              .toString()
+              .trim();
+
+            const usuario = (
+              row.usuario ??
+              row.USUARIO ??
+              row.username ??
+              row.USERNAME ??
+              ''
+            )
+              .toString()
+              .trim();
+
+            return { sku, cantidad, subzona, usuario };
+          })
+          .filter((item) => item.sku && Number.isFinite(item.cantidad) && item.cantidad > 0);
+
+        if (!items.length) {
+          console.warn('No hay filas válidas (sku + cantidad > 0)');
+          return;
+        }
+
+        console.log(`Filas a importar: ${items.length}`, items.slice(0, 5));
+
+        const sessionCode = this.sessionCode;
+
+        this.invService.impConteoSession(sessionCode, items).subscribe({
+          next: (res) => {
+            console.log('Import OK:', res);
+            this.onNotification(res);
+            this.loadData();
+          },
+          error: (err) => {
+            console.error('Error al importar conteo:', err);
+            this.onNotification(err);
+          }
+        });
+      } catch (error) {
+        console.error('Error al procesar el Excel:', error);
+      }
+    };
+
+    reader.readAsArrayBuffer(file);
+  }
+
 }

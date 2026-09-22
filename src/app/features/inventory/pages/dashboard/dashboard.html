@@ -120,7 +120,7 @@
               <ion-label>Detalle de Conteo por Producto</ion-label>
 
               <input type="file" #fileInput style="display: none"
-                (change)="importExcelInventario($event); $event.target.value = ''" accept=".xlsx, .xls">
+                (change)="importExcelConteo($event); $event.target.value = ''" accept=".xlsx, .xls">
               <button mat-raised-button class="btn-excel-upload" (click)="fileInput.click()">
                 <mat-icon>upload</mat-icon>
                 <span>Importar Inventario</span>
