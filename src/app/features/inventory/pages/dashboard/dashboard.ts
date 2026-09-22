@@ -5,7 +5,7 @@ import {
   IonHeader, IonToolbar, IonTitle, IonContent, IonGrid, IonRow,
   IonCol, IonCard, IonLabel,
   IonButtons, IonButton, IonIcon, IonChip,
-  AlertController, ToastController, IonListHeader, IonCardContent, IonBadge
+  AlertController, ToastController, IonListHeader, IonCardContent
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { radioOutline, cubeOutline, barcodeOutline, refreshOutline, checkmarkDoneCircle, hourglassOutline } from 'ionicons/icons';
@@ -28,6 +28,7 @@ import { ModalConteo } from './component/modal-conteo/modal-conteo';
 import { MatBadgeModule } from '@angular/material/badge';
 import { View3Inventario } from './component/view-3-inventario/view-3-inventario';
 import { MtLoader } from '@metasperu/component/mt-loader/mt-loader';
+import { MtSelect } from '@metasperu/component/mt-select/mt-select';
 
 export interface tableColumns {
   matColumnDef: string;
@@ -58,8 +59,8 @@ const sectionColumnKey = (name: string) => (name || '').trim().replace(/\s+/g, '
     CommonModule, RouterModule, View2Inventario, MatTabsModule, Statistics, MatBadgeModule,
     IonHeader, IonToolbar, IonTitle, IonContent, IonGrid, IonRow, MatSidenavModule, MtLoader,
     IonCol, IonCard, IonLabel, IonListHeader, MatIconModule, MatTooltipModule, View3Inventario,
-    IonButtons, IonButton, IonIcon, IonChip, IonCardContent, MatTableModule, IonBadge,
-    MatPaginator, MatPaginatorModule, MatSortModule, MtInput, MatMenuModule
+    IonButtons, IonButton, IonIcon, IonChip, IonCardContent, MatTableModule,
+    MatPaginator, MatPaginatorModule, MatSortModule, MtInput, MatMenuModule, MtSelect
   ],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss'
@@ -104,7 +105,7 @@ export default class DashboardComponent implements OnInit, OnDestroy {
   filterValues: any = {};
   allDataProcess: any[] = [];
   dataExportar: any[] = [];
-
+  cboSections: any[] = [];
   displayedColumns = ['sku', 'usuario', 'zona', 'subzona', 'cantidad', 'accion'];
   dataColumns: tableColumns[] = [
     { matColumnDef: 'sku', titleColumn: 'Sku', propertyValue: 'sku', filterActive: false, id: 0 },
@@ -215,11 +216,11 @@ export default class DashboardComponent implements OnInit, OnDestroy {
     };
 
     // Auto-sincronizar cada 45 segundos si hay pendientes
-   /* this.autoSyncInterval = setInterval(() => {
-      if (this.pendingCount() > 0 && !this.isLoading()) {
-        this.sincronizar(true); // true = silencioso
-      }
-    }, 45000);*/
+    /* this.autoSyncInterval = setInterval(() => {
+       if (this.pendingCount() > 0 && !this.isLoading()) {
+         this.sincronizar(true); // true = silencioso
+       }
+     }, 45000);*/
   }
 
   ngOnDestroy() {
@@ -405,7 +406,13 @@ export default class DashboardComponent implements OnInit, OnDestroy {
   private asignedSections() {
     this.invService.getAssignedSections(this.sessionCode).subscribe({
       next: (res) => {
+        console.log(res);
         this.arAsignatedSections = res || [];
+        this.cboSections = [];
+        res.map((section: any) => {
+          this.cboSections.push({ key: section.id, value: section.nombre_seccion, id: section.seccion_id_fk });
+        });
+
         this.loadData(); // Primera carga de la tabla
       },
       error: (err) => {
@@ -413,6 +420,20 @@ export default class DashboardComponent implements OnInit, OnDestroy {
       }
     });
   }
+
+  deleteSectionConteo() {
+    this.invService.delSectionConteo(this.sessionCode, this.selectedSectionId).subscribe({
+      next: (res) => {
+        console.log(res);
+        this.loadData();
+        this.onNotification(res);
+      },
+      error: (err) => {
+        this.onNotification({ error: 'error', message: err?.message });
+      }
+    });
+  }
+
 
   // ====================== FILTROS ======================
   applyFilter(data: any) {
@@ -565,4 +586,13 @@ export default class DashboardComponent implements OnInit, OnDestroy {
   onTabChange(index: number) {
     this.tabIndex = index;
   }
+  selectedSection: any = {};
+  selectedSectionId: any = 0;
+
+  async onChangeSelect(data: any) {
+    const selectData = data || {};
+    this.selectedSection = selectData;
+    this.selectedSectionId = (selectData || {}).key || 0;
+  }
+
 }

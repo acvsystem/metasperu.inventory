@@ -278,4 +278,16 @@ export class InventoryService {
             catchError(this.handleError)
         );
     }
+
+    delSectionConteo(session_code: string, seccion_id: number): Observable<any> {
+        return this.http.post(
+            `${this.API_URL}/api/delete/zona/escaneo`,
+            {
+                session_code: session_code,
+                seccion_id: seccion_id
+            }
+        ).pipe(
+            catchError(this.handleError)
+        );
+    }
 }
