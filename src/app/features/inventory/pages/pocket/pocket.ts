@@ -35,6 +35,7 @@ export default class Pocket {
   @ViewChild('paginatorH') paginatorH!: MatPaginator;
   @ViewChild('sortP') sortP!: MatSort;
   @ViewChild('sortH') sortH!: MatSort;
+
   sessionCode = signal('');
   skuInput = signal('');
   pendingCount = signal(0);
@@ -57,6 +58,13 @@ export default class Pocket {
   selectedSection: any = null;
   historyScans: any = [];
   dataHistory = new MatTableDataSource(this.historyScans);
+
+  // ========== VARIABLES PARA DOBLE ESCANEO ==========
+  private lastScannedCode: string | null = null;
+  private lastScanTime: number = 0;
+  private readonly DOUBLE_SCAN_THRESHOLD = 450; // milisegundos
+  // =================================================
+
   constructor(
     private dialog: MatDialog,
     private pocketService: PocketInventoryService,
@@ -68,10 +76,7 @@ export default class Pocket {
     this.asignedSections(valueCode).then(() => {
       this.onDataTable(valueCode);
 
-
       this.pocketService.getHistoryScans(this.sessionCode()).then((bd: any[]) => {
-        // Usamos .map para transformar cada item del array original
-
         const formattedData = bd.map(item => {
           return {
             sku: item.sku,
@@ -90,8 +95,9 @@ export default class Pocket {
     if (!valueCode?.length) {
       this.openVerification();
     } else {
-      this.sessionCode.set(valueCode); // Correcto: usar .set()
+      this.sessionCode.set(valueCode);
     }
+
     let oldSku = localStorage.getItem('oldSku');
     let oldCantidad = localStorage.getItem('oldCantidad');
     this.oldSKU = oldSku || "";
@@ -102,8 +108,6 @@ export default class Pocket {
     window.addEventListener('offline', () => this.onNetworkChange(false));
     const userRole = localStorage.getItem('role');
     this.isPermision = userRole == 'administrador' || userRole == 'auditor' ? true : false;
-
-
   }
 
   async onNetworkChange(status: boolean) {
@@ -129,25 +133,60 @@ export default class Pocket {
   onFiltroBar(ev: any) {
     this.isckeckedSku = ev?.checked || false;
   }
+
   saveOldSku(sku: string, cantidad: any) {
     this.oldSKU = sku;
     this.oldCantidad = cantidad;
     localStorage.setItem('oldSku', sku);
     localStorage.setItem('oldCantidad', cantidad);
   }
+
   // --- FUNCIÓN DE ESCANEO AUTOMÁTICO ---
   async handleScan() {
-    const sku = this.isckeckedSku ? this.skuInput().trim().replace(/^0+/, '') : this.skuInput().trim();
+    const sku = this.isckeckedSku
+      ? this.skuInput().trim().replace(/^0+/, '')
+      : this.skuInput().trim();
+
     console.log(sku);
+
+    // ========== VALIDACIÓN DE DOBLE ESCANEO ==========
+    const now = Date.now();
+
+    if (
+      this.lastScannedCode === sku &&
+      (now - this.lastScanTime) < this.DOUBLE_SCAN_THRESHOLD
+    ) {
+      this.playErrorSound();
+      this.onNotification({
+        error: 'error',
+        message: 'Se escaneó el mismo código 2 veces en milisegundos'
+      });
+
+      // Limpiar el input y devolver el foco
+      // this.skuInput.set('');
+      setTimeout(() => {
+        this.barcodeInput?.setFocus();
+      }, 50);
+
+      return; // No continúa el proceso
+    }
+
+    // Actualizar último escaneo válido
+    this.lastScannedCode = sku;
+    this.lastScanTime = now;
+    // ================================================
+
     if (this.OptionTypeScan == 'pistola') {
       if (!sku || !this.selectedSectionId) {
+        this.playErrorSound();
         this.onNotification({ error: 'error', message: 'Llene todos los campos' });
-        return
+        return;
       }
     } else {
       if (!sku || !this.selectedSectionId || !this.inCantidad) {
+        this.playErrorSound();
         this.onNotification({ error: 'error', message: 'Llene todos los campos' });
-        return
+        return;
       }
     }
 
@@ -155,7 +194,7 @@ export default class Pocket {
 
     if (Number.isNaN(cantidad)) {
       this.onNotification({ error: 'error', message: 'Lo ingresado no es un numero.' });
-      return
+      return;
     }
 
     // 1. Guardar localmente
@@ -178,7 +217,6 @@ export default class Pocket {
     }
 
     this.inCantidad = "";
-
     this.onRefreshSectionCount();
   }
 
@@ -186,7 +224,6 @@ export default class Pocket {
     this.saveOldSku(sku, cantidad);
     await this.pocketService.saveScanLocally(seccion_id, session_code, sku, cantidad);
   }
-
 
   async sync() {
     const success = await this.pocketService.syncWithBackend(this.sessionCode());
@@ -212,7 +249,6 @@ export default class Pocket {
             if (this.arAsignatedSections.length) {
               resolve(this.arAsignatedSections);
             }
-
           }
         },
         error: (err) => {
@@ -269,10 +305,7 @@ export default class Pocket {
 
   onDataTable(sessionCode: string) {
     this.pocketService.syncIndexedBD(sessionCode).then((bd: any[]) => {
-
-      // Usamos .map para transformar cada item del array original
       const formattedData = bd.map(item => {
-
         const seccionObj = this.arAsignatedSections.find(s => s.key === item.seccion_id);
 
         return {
@@ -283,11 +316,9 @@ export default class Pocket {
         };
       }).reverse();
 
-      // 3. Asignamos los datos a la tabla
       this.dataSource.data = formattedData;
       this.dataSource.paginator = this.paginatorP;
       this.dataSource.sort = this.sortP;
-
     });
   }
 
@@ -297,5 +328,29 @@ export default class Pocket {
     this.inFilter = value ?? "";
     const filterValue = value;
     this.dataHistory.filter = filterValue.trim().toLowerCase();
+  }
+
+  // ========== SONIDO DE ERROR ==========
+
+  private playErrorSound() {
+    // 1. Reproducir sonido
+    try {
+      const audio = new Audio('assets/sounds/error-beep.mp3');
+      audio.volume = 1.0;
+      audio.play().catch(() => {
+        console.warn('No se pudo reproducir el sonido de error');
+      });
+    } catch (e) {
+      console.warn('Error al reproducir sonido', e);
+    }
+
+    // 2. Hacer vibrar el dispositivo
+    this.vibrateError();
+  }
+
+  private vibrateError() {
+    if (navigator.vibrate) {
+      navigator.vibrate([500, 80, 500, 80, 500, 80, 800]);
+    }
   }
 }

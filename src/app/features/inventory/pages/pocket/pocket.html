@@ -91,6 +91,9 @@
         <ion-col sizeXs="12" sizeSm="12" sizeMd="3" sizeLg="3">
           <mt-input (afterChange)="applyFilter($event)" label="Filtro" placeholder="Filtro"></mt-input>
         </ion-col>
+        <ion-col sizeXs="12" sizeSm="12" sizeMd="2" sizeLg="2" class="button-content">
+          <button class="btn btn-primary" (click)="sync()"> Sincronizar</button>
+        </ion-col>
       </ion-row>
       <ion-row>
         <ion-col sizeXs="12" sizeSm="12" sizeMd="12" sizeLg="12">

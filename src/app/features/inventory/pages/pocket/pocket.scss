@@ -64,6 +64,12 @@ video {
     align-items: center !important;
 }
 
+.button-content {
+    display: flex !important;
+    justify-content: left !important;
+    align-items: center !important;
+}
+
 //INPUT
 
 .search-item {
@@ -96,7 +102,7 @@ video {
             color: #3b82f6 !important;
             background: white; // Para que tape la línea del borde si es necesario
             padding: 0 4px;
-            
+
         }
 
         // Ajuste del contenedor de entrada nativo
