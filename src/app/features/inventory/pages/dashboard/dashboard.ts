@@ -656,8 +656,10 @@ export default class DashboardComponent implements OnInit, OnDestroy {
         formattedData
       ).toPromise();
 
-      this.loadInventary();
       this.onNotification(response);
+      setTimeout(() => {
+        this.loadInventary();
+      }, 2000);
       // Aquí puedes mostrar un mensaje de éxito
     } catch (error) {
       console.error('Error al importar:', error);
