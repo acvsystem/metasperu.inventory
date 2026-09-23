@@ -37,7 +37,7 @@ export class InventoryService {
     private http = inject(HttpClient);
 
     // Cambia esta URL según tu entorno de desarrollo/producción
-    private readonly API_URL = 'https://api.metasperu.net.pe/s3/inventory';
+    private readonly API_URL = 'http://localhost:3001/s3/inventory';
 
     // Estado reactivo de la sesión actual
     public activeSession = signal<SessionResponse | null>(null);
@@ -93,9 +93,45 @@ export class InventoryService {
         );
     }
 
-    getSessionSummaryv2(sessionCode: string): Observable<any> {
+    getSessionSummaryv2(sessionCode: string, params?: any): Observable<any> {
+        let httpParams = new HttpParams();
+
+        if (params) {
+            Object.keys(params).forEach(key => {
+                if (params[key] !== null && params[key] !== undefined) {
+                    httpParams = httpParams.append(key, params[key]);
+                }
+            });
+        }
+
         return this.http.get(
-            `${this.API_URL}/v2/summary/${sessionCode}`
+            `${this.API_URL}/v2/summary/${sessionCode}`,
+            { params: httpParams }
+        ).pipe(
+            catchError(this.handleError)
+        );
+    }
+
+    exportSessionSummaryCsv(sessionCode: string, params?: any): Observable<Blob> {
+        let httpParams = new HttpParams();
+
+        if (params) {
+            Object.keys(params).forEach(key => {
+                if (params[key] !== null && params[key] !== undefined && params[key] !== '') {
+                    httpParams = httpParams.append(key, params[key]);
+                }
+            });
+        }
+
+        return this.http.get(`${this.API_URL}/v2/summary/${sessionCode}/export/csv`, {
+            params: httpParams,
+            responseType: 'blob'
+        });
+    }
+
+    getSessionStatistics(sessionCode: string): Observable<any> {
+        return this.http.get(
+            `${this.API_URL}/v2/summary/${sessionCode}/statistics`
         ).pipe(
             catchError(this.handleError)
         );
@@ -145,13 +181,82 @@ export class InventoryService {
         if (params) {
             Object.keys(params).forEach(key => {
                 if (params[key] !== null && params[key] !== undefined) {
-                    httpParams = httpParams.append(key, params[key]);
+                    if (Array.isArray(params[key])) {
+                        params[key].forEach((value: any) => {
+                            if (value !== null && value !== undefined && value !== '') {
+                                httpParams = httpParams.append(key, value);
+                            }
+                        });
+                    } else {
+                        httpParams = httpParams.append(key, params[key]);
+                    }
                 }
             });
         }
 
         // La URL quedará como: .../request/store?sessionCode=XXX&tiendaId=YYY
         return this.http.get<Store[]>(`${this.API_URL}/request/store`, { params: httpParams });
+    }
+
+    exportStoreInventoryCsv(params: any): Observable<Blob> {
+        let httpParams = new HttpParams();
+
+        if (params) {
+            Object.keys(params).forEach(key => {
+                if (params[key] !== null && params[key] !== undefined && params[key] !== '') {
+                    if (Array.isArray(params[key])) {
+                        params[key].forEach((value: any) => {
+                            if (value !== null && value !== undefined && value !== '') {
+                                httpParams = httpParams.append(key, value);
+                            }
+                        });
+                    } else {
+                        httpParams = httpParams.append(key, params[key]);
+                    }
+                }
+            });
+        }
+
+        return this.http.get(`${this.API_URL}/request/store/export/csv`, {
+            params: httpParams,
+            responseType: 'blob'
+        });
+    }
+
+    getStoreStatistics(params: any): Observable<any> {
+        let httpParams = new HttpParams();
+
+        if (params) {
+            Object.keys(params).forEach(key => {
+                if (params[key] !== null && params[key] !== undefined && params[key] !== '') {
+                    httpParams = httpParams.append(key, params[key]);
+                }
+            });
+        }
+
+        return this.http.get(`${this.API_URL}/request/store/statistics`, {
+            params: httpParams
+        }).pipe(
+            catchError(this.handleError)
+        );
+    }
+
+    getProductsWithoutDisplay(params: any): Observable<any> {
+        let httpParams = new HttpParams();
+
+        if (params) {
+            Object.keys(params).forEach(key => {
+                if (params[key] !== null && params[key] !== undefined && params[key] !== '') {
+                    httpParams = httpParams.append(key, params[key]);
+                }
+            });
+        }
+
+        return this.http.get(`${this.API_URL}/request/store/products-without-display`, {
+            params: httpParams
+        }).pipe(
+            catchError(this.handleError)
+        );
     }
 
     getSubzonas(): Observable<any[]> {
@@ -166,12 +271,53 @@ export class InventoryService {
         return this.http.get<any[]>(`${this.API_URL}/api/v2/zonas`);
     }
 
+    postZonas(nombreZona: string): Observable<any> {
+        return this.http.post(
+            `${this.API_URL}/api/v2/zonas`,
+            {
+                nombre_zona: nombreZona,
+            }
+        ).pipe(
+            catchError(this.handleError)
+        );
+    }
+
+    putZonas(zona_id: number, nombreZona: string): Observable<any> {
+        return this.http.put(
+            `${this.API_URL}/api/v2/zonas`,
+            {
+                zona_id,
+                nombre_zona: nombreZona,
+            }
+        ).pipe(
+            catchError(this.handleError)
+        );
+    }
+
     postSections(nombreSection: string): Observable<any> {
         return this.http.post(
             `${this.API_URL}/api/v1/seccion`,
             {
                 nombre_seccion: nombreSection,
             }
+        ).pipe(
+            catchError(this.handleError)
+        );
+    }
+
+    postSectionsBulk(data: any): Observable<any> {
+        return this.http.post(
+            `${this.API_URL}/api/v1/seccion/bulk`,
+            data
+        ).pipe(
+            catchError(this.handleError)
+        );
+    }
+
+    assignSectionsToSessionBulk(data: any): Observable<any> {
+        return this.http.post(
+            `${this.API_URL}/api/v1/seccion/session/bulk`,
+            data
         ).pipe(
             catchError(this.handleError)
         );

@@ -68,9 +68,11 @@ export class MtDatatable implements OnInit, OnChanges, AfterViewInit {
   }
 
   @Input() isChecking: Boolean = false;
+  @Input() serverMode = false;
   @Input() dataColumnsIn: columnsTable[] = [];
   @Input() extraColumns: Array<string> = [];
   @Output() currentDataFilter: EventEmitter<any> = new EventEmitter();
+  @Output() filterChange: EventEmitter<any> = new EventEmitter();
 
   dataSource = new MatTableDataSource<any>([]);
   filterValues: any = {};
@@ -79,6 +81,7 @@ export class MtDatatable implements OnInit, OnChanges, AfterViewInit {
   dataColumns: Array<any> = [];
   inFilter: string = "";
   private parsedFilterColumns = new Set<string>();
+  private serverFilterDebounce: any;
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -162,6 +165,22 @@ export class MtDatatable implements OnInit, OnChanges, AfterViewInit {
     const indexHeader: any = this.dataColumns.findIndex((t) => t.matColumnDef == column);
     this.dataColumns[indexHeader]['filterActive'] = filterValue.length ? true : false;
     this.filterValues[property?.propertyValue] = (cboValue || "").length ? cboValue : filterValue.trim().toLowerCase();
+
+    if (this.serverMode) {
+      if (this.serverFilterDebounce) {
+        clearTimeout(this.serverFilterDebounce);
+      }
+
+      const emitFilter = () => this.filterChange.emit({ ...this.filterValues });
+
+      if ((cboValue || "").length) {
+        emitFilter();
+      } else {
+        this.serverFilterDebounce = setTimeout(emitFilter, 500);
+      }
+      return;
+    }
+
     this.dataSource.filter = JSON.stringify(this.filterValues);
     this.datosFiltradosActuales = this.dataSource.filteredData;
     this.currentDataFilter.emit(this.datosFiltradosActuales);

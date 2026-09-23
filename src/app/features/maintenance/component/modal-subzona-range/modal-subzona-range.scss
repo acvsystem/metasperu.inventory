@@ -1,0 +1,42 @@
+.modal-form {
+    display: grid;
+    gap: 16px;
+    min-width: 320px;
+}
+
+.mode-group {
+    display: flex;
+    gap: 18px;
+}
+
+label {
+    display: grid;
+    gap: 6px;
+    font-size: 13px;
+    color: #374151;
+}
+
+input {
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    padding: 8px 10px;
+    min-height: 38px;
+    outline: none;
+}
+
+input:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.12);
+}
+
+.range-grid {
+    display: grid;
+    grid-template-columns: 90px 1fr 1fr;
+    gap: 12px;
+}
+
+.form-error {
+    color: #b42318;
+    font-size: 12px;
+    margin: 0;
+}

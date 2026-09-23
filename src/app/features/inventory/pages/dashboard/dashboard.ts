@@ -14,7 +14,7 @@ import { InventoryService } from '@metasperu/services/inventory.service';
 import { InventorySocketService } from '@metasperu/services/inventory-socket.service';
 import { View2Inventario } from './component/view-2-inventario/view-2-inventario';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MtInput } from '@metasperu/component/mt-input/mt-input';
 import * as XLSX from 'xlsx';
@@ -29,6 +29,7 @@ import { MatBadgeModule } from '@angular/material/badge';
 import { View3Inventario } from './component/view-3-inventario/view-3-inventario';
 import { MtLoader } from '@metasperu/component/mt-loader/mt-loader';
 import { MtSelect } from '@metasperu/component/mt-select/mt-select';
+import { firstValueFrom } from 'rxjs';
 
 export interface tableColumns {
   matColumnDef: string;
@@ -107,6 +108,19 @@ export default class DashboardComponent implements OnInit, OnDestroy {
   dataExportar: any[] = [];
   cboSections: any[] = [];
   displayedColumns = ['sku', 'usuario', 'zona', 'subzona', 'cantidad', 'accion'];
+  conteoPage = 1;
+  conteoPageSize = 10;
+  conteoTotalRows = 0;
+  conteoPageSizeOptions = [10, 20, 50, 100, 250, 500];
+  inventoryPage = 1;
+  inventoryPageSize = 50;
+  inventoryTotalRows = 0;
+  inventoryPageSizeOptions = [10, 20, 50, 100, 500, 1000];
+  inventorySummary: any = null;
+  inventoryFilteredSummary: any = null;
+  inventoryFilterOptions: any = null;
+  inventoryFilterValues: any = {};
+  pocketStatistics: any = null;
   dataColumns: tableColumns[] = [
     { matColumnDef: 'sku', titleColumn: 'Sku', propertyValue: 'sku', filterActive: false, id: 0 },
     { matColumnDef: 'usuario', titleColumn: 'Usuario', propertyValue: 'user', filterActive: false, id: 0 },
@@ -124,6 +138,9 @@ export default class DashboardComponent implements OnInit, OnDestroy {
   pendingCount = computed(() => this.socketService.pendingCount());
 
   private autoSyncInterval: any;
+  private conteoFilterDebounce: any;
+  private conteoRequestId = 0;
+  private inventoryRequestId = 0;
 
   constructor() {
     addIcons({
@@ -138,12 +155,14 @@ export default class DashboardComponent implements OnInit, OnDestroy {
     // Solo reaccionamos al inventario de tienda (stock)
     effect(() => {
       const inventarioSocket = this.socketService.syncInventarioStore();
-      if (inventarioSocket?.length) {
+      if (Array.isArray(inventarioSocket) && inventarioSocket.length) {
         this.setCachedInventory(inventarioSocket);
         this.dataInventario = inventarioSocket;
         this.isDatabase = true;
         this.isLoading2.set(false);
         this.onLoadInventarioHeader();
+      } else if (inventarioSocket?.refresh) {
+        this.loadInventary();
       }
     });
   }
@@ -160,17 +179,12 @@ export default class DashboardComponent implements OnInit, OnDestroy {
 
     this.socketService.joinSession(this.sessionCode);
     this.asignedSections();
+    this.loadPocketStatistics();
 
     const offlineData = localStorage.getItem('offline_inventory');
-    const cachedInventario = this.getCachedInventory();
 
     if (offlineData) {
       this.isLoading2.set(false);
-    } else if (cachedInventario?.length) {
-      this.dataInventario = cachedInventario;
-      this.isDatabase = true;
-      this.isLoading2.set(false);
-      this.onLoadInventarioHeader();
     } else {
       this.loadInventary();
     }
@@ -227,6 +241,10 @@ export default class DashboardComponent implements OnInit, OnDestroy {
     if (this.autoSyncInterval) {
       clearInterval(this.autoSyncInterval);
     }
+
+    if (this.conteoFilterDebounce) {
+      clearTimeout(this.conteoFilterDebounce);
+    }
   }
 
   // ====================== SINCRONIZAR ======================
@@ -262,9 +280,16 @@ export default class DashboardComponent implements OnInit, OnDestroy {
   // ====================== CARGA DE DATOS ======================
   loadData(onComplete?: () => void) {
     this.isLoading.set(true);
+    const requestId = ++this.conteoRequestId;
 
-    this.invService.getSessionSummaryv2(this.sessionCode).subscribe({
+    this.invService.getSessionSummaryv2(this.sessionCode, {
+      page: this.conteoPage,
+      pageSize: this.conteoPageSize,
+      ...this.filterValues
+    }).subscribe({
       next: (res) => {
+        if (requestId !== this.conteoRequestId) return;
+
         const products = res.products || [];
         const uniqueSkusSet = new Set<string>();
         const sectionsById = new Map(this.arAsignatedSections.map(s => [s.id, s]));
@@ -298,13 +323,17 @@ export default class DashboardComponent implements OnInit, OnDestroy {
           return objReturn;
         }).reverse();
 
-        this.totalSkusCount.set(products.length);
-        this.uniqueSkusCount.set(uniqueSkusSet.size);
+        const totals = res.totals || {};
+        const hasActiveFilters = this.hasActiveFilters(this.filterValues);
+        this.conteoTotalRows = res.pagination?.totalRows ?? totals.total_rows ?? products.length;
+        if (!hasActiveFilters) {
+          this.totalSkusCount.set(totals.total_rows ?? products.length);
+          this.uniqueSkusCount.set(totals.unique_skus ?? uniqueSkusSet.size);
+        }
         this.pocketScan = formattedData;
         this.products.set(formattedData);
 
         this.dataSource.data = formattedData;
-        this.dataSource.paginator = this.paginator;
         this.dataSource.sort = this.sort;
 
         this.dataExportar = formattedData.map((item: any) => ({
@@ -315,7 +344,18 @@ export default class DashboardComponent implements OnInit, OnDestroy {
           'UNIDADES': item.total_cantidad * 1
         }));
 
-        this.totalDiferencia.set(this.totalUnidades() - this.totalStock());
+        if (hasActiveFilters) {
+          this.stockFilter = toNumber(totals.total_stock);
+          this.conteoFilter = toNumber(totals.total_unidades);
+          this.diferenciaFilter = toNumber(totals.total_diferencia);
+        } else {
+          this.stockFilter = 0;
+          this.conteoFilter = 0;
+          this.diferenciaFilter = 0;
+          this.totalConteo.set(totals.total_unidades ?? this.totalUnidades());
+          this.totalDiferencia.set(this.totalConteo() - this.totalStock());
+        }
+        this.loadPocketStatistics();
         this.isLoading.set(false);
 
         // Ejecutamos el callback si existe (para quitar el loader)
@@ -324,6 +364,8 @@ export default class DashboardComponent implements OnInit, OnDestroy {
         }
       },
       error: () => {
+        if (requestId !== this.conteoRequestId) return;
+
         this.isLoading.set(false);
         this.isLoading2.set(false); // por si acaso
         this.presentToast('Error al cargar los datos de la sesión.');
@@ -340,15 +382,22 @@ export default class DashboardComponent implements OnInit, OnDestroy {
 
     this.invService.getStoreInventory({
       session_code: this.sessionCode,
-      serie_store: this.serieStore
+      serie_store: this.serieStore,
+      summaryOnly: true,
+      includeFilterOptions: true
     }).subscribe({
       next: (res: any) => {
-        if (res?.inventario) {
+        if (res?.summary) {
           localStorage.removeItem('offline_inventory');
-          this.dataInventario = res.inventario;
+          this.dataInventario = [];
           this.isDatabase = true;
-          this.setCachedInventory(res.inventario);
-          this.onLoadInventarioHeader();
+          this.inventoryTotalRows = res.summary.total_rows || 0;
+          this.inventorySummary = res.summary;
+          this.inventoryFilteredSummary = null;
+          this.inventoryFilterOptions = res.filterOptions || null;
+          this.totalStock.set(toNumber(res.summary.total_stock));
+          this.totalConteo.set(toNumber(res.summary.total_conteo));
+          this.totalDiferencia.set(toNumber(res.summary.total_diferencia));
         }
         this.isLoading2.set(false);
       },
@@ -364,7 +413,76 @@ export default class DashboardComponent implements OnInit, OnDestroy {
     });
   }
 
+  loadPocketStatistics() {
+    if (!this.sessionCode) return;
+
+    this.invService.getSessionStatistics(this.sessionCode).subscribe({
+      next: (res) => {
+        this.pocketStatistics = res;
+      },
+      error: () => {
+        this.presentToast('No se pudieron cargar las estadísticas completas de Pocket.');
+      }
+    });
+  }
+
+  loadInventaryPage(page = this.inventoryPage, pageSize = this.inventoryPageSize) {
+    this.isLoading2.set(true);
+    this.inventoryPage = page;
+    this.inventoryPageSize = pageSize;
+    const requestId = ++this.inventoryRequestId;
+
+    this.invService.getStoreInventory({
+      session_code: this.sessionCode,
+      serie_store: this.serieStore,
+      page,
+      pageSize,
+      ...this.inventoryFilterValues
+    }).subscribe({
+      next: (res: any) => {
+        if (requestId !== this.inventoryRequestId) return;
+
+        if (res?.inventario) {
+          localStorage.removeItem('offline_inventory');
+          this.dataInventario = res.inventario;
+          this.isDatabase = true;
+          this.inventoryTotalRows = res.pagination?.totalRows ?? res.summary?.total_rows ?? res.inventario.length;
+
+          if (res.summary) {
+            const hasActiveFilters = this.hasActiveFilters(this.inventoryFilterValues);
+            if (hasActiveFilters) {
+              this.inventoryFilteredSummary = res.summary;
+            } else {
+              this.inventorySummary = res.summary;
+              this.inventoryFilteredSummary = null;
+            }
+            this.inventoryFilterOptions = res.filterOptions || null;
+            if (!hasActiveFilters) {
+              this.totalStock.set(toNumber(res.summary.total_stock));
+              this.totalConteo.set(toNumber(res.summary.total_conteo));
+              this.totalDiferencia.set(toNumber(res.summary.total_diferencia));
+            }
+          }
+        }
+        this.isLoading2.set(false);
+      },
+      error: () => {
+        if (requestId !== this.inventoryRequestId) return;
+
+        this.isLoading2.set(false);
+        this.presentToast('No se pudo cargar la página de inventario.');
+      }
+    });
+  }
+
   onLoadInventarioHeader() {
+    if (this.inventorySummary) {
+      this.totalStock.set(toNumber(this.inventorySummary.total_stock));
+      this.totalConteo.set(toNumber(this.inventorySummary.total_conteo));
+      this.totalDiferencia.set(toNumber(this.inventorySummary.total_diferencia));
+      return;
+    }
+
     let totalStockGlobal = 0;
     let totalConteoGlobal = 0;
 
@@ -376,6 +494,13 @@ export default class DashboardComponent implements OnInit, OnDestroy {
     this.totalStock.set(totalStockGlobal);
     this.totalConteo.set(totalConteoGlobal);
     this.totalDiferencia.set(this.totalUnidades() - totalStockGlobal);
+  }
+
+  private hasActiveFilters(filters: any) {
+    return Object.values(filters || {}).some((value: any) => {
+      if (Array.isArray(value)) return value.some((item) => item !== null && item !== undefined && String(item).trim() !== '');
+      return value !== null && value !== undefined && String(value).trim() !== '';
+    });
   }
 
   // ====================== CACHE LOCAL ======================
@@ -395,6 +520,8 @@ export default class DashboardComponent implements OnInit, OnDestroy {
   }
 
   private setCachedInventory(inventario: any[]) {
+    if ((inventario || []).length > 5000) return;
+
     try {
       localStorage.setItem(this.inventoryCacheKey, JSON.stringify(inventario || []));
     } catch (error) {
@@ -452,19 +579,20 @@ export default class DashboardComponent implements OnInit, OnDestroy {
       this.dataColumns[indexHeader].filterActive = !!filterValue.length;
     }
 
-    this.filterValues[property?.propertyValue || column] = filterValue.trim().toLowerCase();
+    this.filterValues[property?.propertyValue || column] = filterValue.trim();
 
     const allEmpty = Object.values(this.filterValues).every((val: any) => !val || val.trim() === '');
     if (allEmpty) {
       this.stockFilter = 0;
       this.conteoFilter = 0;
       this.diferenciaFilter = 0;
-    } else {
-      this.dataSource.filter = JSON.stringify(this.filterValues);
-      this.processDataFilter(this.dataSource.filteredData);
     }
 
-    this.dataSource.filter = JSON.stringify(this.filterValues);
+    this.conteoPage = 1;
+    if (this.conteoFilterDebounce) {
+      clearTimeout(this.conteoFilterDebounce);
+    }
+    this.conteoFilterDebounce = setTimeout(() => this.loadData(), 500);
   }
 
   processDataFilter(currentData: any[]) {
@@ -551,23 +679,19 @@ export default class DashboardComponent implements OnInit, OnDestroy {
     this.invService.onNotification.emit(notificationList);
   }
 
-  exportarExcel() {
-    const dataParaExportar = this.dataSource.data.map(item => ({
-      'CODBARRAS': item.sku,
-      'USUARIO': item.user,
-      'ZONA': item.nombre_zona,
-      'SUBZONA': item.section_name,
-      'UNIDADES': item.total_cantidad * 1
-    }));
+  async exportarExcel() {
+    this.isLoading2.set(true);
+    this.titleLoader = 'Preparando exportación...';
 
-    const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(dataParaExportar);
-    const workbook: XLSX.WorkBook = {
-      Sheets: { 'Inventario': worksheet },
-      SheetNames: ['Inventario']
-    };
-
-    const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-    this.saveAsExcelFile(excelBuffer, 'Cruce_Inventario');
+    try {
+      const blob = await firstValueFrom(this.invService.exportSessionSummaryCsv(this.sessionCode, this.filterValues));
+      this.saveBlobFile(blob, `conteo_${this.sessionCode}.csv`);
+    } catch (error) {
+      console.error('Error al exportar conteos:', error);
+      this.presentToast('No se pudo exportar todo el conteo.');
+    } finally {
+      this.isLoading2.set(false);
+    }
   }
 
   private saveAsExcelFile(buffer: any, fileName: string): void {
@@ -582,9 +706,40 @@ export default class DashboardComponent implements OnInit, OnDestroy {
     window.URL.revokeObjectURL(url);
   }
 
+  private saveBlobFile(blob: Blob, fileName: string): void {
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    link.click();
+    window.URL.revokeObjectURL(url);
+  }
+
   tabIndex = 0;
   onTabChange(index: number) {
     this.tabIndex = index;
+
+    if (index === 1 && this.dataInventario.length === 0 && this.inventoryTotalRows > 0) {
+      this.loadInventaryPage(1, this.inventoryPageSize);
+    }
+  }
+
+  onConteoPageChange(event: PageEvent) {
+    this.conteoPage = event.pageIndex + 1;
+    this.conteoPageSize = event.pageSize;
+    this.loadData();
+  }
+
+  onInventoryPageChange(event: PageEvent) {
+    this.loadInventaryPage(event.pageIndex + 1, event.pageSize);
+  }
+
+  onInventoryFilterChange(filters: any) {
+    this.inventoryFilterValues = filters || {};
+    if (!this.hasActiveFilters(this.inventoryFilterValues)) {
+      this.inventoryFilteredSummary = null;
+    }
+    this.loadInventaryPage(1, this.inventoryPageSize);
   }
   selectedSection: any = {};
   selectedSectionId: any = 0;

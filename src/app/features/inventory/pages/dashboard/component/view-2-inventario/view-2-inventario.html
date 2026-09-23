@@ -56,7 +56,7 @@
                                 <mat-icon>repeat</mat-icon>
                             </button>
 
-                            <button (click)="drawer.toggle()" matTooltip="Estadisticas" type="button"
+                            <button (click)="loadStoreStatistics(); drawer.toggle()" matTooltip="Estadisticas" type="button"
                                 class="btn-stadistics">
                                 <i class="fa fa-bar-chart" aria-hidden="true"></i>
                             </button>
@@ -69,7 +69,7 @@
 
                             <button mat-raised-button class=" btn-excel" (click)="exportarReporte()" matTooltip="Exportar Excel">
                                 <mat-icon>file_download</mat-icon>
-                                <span class="record-count">{{ dataTable.length | number }} items</span>
+                                <span class="record-count">Exportar informe</span>
                             </button>
 
                             <div style="margin-bottom: 4px;display: flex;align-items: center;width: 20%;">
@@ -154,7 +154,8 @@
                 </ion-row>
 
                 @if(dataColumns.length > 0 && displayedColumns.length > 0){
-                <mt-datatable (currentDataFilter)="processDataFilter($event)" [isChecking]="true" [dataIn]="dataTable"
+                <mt-datatable (currentDataFilter)="processDataFilter($event)" (filterChange)="onServerFilterChange($event)"
+                    [serverMode]="true" [isChecking]="true" [dataIn]="dataTable"
                     [dataColumnsIn]="dataColumns" [extraColumns]="displayedColumns"></mt-datatable>
                 }
 

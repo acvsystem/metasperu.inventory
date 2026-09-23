@@ -4,6 +4,7 @@ import { IonRow, IonCol, IonIcon, IonCardContent, IonCard, IonGrid } from '@ioni
 import { MtSelect } from '@metasperu/component/mt-select/mt-select';
 import { InventoryService } from '@metasperu/services/inventory.service';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { PageEvent } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MtDatatable } from '@metasperu/component/mt-datatable/mt-datatable';
 import * as XLSX from 'xlsx';
@@ -16,6 +17,7 @@ import { MatIconModule } from '@angular/material/icon';
   styleUrl: './view-3-inventario.scss',
 })
 export class View3Inventario {
+  @Input() sessionCode = '';
   @Input() onDataView: Array<any> = [];
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -39,6 +41,11 @@ export class View3Inventario {
     'stock'];
 
   dataProcess: Array<any> = [];
+  page = 1;
+  pageSize = 50;
+  totalRows = 0;
+  pageSizeOptions = [10, 20, 50, 100, 250, 500];
+  isLoading = false;
 
   cboArea: Array<any> = [
     { key: 'Almacén', value: 'Almacén', isDefault: true },
@@ -93,7 +100,6 @@ export class View3Inventario {
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['onDataView'] && changes['onDataView'].currentValue) {
-      console.log('onDataView changed in View3Inventario:', changes['onDataView'].currentValue);
       this.dataIn = this.onDataView || [];
       this.onFilterDiffArea();
     }
@@ -174,6 +180,11 @@ export class View3Inventario {
   }
 
   onProcessDiff() {
+    if (this.sessionCode) {
+      this.loadProductsWithoutDisplay(1, this.pageSize);
+      return;
+    }
+
     const diferencia = this.obtenerCodigosFaltantes(this.dataParse[this.cbo_1], this.dataParse[this.cbo_2]);
     if (diferencia.length) {
       const diferenciaSet = new Set(diferencia);
@@ -182,6 +193,39 @@ export class View3Inventario {
       this.dataProcess = dataTable;
       console.log(this.dataProcess);
     }
+  }
+
+  loadProductsWithoutDisplay(page = this.page, pageSize = this.pageSize) {
+    const sourceArea = this.cbo_1 || 'Almacén';
+    const targetArea = this.cbo_2 || 'Venta';
+
+    this.isLoading = true;
+    this.page = page;
+    this.pageSize = pageSize;
+
+    this.invService.getProductsWithoutDisplay({
+      session_code: this.sessionCode,
+      sourceArea,
+      targetArea,
+      page,
+      pageSize
+    }).subscribe({
+      next: (res: any) => {
+        this.dataProcess = res?.products || [];
+        this.totalRows = res?.pagination?.totalRows || this.dataProcess.length;
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error al obtener productos sin exhibir:', error);
+        this.dataProcess = [];
+        this.totalRows = 0;
+        this.isLoading = false;
+      }
+    });
+  }
+
+  onPageChange(event: PageEvent) {
+    this.loadProductsWithoutDisplay(event.pageIndex + 1, event.pageSize);
   }
 
   async onChangeSelect(data: any) {

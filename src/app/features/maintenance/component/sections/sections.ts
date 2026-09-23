@@ -1,20 +1,27 @@
-import { Component, OnInit } from '@angular/core';
+import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { ModalSections } from '../modal-sections/modal-sections';
 import { InventoryService } from '@metasperu/services/inventory.service';
 import { ModalZonas } from '../modal-zonas/modal-zonas';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { ModalZonasSubzonas } from '../modal-zonas-subzonas/modal-zonas-subzonas';
+import { ModalSubzonaRange } from '../modal-subzona-range/modal-subzona-range';
+import { ModalAsignarSubzonasSesion } from '../modal-asignar-subzonas-sesion/modal-asignar-subzonas-sesion';
 @Component({
   selector: 'app-sections',
-  imports: [MatIconModule, MatButtonModule, MatTableModule, MatButtonToggleModule],
+  imports: [MatIconModule, MatButtonModule, MatTableModule, MatButtonToggleModule, MatPaginatorModule],
   templateUrl: './sections.html',
   styleUrl: './sections.scss',
 })
-export class Sections {
+export class Sections implements AfterViewInit {
+  @ViewChild('paginatorVista') paginatorVista!: MatPaginator;
+  @ViewChild('paginatorZonas') paginatorZonas!: MatPaginator;
+  @ViewChild('paginatorSubzonas') paginatorSubzonas!: MatPaginator;
+
   displayedColumns: string[] = ['id', 'zona', 'subzona', 'acciones'];
   dataSource = new MatTableDataSource<any>([]);
 
@@ -28,12 +35,22 @@ export class Sections {
   isVista: boolean = true;
   isZonas: boolean = false;
   isSubzonas: boolean = false;
+  pageSizeOptions = [10, 20, 50, 100];
   constructor(public dialog: MatDialog, private service: InventoryService) { }
 
   ngOnInit() {
     this.cargarDatos();
   }
 
+  ngAfterViewInit() {
+    this.bindPaginators();
+  }
+
+  private bindPaginators() {
+    if (this.paginatorVista) this.dataSource.paginator = this.paginatorVista;
+    if (this.paginatorZonas) this.dataSourceZonas.paginator = this.paginatorZonas;
+    if (this.paginatorSubzonas) this.dataSourceSubzonas.paginator = this.paginatorSubzonas;
+  }
 
   cambiarVista(vista: string) {
     console.log('Vista seleccionada:', vista);
@@ -56,12 +73,14 @@ export class Sections {
     this.service.getZonaVista().subscribe((zonas) => {
       this.dataSource.data = [];
       this.dataSource.data = zonas;
+      this.bindPaginators();
     });
   }
 
   onSubZonaList() {
     this.service.getSubzonas().subscribe((subzonas) => {
       this.dataSourceSubzonas.data = subzonas;
+      this.bindPaginators();
     });
   }
 
@@ -96,14 +115,78 @@ export class Sections {
 
   agregarZona() {
     const dialogRef = this.dialog.open(ModalZonas, {
-
-      data: { zonas: this.dataZonas } // Objeto vacío para nueva zona
+      width: '350px',
+      data: { nombre_zona: '', title: 'Agregar Zona' }
     });
 
     dialogRef.afterClosed().subscribe({
 
       next: (result) => {
-        console.log('Resultado del modal de zonas:', result);
+        const nombreZona = result?.nombre_zona?.trim()?.toUpperCase();
+        if (!nombreZona) return;
+
+        this.service.postZonas(nombreZona).subscribe({
+          next: (rs) => {
+            this.onZonesList();
+            this.onNotification(rs);
+          },
+          error: (err) => {
+            this.onNotification({ error: 'error', message: err?.message });
+          }
+        });
+      },
+      error: (err) => {
+        this.onNotification({ error: 'error', message: err?.message });
+      }
+    });
+  }
+
+  agregarSubzona() {
+    const dialogRef = this.dialog.open(ModalSubzonaRange, {
+      width: '430px',
+      data: { title: 'Agregar Subzona', mode: 'single' }
+    });
+
+    dialogRef.afterClosed().subscribe({
+      next: (result) => {
+        if (!result) return;
+
+        this.service.postSectionsBulk(result).subscribe({
+          next: (rs) => {
+            this.onSubZonaList();
+            this.onZonaSub();
+            this.onNotification(rs);
+          },
+          error: (err) => {
+            this.onNotification({ error: 'error', message: err?.message });
+          }
+        });
+      },
+      error: (err) => {
+        this.onNotification({ error: 'error', message: err?.message });
+      }
+    });
+  }
+
+  asignarSubzonasSesion() {
+    const dialogRef = this.dialog.open(ModalAsignarSubzonasSesion, {
+      width: '460px',
+      data: { title: 'Asignar Subzonas a Sesión', mode: 'range' }
+    });
+
+    dialogRef.afterClosed().subscribe({
+      next: (result) => {
+        if (!result) return;
+
+        this.service.assignSectionsToSessionBulk(result).subscribe({
+          next: (rs) => {
+            this.onZonaSub();
+            this.onNotification(rs);
+          },
+          error: (err) => {
+            this.onNotification({ error: 'error', message: err?.message });
+          }
+        });
       },
       error: (err) => {
         this.onNotification({ error: 'error', message: err?.message });
@@ -169,6 +252,7 @@ export class Sections {
       next: (zonas) => {
         this.dataZonas = zonas;
         this.dataSourceZonas.data = zonas;
+        this.bindPaginators();
       },
       error: (err) => {
         this.onNotification({ error: 'error', message: err?.message });
@@ -222,8 +306,19 @@ export class Sections {
 
       next: (result) => {
         if (result) {
-          this.onZonesList();
-          this.onNotification(result);
+          const nombreZona = result?.nombre_zona?.trim()?.toUpperCase();
+          if (!nombreZona) return;
+
+          this.service.putZonas(zona.zona_id, nombreZona).subscribe({
+            next: (rs) => {
+              this.onZonesList();
+              this.onZonaSub();
+              this.onNotification(rs);
+            },
+            error: (err) => {
+              this.onNotification({ error: 'error', message: err?.message });
+            }
+          });
         }
       },
       error: (err) => {

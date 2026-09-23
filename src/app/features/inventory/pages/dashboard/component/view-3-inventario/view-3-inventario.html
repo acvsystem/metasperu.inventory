@@ -29,6 +29,12 @@
 </ion-row>
 <ion-row>
     <ion-col>
+        @if (isLoading) {
+        <p style="padding: 8px 0;">Cargando productos sin exhibir...</p>
+        }
+        <mat-paginator [length]="totalRows" [pageSize]="pageSize" [pageSizeOptions]="pageSizeOptions"
+            (page)="onPageChange($event)" showFirstLastButtons aria-label="Paginación productos sin exhibir">
+        </mat-paginator>
         <mt-datatable [dataIn]="dataProcess" [dataColumnsIn]="dataColumns"
             [extraColumns]="displayedColumns"></mt-datatable>
     </ion-col>

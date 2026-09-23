@@ -2,7 +2,7 @@
     <div class="mat-elevation-z8" style="max-height: 604px;">
         <table mat-table [dataSource]="dataSource">
 
-            @for(col of dataColumns; track col){
+            @for(col of dataColumns; track col.matColumnDef){
 
             @if(col.matColumnDef == 'checking'){
             <ng-container [matColumnDef]="col.matColumnDef" [sticky]="col.isSticky">

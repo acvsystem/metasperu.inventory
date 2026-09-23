@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { ModalUsers } from '../modal-users/modal-users';
 import { StoreService } from '@metasperu/services/stores.service'
 import { InventoryService } from '@metasperu/services/inventory.service';
@@ -10,13 +11,15 @@ import { ModalStore } from '../modal-store/modal-store';
 
 @Component({
   selector: 'app-store',
-  imports: [MatIconModule, MatButtonModule, MatTableModule],
+  imports: [MatIconModule, MatButtonModule, MatTableModule, MatPaginatorModule],
   templateUrl: './store.html',
   styleUrl: './store.scss',
 })
-export class Store {
+export class Store implements AfterViewInit {
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
   displayedColumns: string[] = ['id', 'serie', 'nombre_tienda', 'estado', 'acciones'];
   dataSource = new MatTableDataSource<any>([]);
+  pageSizeOptions = [10, 20, 50, 100];
 
   constructor(public dialog: MatDialog, private serviceStore: StoreService, private service: InventoryService) { }
 
@@ -24,11 +27,16 @@ export class Store {
     this.cargarDatos();
   }
 
+  ngAfterViewInit() {
+    this.dataSource.paginator = this.paginator;
+  }
+
   cargarDatos() {
     // Simulación de carga desde API
 
     this.serviceStore.getStore().subscribe((store) => {
       this.dataSource.data = store;
+      this.dataSource.paginator = this.paginator;
     });
   }
 

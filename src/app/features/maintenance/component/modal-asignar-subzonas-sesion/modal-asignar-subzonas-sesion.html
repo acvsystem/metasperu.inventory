@@ -1,0 +1,48 @@
+<h2 mat-dialog-title>{{ data.title || 'Asignar Subzonas a Sesión' }}</h2>
+
+<mat-dialog-content>
+    <div class="modal-form">
+        <label>
+            <span>Código de sesión</span>
+            <input [(ngModel)]="data.session_code" type="text" placeholder="Ej. JF8KU7">
+        </label>
+
+        <mat-radio-group [(ngModel)]="data.mode" class="mode-group">
+            <mat-radio-button value="single">Solo una</mat-radio-button>
+            <mat-radio-button value="range">Por rango</mat-radio-button>
+        </mat-radio-group>
+
+        @if(data.mode === 'single'){
+        <label>
+            <span>Subzona</span>
+            <input [(ngModel)]="data.nombre_seccion" type="text" placeholder="Ej. M50">
+        </label>
+        }
+
+        @if(data.mode === 'range'){
+        <div class="range-grid">
+            <label>
+                <span>Letra</span>
+                <input [(ngModel)]="data.prefix" type="text" placeholder="M" maxlength="4">
+            </label>
+            <label>
+                <span>Desde</span>
+                <input [(ngModel)]="data.start" type="number" min="1" placeholder="50">
+            </label>
+            <label>
+                <span>Hasta</span>
+                <input [(ngModel)]="data.end" type="number" min="1" placeholder="300">
+            </label>
+        </div>
+        }
+
+        @if(error){
+        <p class="form-error">{{ error }}</p>
+        }
+    </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+    <button type="button" class="btn btn-light btn-sm" (click)="onNoClick()">Cancelar</button>
+    <button type="button" class="btn btn-primary btn-sm" (click)="save()">Asignar</button>
+</mat-dialog-actions>

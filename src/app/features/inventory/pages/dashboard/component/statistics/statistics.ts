@@ -10,6 +10,8 @@ import { BaseChartDirective } from 'ng2-charts';
 })
 export class Statistics {
   @Input() data: Array<any> = [];
+  @Input() stats: any = null;
+  private readonly chartColors = ['#1e3a8a', '#2563eb', '#0f766e', '#16a34a', '#f59e0b', '#dc2626', '#7c3aed', '#0891b2', '#be123c', '#4b5563'];
 
   // Configuración del gráfico de Barras (Usuarios)
   public barChartOptions: ChartConfiguration['options'] = {
@@ -26,9 +28,40 @@ export class Statistics {
   }
 
   ngOnChanges(changes: SimpleChanges) {
+    if (changes['stats'] && changes['stats'].currentValue) {
+      this.processStats();
+      return;
+    }
+
     if (changes['data'] && changes['data'].currentValue) {
       this.processData();
     }
+  }
+
+  private colorsFor(length: number) {
+    return Array.from({ length }, (_, index) => this.chartColors[index % this.chartColors.length]);
+  }
+
+  processStats() {
+    const byUser = this.stats?.byUser || [];
+    const bySection = this.stats?.bySection || [];
+
+    this.barChartData = {
+      labels: byUser.map((item: any) => item.label),
+      datasets: [{
+        data: byUser.map((item: any) => Number(item.value) || 0),
+        label: 'Total Escaneado',
+        backgroundColor: '#1e3a8a'
+      }]
+    };
+
+    this.pieChartData = {
+      labels: bySection.map((item: any) => item.label),
+      datasets: [{
+        data: bySection.map((item: any) => Number(item.value) || 0),
+        backgroundColor: this.colorsFor(bySection.length)
+      }]
+    };
   }
 
   processData() {
@@ -52,7 +85,7 @@ export class Statistics {
     // Cargar datos a Pie Chart
     this.pieChartData = {
       labels: Object.keys(secciones),
-      datasets: [{ data: Object.values(secciones), backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'] }]
+      datasets: [{ data: Object.values(secciones), backgroundColor: this.colorsFor(Object.keys(secciones).length) }]
     };
   }
 }

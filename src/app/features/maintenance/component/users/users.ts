@@ -1,21 +1,24 @@
-import { Component, OnInit } from '@angular/core';
+import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { ModalUsers } from '../modal-users/modal-users';
 import { UserService } from '@metasperu/services/users.service'
 import { InventoryService } from '@metasperu/services/inventory.service';
 
 @Component({
   selector: 'app-users',
-  imports: [MatIconModule, MatButtonModule, MatTableModule],
+  imports: [MatIconModule, MatButtonModule, MatTableModule, MatPaginatorModule],
   templateUrl: './users.html',
   styleUrl: './users.scss',
 })
-export class Users {
+export class Users implements AfterViewInit {
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
   displayedColumns: string[] = ['id', 'usuario', 'profile_name', 'rol', 'estado', 'acciones'];
   dataSource = new MatTableDataSource<any>([]);
+  pageSizeOptions = [10, 20, 50, 100];
 
   constructor(public dialog: MatDialog, private serviceUser: UserService, private service: InventoryService) { }
 
@@ -23,11 +26,16 @@ export class Users {
     this.cargarDatos();
   }
 
+  ngAfterViewInit() {
+    this.dataSource.paginator = this.paginator;
+  }
+
   cargarDatos() {
     // Simulación de carga desde API
 
     this.serviceUser.getUsers().subscribe((users) => {
       this.dataSource.data = users;
+      this.dataSource.paginator = this.paginator;
     });
   }
 

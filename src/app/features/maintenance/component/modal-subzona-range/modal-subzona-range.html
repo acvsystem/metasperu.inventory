@@ -1,0 +1,43 @@
+<h2 mat-dialog-title>{{ data.title || 'Crear Subzona' }}</h2>
+
+<mat-dialog-content>
+    <div class="modal-form">
+        <mat-radio-group [(ngModel)]="data.mode" class="mode-group">
+            <mat-radio-button value="single">Solo una</mat-radio-button>
+            <mat-radio-button value="range">Por rango</mat-radio-button>
+        </mat-radio-group>
+
+        @if(data.mode === 'single'){
+        <label>
+            <span>Subzona</span>
+            <input [(ngModel)]="data.nombre_seccion" type="text" placeholder="Ej. A150">
+        </label>
+        }
+
+        @if(data.mode === 'range'){
+        <div class="range-grid">
+            <label>
+                <span>Letra</span>
+                <input [(ngModel)]="data.prefix" type="text" placeholder="A" maxlength="4">
+            </label>
+            <label>
+                <span>Desde</span>
+                <input [(ngModel)]="data.start" type="number" min="1" placeholder="150">
+            </label>
+            <label>
+                <span>Hasta</span>
+                <input [(ngModel)]="data.end" type="number" min="1" placeholder="400">
+            </label>
+        </div>
+        }
+
+        @if(error){
+        <p class="form-error">{{ error }}</p>
+        }
+    </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+    <button type="button" class="btn btn-light btn-sm" (click)="onNoClick()">Cancelar</button>
+    <button type="button" class="btn btn-primary btn-sm" (click)="save()">Guardar</button>
+</mat-dialog-actions>

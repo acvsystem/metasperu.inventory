@@ -2,7 +2,7 @@
   <mat-drawer #drawer [mode]="'over'" position="end">
     <ion-row>
       <ion-col size="12" size-md="12">
-        <app-statistics [data]="products()"></app-statistics>
+        <app-statistics [data]="products()" [stats]="pocketStatistics"></app-statistics>
       </ion-col>
     </ion-row>
   </mat-drawer>
@@ -65,7 +65,7 @@
                           <p style="margin-right: 19px;">Total Conteo</p>|<p style="margin-left: 19px;">Filtrado</p>
                         </div>
                         <div style="display: inline-flex; justify-content: center; align-items: end;">
-                          <h2>{{ totalUnidades() | number }} | </h2>
+                          <h2>{{ totalConteo() | number }} | </h2>
                           <p style="font-size: 20px; margin-left: 5px; color: green;">
                             {{ conteoFilter }}
                           </p>
@@ -165,7 +165,7 @@
               </button>
 
               <!-- Botón Estadísticas -->
-              <button (click)="drawer.toggle()" matTooltip="Estadisticas" type="button" class="btn btn-primary btn-sm"
+              <button (click)="loadPocketStatistics(); drawer.toggle()" matTooltip="Estadisticas" type="button" class="btn btn-primary btn-sm"
                 style="margin-right: 10px;">
                 <i class="fa fa-bar-chart" aria-hidden="true"></i>
               </button>
@@ -255,7 +255,8 @@
                   </tr>
                 </table>
 
-                <mat-paginator [pageSizeOptions]="[10, 20, 30]" showFirstLastButtons
+                <mat-paginator [length]="conteoTotalRows" [pageSize]="conteoPageSize"
+                  [pageSizeOptions]="conteoPageSizeOptions" (page)="onConteoPageChange($event)" showFirstLastButtons
                   aria-label="Select page of periodic elements">
                 </mat-paginator>
               </ion-col>
@@ -267,8 +268,16 @@
         <mat-tab label="Cruce inventario">
           <ng-template matTabContent>
             @if (arAsignatedSections && pocketScan && dataInventario) {
-            <view-2-inventario (onAllDataProcess)="onAllDataProcess($event)" (onChangeInventario)="loadInventary()"
-              [inAsignatedSections]="arAsignatedSections" [pocketScan]="pocketScan" [onDataView]="dataInventario"
+            <mat-paginator [length]="inventoryTotalRows" [pageSize]="inventoryPageSize"
+              [pageSizeOptions]="inventoryPageSizeOptions" (page)="onInventoryPageChange($event)" showFirstLastButtons
+              aria-label="Paginación inventario tienda">
+            </mat-paginator>
+            <view-2-inventario (onAllDataProcess)="onAllDataProcess($event)" (onChangeInventario)="loadInventaryPage()"
+              (inventoryFilterChange)="onInventoryFilterChange($event)"
+              [sessionCode]="sessionCode" [serieStore]="serieStore"
+              [inventorySummary]="inventorySummary" [inventoryFilteredSummary]="inventoryFilteredSummary"
+              [inventoryFilterOptions]="inventoryFilterOptions"
+              [inAsignatedSections]="arAsignatedSections" [pocketScan]="[]" [onDataView]="dataInventario"
               [onDataConteo]="dataExportar">
             </view-2-inventario>
             }
@@ -278,7 +287,7 @@
         <!-- ===================== TAB 3: Productos sin exhibir ===================== -->
         <mat-tab label="Productos sin exhibir">
           <ng-template matTabContent>
-            <view-3-inventario [onDataView]="allDataProcess"></view-3-inventario>
+            <view-3-inventario [sessionCode]="sessionCode" [onDataView]="allDataProcess"></view-3-inventario>
           </ng-template>
         </mat-tab>
 
