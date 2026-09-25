@@ -29,8 +29,8 @@ export class PocketPerformance implements OnInit, OnDestroy {
   loading = false;
   error = '';
   inactivitySeconds = 300;
-  userColumns = ['user', 'scans', 'units', 'sections', 'elapsed', 'active', 'rate'];
-  sectionColumns = ['section', 'scans', 'units', 'first', 'last', 'elapsed', 'active'];
+  userColumns = ['user', 'scans', 'units', 'subzones', 'elapsed', 'active', 'rate'];
+  subzoneColumns = ['zone', 'subzone', 'scans', 'units', 'first', 'last', 'elapsed', 'active'];
   private request?: Subscription;
 
   constructor(
