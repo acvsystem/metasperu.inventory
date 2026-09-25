@@ -27,6 +27,7 @@ export class PocketChat implements OnInit, OnDestroy {
   private revision = 0;
   private pulseTimer?: ReturnType<typeof setTimeout>;
   private pending?: { body: string; client_id: string; peer: number };
+  private notificationAudio = new Audio('assets/sounds/error-beep.mp3');
   contacts: Contact[] = []; rows: Message[] = [];
   selected?: Contact; selectedId: number | null = null; opened = false; minimized = false; sending = false; loading = false;
   draft = ''; search = ''; error = ''; notice = ''; older = false; attention = false;
@@ -34,6 +35,8 @@ export class PocketChat implements OnInit, OnDestroy {
   get activeUnread() { return this.selected ? Number(this.contacts.find(c => c.id === this.selected?.id)?.unread || this.selected.unread || 0) : this.unread; }
   get filtered() { return this.contacts.filter(c => c.username.toLowerCase().includes(this.search.toLowerCase())); }
   ngOnInit() {
+    this.notificationAudio.preload = 'auto';
+    this.notificationAudio.volume = 0.55;
     void this.refresh();
     this.timer = setInterval(() => { if (!document.hidden) void this.refresh(); }, 30000);
     this.socketSub = this.socket.chatMessage$.subscribe(message => this.onSocketMessage(message));
@@ -54,7 +57,10 @@ export class PocketChat implements OnInit, OnDestroy {
       const list = await firstValueFrom(this.http.get<Contact[]>(`${this.url}/contacts`).pipe(timeout(15000)));
       if (this.destroyed) return;
       const incoming = list.find(c => Number(c.unread) > Number(this.contacts.find(old => old.id === c.id)?.unread || 0));
-      if (incoming) this.notice = `Nuevo mensaje de ${incoming.username}`;
+      if (incoming) {
+        this.notice = `Nuevo mensaje de ${incoming.username}`;
+        this.playNotificationTone();
+      }
       this.contacts = list; this.error = '';
       if (this.selected) {
         this.selected = this.contacts.find(c => c.id === this.selected?.id) || this.selected;
@@ -110,6 +116,8 @@ export class PocketChat implements OnInit, OnDestroy {
       mine
     };
 
+    if (!mine) this.playNotificationTone();
+
     this.contacts = this.contacts.map(c => {
       if (c.id !== peerId) return c;
       return { ...c, unread: this.opened && !this.minimized && this.selected?.id === peerId ? 0 : Number(c.unread || 0) + (mine ? 0 : 1) };
@@ -135,6 +143,13 @@ export class PocketChat implements OnInit, OnDestroy {
     }
 
     void this.refresh();
+  }
+  private playNotificationTone() {
+    try {
+      this.notificationAudio.pause();
+      this.notificationAudio.currentTime = 0;
+      this.notificationAudio.play().catch(() => {});
+    } catch {}
   }
   private flagAttention(name?: string) {
     this.attention = true;
