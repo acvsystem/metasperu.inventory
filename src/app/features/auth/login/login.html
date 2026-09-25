@@ -12,23 +12,23 @@
                 <div class="label-split">
                   <ion-label class="custom-label">Username</ion-label>
                 </div>
-                <ion-item lines="none" class="custom-input">
-                  <ion-input type="text" formControlName="username" placeholder="Ingrese su usuario"></ion-input>
-                </ion-item>
+                <div class="custom-input">
+                  <input type="text" formControlName="username" placeholder="Ingrese su usuario" autocomplete="username">
+                </div>
 
                 <div class="label-split" style="margin-top: 15px;">
                   <ion-label class="custom-label">Password</ion-label>
                 </div>
-                <ion-item lines="none" class="custom-input">
-                  <ion-input [type]="showPassword ? 'text' : 'password'" 
-                             formControlName="password"
-                             placeholder="••••••••"></ion-input>
-                  <ion-icon slot="end" 
-                            [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"
-                            (click)="togglePassword()" 
+                <div class="custom-input password-input">
+                  <input [type]="showPassword ? 'text' : 'password'"
+                         formControlName="password"
+                         placeholder="••••••••"
+                         autocomplete="current-password">
+                  <ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"
+                            (click)="togglePassword()"
                             class="password-icon">
                   </ion-icon>
-                </ion-item>
+                </div>
               </div>
 
               <ion-button expand="block" 

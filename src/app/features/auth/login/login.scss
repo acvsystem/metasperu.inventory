@@ -78,20 +78,43 @@ $text-light: #6b7280;
 }
 
 .custom-input {
-    --background: #{$input-bg};
+    background: $input-bg;
     border-radius: 12px;
-    --padding-start: 15px;
-    --inner-padding-end: 10px;
     height: 50px;
+    display: flex;
+    align-items: center;
+    padding: 0 15px;
+    border: 1px solid transparent;
+    transition: border-color .15s ease, box-shadow .15s ease;
 
-    ion-input {
-        --padding-top: 0;
-        --padding-bottom: 0;
+    &:focus-within {
+        border-color: $primary-blue;
+        box-shadow: 0 0 0 3px rgba(61, 90, 241, .12);
+    }
+
+    input {
+        width: 100%;
+        height: 100%;
+        border: 0;
+        outline: 0;
+        background: transparent;
+        color: $text-dark;
+        font-size: 15px;
+
+        &::placeholder {
+            color: $text-light;
+        }
+    }
+
+    &.password-input {
+        gap: 10px;
     }
 
     .password-icon {
+        flex: 0 0 auto;
         color: $text-light;
         cursor: pointer;
+        font-size: 22px;
     }
 }
 
