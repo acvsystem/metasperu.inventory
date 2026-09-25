@@ -48,13 +48,25 @@
           <div class="pn-last-count"><strong>{{ oldCantidad || 0 }}</strong><span class="pn-label">unidades</span></div>
         </div>
         <footer class="pn-footer">
-          <div><span class="pn-label">{{ optionSeccion || 'Seccion' }} · Enviados</span><strong>{{ countSkanSection || 0 }}</strong></div>
-          <button class="pn-pending" (click)="activePocketTab = 1"><span><span class="pn-label">Pendientes</span><strong>{{ pendingCount() }}</strong></span><mat-icon aria-hidden="true">chevron_right</mat-icon></button>
+          <div class="pn-stat"><span class="pn-label">{{ optionSeccion || 'Seccion' }} · Enviados</span><strong>{{ countSkanSection || 0 }}</strong></div>
+          <div class="pn-stat"><span class="pn-label">Unidades contadas</span><strong>{{ pendingUnits() }}</strong></div>
+          <button class="pn-pending pn-stat" (click)="activePocketTab = 1"><span><span class="pn-label">Pendientes</span><strong>{{ pendingCount() }}</strong></span><mat-icon aria-hidden="true">chevron_right</mat-icon></button>
           <button class="pn-sync" (click)="sync()" [disabled]="isSyncing || !isOnline() || !pendingCount() || editingId !== null"><mat-icon aria-hidden="true">sync</mat-icon>{{ isSyncing ? 'Sincronizando...' : 'Sincronizar' }}</button>
         </footer>
       </section>
     </mat-tab>
     <mat-tab label="Pendientes">
+
+      <section class="pending-summary" aria-label="Resumen de pendientes en memoria">
+        <div>
+          <span class="pn-label">Registros pendientes</span>
+          <strong>{{ pendingCount() }}</strong>
+        </div>
+        <div>
+          <span class="pn-label">Unidades contadas</span>
+          <strong>{{ pendingUnits() }}</strong>
+        </div>
+      </section>
 
       <ion-row class="pending-toolbar">
         <ion-col sizeXs="12" sizeSm="12" sizeMd="3" sizeLg="3">

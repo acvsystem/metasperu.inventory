@@ -1,28 +1,3 @@
-.pocket-sync-bar {
-    position: sticky;
-    top: 0;
-    z-index: 20;
-    display: grid;
-    grid-template-columns: 1.1fr 1.8fr .7fr 1fr;
-    gap: 12px;
-    align-items: center;
-    margin: -8px auto 10px;
-    padding: 10px 14px;
-    max-width: 980px;
-    border: 1px solid #dce6f8;
-    border-radius: 8px;
-    background: #f8fbff;
-    box-shadow: 0 2px 8px rgba(15, 23, 42, .08);
-    text-align: left;
-    color: #1f2937;
-}
-.pocket-sync-bar.is-sending { border-color: #66a3ff; background: #f1f7ff; }
-.pocket-sync-bar.is-success { border-color: #a8d9bd; background: #f2fbf6; }
-.pocket-sync-bar.is-error { border-color: #f0b4b4; background: #fff6f6; }
-.sync-kicker { display: block; font-size: 11px; color: #64748b; line-height: 14px; }
-.pocket-sync-bar strong { display: block; min-width: 0; font-size: 13px; line-height: 17px; overflow-wrap: anywhere; }
-.sync-progress { display: inline-block; margin-top: 2px; color: #0054d9; font-size: 12px; }
-
 // Pocket nuevo: isolated styles for the optional tab.
 .pocket-next {
     max-width: 680px;
@@ -66,17 +41,19 @@
     .pn-last > div { min-width: 0; }
     strong { display: block; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
     .pn-last-count { margin-left: auto; text-align: right; flex-shrink: 0; }
-    .pn-footer { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; align-items: center; gap: 16px; padding-top: 16px; }
+    .pn-footer { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: stretch; gap: 10px; padding-top: 16px; }
     .pn-footer strong { font-size: 22px; }
-    .pn-pending { display: flex; align-items: center; justify-content: space-between; gap: 8px; border: 0; border-left: 1px solid #e1e5e9; background: transparent; padding: 4px 0 4px 16px; text-align: left; color: #0054d9; }
-    .pn-sync { background: #eaf3ef; color: #17613f; }
+    .pn-stat { min-width: 0; padding: 10px 12px; border: 1px solid #e1e7ef; border-radius: 8px; background: #fbfdff; }
+    .pn-pending { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: #0054d9; text-align: left; }
+    .pn-sync { grid-column: 1 / -1; background: #eaf3ef; color: #17613f; }
     @media (max-width: 480px) {
         padding: 18px 0;
         .pn-header { gap: 6px; }
         .pn-mode { padding: 4px 8px; font-size: 11px; }
         .pn-settings { grid-template-columns: minmax(0, 1fr); gap: 14px; }
-        .pn-footer { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-        .pn-sync { grid-column: 1 / -1; }
+        .pn-footer { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+        .pn-pending { grid-column: 1 / -1; }
+        .pn-sync { grid-column: 1 / -1; min-height: 46px; }
         .with-quantity { grid-template-columns: minmax(0, 1fr) 86px; }
     }
 }
@@ -98,7 +75,30 @@
 .pending-quantity { width: 85px; }
 .mat-column-acciones { min-width: 105px; white-space: nowrap; }
 
-.pending-toolbar { padding-top: 12px; align-items: center; }
+.pending-toolbar { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; padding-top: 12px; align-items: center; }
+.pending-toolbar ion-col { width: auto !important; max-width: none !important; flex: initial !important; padding: 0; min-width: 0; }
+.pending-summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    max-width: 520px;
+    margin: 14px 0 2px;
+    text-align: left;
+}
+.pending-summary > div {
+    min-width: 0;
+    padding: 12px 14px;
+    border: 1px solid #dce6f8;
+    border-radius: 8px;
+    background: #f8fbff;
+}
+.pending-summary strong {
+    display: block;
+    margin-top: 2px;
+    color: #0054d9;
+    font-size: 24px;
+    font-variant-numeric: tabular-nums;
+}
 .pending-sync {
     display: flex;
     align-items: center;
@@ -114,13 +114,15 @@
 .pending-empty td { padding: 24px 12px; text-align: center; color: #616161; }
 
 @media (max-width: 600px) {
-    .pocket-sync-bar {
+    .pending-toolbar { grid-template-columns: minmax(0, 1fr); }
+    .pending-toolbar ion-col { padding: 0; }
+    .pending-summary {
         grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-        margin: -6px 0 8px;
-        padding: 9px 10px;
+        max-width: none;
+        margin-top: 12px;
     }
-    .pending-toolbar ion-col { padding: 4px 0; }
-    .pending-toolbar .button-content { padding-bottom: 12px; }
+    .pending-summary > div { padding: 10px 12px; }
+    .pending-toolbar .button-content { padding-bottom: 8px; }
     .pending-sync { width: 100%; min-height: 48px; }
     .pending-results > ion-col { padding: 0; min-width: 0; }
     .pending-table {

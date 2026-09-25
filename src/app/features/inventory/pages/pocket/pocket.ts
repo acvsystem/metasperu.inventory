@@ -85,6 +85,7 @@ export default class Pocket implements OnDestroy {
     try {
       await this.pocketService.updatePending(this.editingId, this.sessionCode(), this.editSku.trim(), quantity);
       this.editingId = null;
+      await this.updatePendingCount();
       this.onDataTable(this.sessionCode());
     } catch {
       this.onNotification({ error: 'error', message: 'No se pudo guardar el cambio.' });
@@ -138,6 +139,7 @@ export default class Pocket implements OnDestroy {
   sessionCode = signal('');
   skuInput = signal('');
   pendingCount = signal(0);
+  pendingUnits = signal(0);
   isOnline = signal(navigator.onLine);
   arAsignatedSections: Array<any> = [{ key: 0, values: '' }];
   selectedSectionId: number = 0;
@@ -362,8 +364,9 @@ export default class Pocket implements OnDestroy {
   }
 
   async updatePendingCount() {
-    const count = await db.scans.where({ session_code: this.sessionCode(), synced: 0 }).count();
-    this.pendingCount.set(count);
+    const pending = await db.scans.where({ session_code: this.sessionCode(), synced: 0 }).toArray();
+    this.pendingCount.set(pending.length);
+    this.pendingUnits.set(pending.reduce((total, scan) => total + Number(scan.quantity || 0), 0));
   }
 
   private asignedSections(sessionCode: string) {
