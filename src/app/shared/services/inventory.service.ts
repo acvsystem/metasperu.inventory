@@ -27,6 +27,13 @@ export interface pocketScan {
     cantidad: number;
 }
 
+export interface PocketPerformanceResponse {
+    users: any[];
+    sections: any[];
+    selectedUserId: number | null;
+    inactivitySeconds: number;
+}
+
 @Injectable({
     providedIn: 'root'
 })
@@ -132,6 +139,21 @@ export class InventoryService {
     getSessionStatistics(sessionCode: string): Observable<any> {
         return this.http.get(
             `${this.API_URL}/v2/summary/${sessionCode}/statistics`
+        ).pipe(
+            catchError(this.handleError)
+        );
+    }
+
+    getPocketPerformance(sessionCode: string, userId?: number | null): Observable<PocketPerformanceResponse> {
+        let httpParams = new HttpParams();
+
+        if (userId !== null && userId !== undefined) {
+            httpParams = httpParams.set('userId', userId);
+        }
+
+        return this.http.get<PocketPerformanceResponse>(
+            `${this.API_URL}/pocket/performance/${sessionCode}`,
+            { params: httpParams }
         ).pipe(
             catchError(this.handleError)
         );

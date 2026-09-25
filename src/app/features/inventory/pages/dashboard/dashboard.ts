@@ -30,6 +30,8 @@ import { View3Inventario } from './component/view-3-inventario/view-3-inventario
 import { MtLoader } from '@metasperu/component/mt-loader/mt-loader';
 import { MtSelect } from '@metasperu/component/mt-select/mt-select';
 import { firstValueFrom } from 'rxjs';
+import { PocketPerformance } from './component/pocket-performance/pocket-performance';
+import { PocketChat } from '@metasperu/component/pocket-chat/pocket-chat';
 
 export interface tableColumns {
   matColumnDef: string;
@@ -61,7 +63,7 @@ const sectionColumnKey = (name: string) => (name || '').trim().replace(/\s+/g, '
     IonHeader, IonToolbar, IonTitle, IonContent, IonGrid, IonRow, MatSidenavModule, MtLoader,
     IonCol, IonCard, IonLabel, IonListHeader, MatIconModule, MatTooltipModule, View3Inventario,
     IonButtons, IonButton, IonIcon, IonChip, IonCardContent, MatTableModule,
-    MatPaginator, MatPaginatorModule, MatSortModule, MtInput, MatMenuModule, MtSelect
+    MatPaginator, MatPaginatorModule, MatSortModule, MtInput, MatMenuModule, MtSelect, PocketChat
   ],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss'
@@ -494,6 +496,15 @@ export default class DashboardComponent implements OnInit, OnDestroy {
     this.totalStock.set(totalStockGlobal);
     this.totalConteo.set(totalConteoGlobal);
     this.totalDiferencia.set(this.totalUnidades() - totalStockGlobal);
+  }
+
+  openPocketPerformance() {
+    this.dialog.open(PocketPerformance, {
+      width: '1120px',
+      maxWidth: '96vw',
+      maxHeight: '92vh',
+      data: { sessionCode: this.sessionCode }
+    });
   }
 
   private hasActiveFilters(filters: any) {

@@ -1,119 +1,103 @@
 <ion-content class="ion-padding ion-text-center">
-
-  <mat-tab-group>
+  <mat-tab-group [selectedIndex]="activePocketTab" (selectedIndexChange)="activePocketTab = $event; $event === 2 ? loadHistory() : null">
     <mat-tab label="Pocket">
-      <div class="content-pocket">
-        <div style="width: 683px;margin-top: 10px;">
-          <div class="status-badge" [class.online]="isOnline()" [class.offline]="!isOnline()">
-            {{ isOnline() ? 'Conectado' : 'Modo Offline' }}
-          </div>
+      <section class="pocket-next">
+        <header class="pn-header">
+          <div class="pn-session"><span class="pn-label">Sesion de inventario</span><h2>{{ sessionCode() || 'Sin sesion' }}</h2></div>
+          <span class="pn-mode" [class.manual]="operationMode === 'manual'">
+            <mat-icon aria-hidden="true">{{ operationMode === 'manual' ? 'inventory_2' : 'cloud_done' }}</mat-icon>
+            {{ operationMode === 'manual' ? 'Modo manual' : 'Modo online' }}
+          </span>
+        </header>
 
-          <h2>Sesión: {{ sessionCode() }}</h2>
-
-          <ion-row>
-            <ion-col sizeXs="12" sizeSm="12" sizeMd="12" sizeLg="12">
-              <mat-radio-group [(ngModel)]="OptionTypeScan" aria-label="Select an option">
-                <mat-radio-button value="pistola">Pistola</mat-radio-button>
-                <mat-radio-button value="cantidad">Cantidad</mat-radio-button>
-              </mat-radio-group>
-              <div class="form-check form-switch" style="width: 100px;" *ngIf="isPermision">
-                <input class="form-check-input" type="checkbox" role="switch" (change)="onFiltroBar($event)"
-                  id="switchCheckChecked">
-                <label class="form-check-label" for="switchCheckChecked">Filtro SKU</label>
-              </div>
-            </ion-col>
-          </ion-row>
-
-          <ion-row>
-            <ion-col sizeXs="12" sizeSm="12" sizeMd="12" sizeLg="12">
-              <mt-select [data]="arAsignatedSections" (selectdOption)="onChangeSelect($event)"
-                label="Seleccione una seccion" title="Seciones"></mt-select>
-            </ion-col>
-          </ion-row>
-
-          <ion-row>
-            <ion-col [sizeXs]="OptionTypeScan == 'cantidad' ? 8: 12" [sizeSm]="OptionTypeScan == 'cantidad' ? 8: 12"
-              [sizeMd]="OptionTypeScan == 'cantidad' ? 10: 12" [sizeLg]="OptionTypeScan == 'cantidad' ? 10: 12">
-              <ion-item lines="none" class="search-item">
-                <ion-input label="SKU" label-placement="stacked" fill="outline" placeholder="Ingrese el SKU"
-                  #barcodeInput [value]="skuInput()" (ionInput)="skuInput.set($event.detail.value!)"
-                  (keyup.enter)="handleScan()" type="text" autofocus="true" inputmode="text">
-                </ion-input>
-              </ion-item>
-            </ion-col>
-            <ion-col sizeXs="4" sizeSm="4" sizeMd="2" sizeLg="2">
-              @if(OptionTypeScan == 'cantidad'){
-              <mt-input type="text" (afterChange)="onChangeInput($event)" label="Cantidad" [autoText]="inCantidad"
-                placeholder="Cantidad"></mt-input>
-              }
-            </ion-col>
-
-          </ion-row>
-
-          <ion-row>
-            <ion-col sizeXs="12" sizeSm="12" sizeMd="12" sizeLg="12">
-
-              <div class="sync-info" style="margin-bottom: 10px;">
-                <ion-chip>
-                  <ion-label>
-                    <strong>SKU:</strong> {{oldSKU || "---"}} : {{oldCantidad || 0}}
-                  </ion-label>
-                </ion-chip>
-
-                <ion-chip>
-                  <ion-label>
-                    <strong>SECCION:</strong> {{optionSeccion || "---"}} : {{countSkanSection || 0}}
-                  </ion-label>
-                </ion-chip>
-              </div>
-
-
-
-              <ion-button expand="block" (click)="handleScan()" color="primary">
-                Registrar Manual
-              </ion-button>
-
-              <div class="sync-info ion-margin-top">
-                <ion-chip [color]="pendingCount() > 0 ? 'warning' : 'success'">
-                  <ion-label>
-                    {{ pendingCount() > 0 ? pendingCount() + ' pendientes' : 'Sincronizado' }}
-                  </ion-label>
-                </ion-chip>
-              </div>
-            </ion-col>
-          </ion-row>
+        <div class="pn-settings">
+          <fieldset>
+            <legend>Registro</legend>
+            <div class="pn-segments">
+              <label><input type="radio" name="nextScan" value="pistola" [(ngModel)]="OptionTypeScan"><span><mat-icon aria-hidden="true">qr_code_scanner</mat-icon>Pistola</span></label>
+              <label><input type="radio" name="nextScan" value="cantidad" [(ngModel)]="OptionTypeScan"><span><mat-icon aria-hidden="true">tag</mat-icon>Cantidad</span></label>
+            </div>
+          </fieldset>
         </div>
-      </div>
-    </mat-tab>
-    <mat-tab label="pendientes">
 
-      <ion-row>
+        <div class="pn-entry">
+          <mt-select [data]="arAsignatedSections" [selectedKey]="selectedSectionId" (selectdOption)="onChangeSelect($event)"
+            label="Seleccione una seccion" title="Secciones"></mt-select>
+          <div class="pn-scan-fields" [class.with-quantity]="OptionTypeScan === 'cantidad'">
+            <label class="pn-field" for="nextBarcode">Codigo de barras
+              <input #newBarcodeInput id="nextBarcode" type="text" inputmode="text" autocomplete="off" autocapitalize="off" spellcheck="false"
+                [ngModel]="skuInput()" (ngModelChange)="skuInput.set($event)" (keydown.enter)="$event.preventDefault(); handleScan()" placeholder="Escanear codigo">
+            </label>
+            @if(OptionTypeScan === 'cantidad') {
+              <label class="pn-field" for="nextQuantity">Cantidad
+                <input id="nextQuantity" type="number" inputmode="numeric" min="1" step="1" [(ngModel)]="inCantidad" (keydown.enter)="$event.preventDefault(); handleScan()" placeholder="0">
+              </label>
+            }
+          </div>
+          @if(isPermision) {
+            <label class="pn-checkbox"><input type="checkbox" [checked]="isckeckedSku" (change)="onFiltroBar($event)">Filtro SKU</label>
+          }
+          <button class="pn-register" (click)="handleScan()" [disabled]="!sessionCode() || !selectedSectionId || !skuInput().trim() || (OptionTypeScan === 'cantidad' && !inCantidad)">
+            <mat-icon aria-hidden="true">add</mat-icon>Registrar escaneo
+          </button>
+        </div>
+
+        <div class="pn-last" aria-live="polite">
+          <mat-icon aria-hidden="true">{{ oldSKU ? 'check_circle' : 'qr_code' }}</mat-icon>
+          <div><span class="pn-label">Ultimo registro</span><strong>{{ oldSKU || 'Sin escaneos' }}</strong></div>
+          <div class="pn-last-count"><strong>{{ oldCantidad || 0 }}</strong><span class="pn-label">unidades</span></div>
+        </div>
+        <footer class="pn-footer">
+          <div><span class="pn-label">{{ optionSeccion || 'Seccion' }} · Enviados</span><strong>{{ countSkanSection || 0 }}</strong></div>
+          <button class="pn-pending" (click)="activePocketTab = 1"><span><span class="pn-label">Pendientes</span><strong>{{ pendingCount() }}</strong></span><mat-icon aria-hidden="true">chevron_right</mat-icon></button>
+          <button class="pn-sync" (click)="sync()" [disabled]="isSyncing || !isOnline() || !pendingCount() || editingId !== null"><mat-icon aria-hidden="true">sync</mat-icon>{{ isSyncing ? 'Sincronizando...' : 'Sincronizar' }}</button>
+        </footer>
+      </section>
+    </mat-tab>
+    <mat-tab label="Pendientes">
+
+      <ion-row class="pending-toolbar">
         <ion-col sizeXs="12" sizeSm="12" sizeMd="3" sizeLg="3">
-          <mt-input (afterChange)="applyFilter($event)" label="Filtro" placeholder="Filtro"></mt-input>
+          <mt-input (afterChange)="applyFilter($event)" label="Buscar pendientes" placeholder="Codigo o seccion"></mt-input>
         </ion-col>
         <ion-col sizeXs="12" sizeSm="12" sizeMd="2" sizeLg="2" class="button-content">
-          <button class="btn btn-primary" (click)="sync()"> Sincronizar</button>
+          <button class="btn btn-primary pending-sync" (click)="sync()"
+            [disabled]="isSyncing || !isOnline() || !pendingCount() || editingId !== null">
+            <mat-icon aria-hidden="true">sync</mat-icon>
+            {{ isSyncing ? 'Sincronizando...' : 'Sincronizar' }}
+            <span class="pending-count">{{ pendingCount() }}</span></button>
         </ion-col>
       </ion-row>
-      <ion-row>
+      <ion-row class="pending-results">
         <ion-col sizeXs="12" sizeSm="12" sizeMd="12" sizeLg="12">
-          <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+          <table mat-table [dataSource]="dataSource" class="pending-table" aria-label="Escaneos pendientes">
             <!-- Position Column -->
-            <ng-container matColumnDef="sku" sticky>
+            <ng-container matColumnDef="sku">
               <th mat-header-cell *matHeaderCellDef> Codigo barra </th>
-              <td mat-cell *matCellDef="let element"> {{element.sku}} </td>
+              <td mat-cell *matCellDef="let element">
+                <span class="pending-mobile-label">Codigo de barras</span>
+                @if(editingId === element.id) {
+                  <input class="form-control pending-sku" aria-label="Codigo de barras" [(ngModel)]="editSku" [disabled]="isSyncing">
+                } @else { <span class="pending-barcode">{{element.sku}}</span> }
+              </td>
             </ng-container>
 
             <!-- Weight Column -->
             <ng-container matColumnDef="cantidad">
               <th mat-header-cell *matHeaderCellDef> Conteo </th>
-              <td mat-cell *matCellDef="let element"> {{element.conteo}} </td>
+              <td mat-cell *matCellDef="let element">
+                <span class="pending-mobile-label">Cantidad</span>
+                @if(editingId === element.id) {
+                  <input class="form-control pending-quantity" aria-label="Cantidad" type="number" min="1" step="1"
+                    [(ngModel)]="editQuantity" [disabled]="isSyncing">
+                } @else { <span class="pending-units">{{element.conteo}}</span> }
+              </td>
             </ng-container>
 
             <!-- Symbol Column -->
             <ng-container matColumnDef="seccion">
               <th mat-header-cell *matHeaderCellDef> Seccion </th>
-              <td mat-cell *matCellDef="let element"> {{element.seccion}} </td>
+              <td mat-cell *matCellDef="let element"><span class="pending-mobile-label">Seccion</span> {{element.seccion}} </td>
             </ng-container>
 
             <!-- Symbol Column -->
@@ -121,7 +105,7 @@
               <th mat-header-cell *matHeaderCellDef> Estado </th>
               <td mat-cell *matCellDef="let element">
                 @if(element.estado != 'enviado'){
-                <h6 style="margin: 0;"><span class="badge bg-danger" style="font-weight: 100;">{{element.estado}}</span>
+                <h6 style="margin: 0;"><span class="badge" [class.bg-warning]="element.locked" [class.bg-danger]="!element.locked" style="font-weight: 100;">{{element.estado}}</span>
                 </h6>
                 }@else{
                 <h6 style="margin: 0;"><span class="badge bg-primary"
@@ -131,16 +115,30 @@
               </td>
             </ng-container>
 
+            <ng-container matColumnDef="acciones">
+              <th mat-header-cell *matHeaderCellDef>Acciones</th>
+              <td mat-cell *matCellDef="let element">
+                @if(operationMode === 'manual') {
+                  @if(editingId === element.id) {
+                    <button mat-icon-button matTooltip="Guardar" aria-label="Guardar" (click)="savePendingEdit()" [disabled]="isSyncing"><mat-icon>check</mat-icon></button>
+                    <button mat-icon-button matTooltip="Cancelar" aria-label="Cancelar" (click)="editingId = null" [disabled]="isSyncing"><mat-icon>close</mat-icon></button>
+                  } @else {
+                    <button mat-icon-button matTooltip="Editar" aria-label="Editar" (click)="startEdit(element)" [disabled]="isSyncing || editingId !== null || element.locked"><mat-icon>edit</mat-icon></button>
+                    <button mat-icon-button matTooltip="Eliminar" aria-label="Eliminar" (click)="deletePending(element)" [disabled]="isSyncing || editingId !== null || element.locked"><mat-icon>delete</mat-icon></button>
+                  }
+                }
+              </td>
+            </ng-container>
             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;" [class.pending-editing]="editingId === row.id"></tr>
 
             <!-- Row shown when there is no matching data. -->
-            <tr class="mat-row" *matNoDataRow>
-              <td class="mat-cell" colspan="4">No data matching the filter </td>
+            <tr class="mat-row pending-empty" *matNoDataRow>
+              <td class="mat-cell" colspan="5">No hay escaneos pendientes para este filtro.</td>
             </tr>
           </table>
-          <mat-paginator #paginatorP [pageSizeOptions]="[10, 20, 30]" showFirstLastButtons
-            aria-label="Select page of pending elements"></mat-paginator>
+          <mat-paginator #paginatorP class="pending-paginator" [pageSizeOptions]="[10, 20, 30]" showFirstLastButtons
+            aria-label="Pagina de escaneos pendientes"></mat-paginator>
         </ion-col>
       </ion-row>
     </mat-tab>
@@ -197,10 +195,15 @@
 
           </table>
           <mat-paginator #paginatorH [pageSizeOptions]="[10, 20, 30]" showFirstLastButtons
+            [length]="historyTotal" [pageIndex]="historyPage" [pageSize]="historyPageSize" (page)="changeHistoryPage($event)"
             aria-label="Select page of pending elements">
           </mat-paginator>
         </ion-col>
       </ion-row>
     </mat-tab>
   </mat-tab-group>
+
+  <div class="pocket-chat-entry" aria-label="Chat de mensajes">
+    <pocket-chat></pocket-chat>
+  </div>
 </ion-content>

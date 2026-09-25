@@ -2,6 +2,8 @@ import Dexie, { Table } from 'dexie';
 
 export interface ScanEntry {
   id?: number;
+  client_scan_id?: string;
+  upload_attempted?: boolean;
   sku: string;
   quantity: number;
   session_code: string;
@@ -17,6 +19,9 @@ export class OfflineDB extends Dexie {
     super('MetasPeruDB');
     this.version(1).stores({
       scans: '++id, session_code, synced, sku, seccion_id'
+    });
+    this.version(2).stores({
+      scans: '++id, session_code, synced, sku, seccion_id, [session_code+synced]'
     });
   }
 }

@@ -29,6 +29,7 @@ export class MtSelect {
   @Input() modalUser: string = "";
   @Input() checkAll: boolean = false;
   @Input() id: string = "";
+  @Input() selectedKey?: number;
   isAllSelected = false;
 
   isIndeterminate = false;
@@ -84,6 +85,9 @@ export class MtSelect {
       if (this.checkAll) {
         this.toggleSelectAll();
       }
+    }
+    if (!this.isMultiselect && this.selectedKey !== undefined) {
+      this.selectedText = this.data.find(item => item.key === this.selectedKey)?.value || '';
     }
   }
 

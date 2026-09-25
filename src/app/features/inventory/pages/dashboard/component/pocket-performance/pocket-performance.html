@@ -1,0 +1,117 @@
+<div class="performance-dialog">
+  <header class="performance-header">
+    <div>
+      <span>Sesion {{ data.sessionCode }}</span>
+      <h2>Rendimiento por Pocket</h2>
+    </div>
+    <button mat-icon-button matTooltip="Actualizar" (click)="load()" [disabled]="loading" aria-label="Actualizar rendimiento">
+      <mat-icon>refresh</mat-icon>
+    </button>
+  </header>
+
+  @if(error) {
+    <div class="performance-error">{{ error }}</div>
+  }
+
+  @if(loading) {
+    <div class="performance-loading">Cargando rendimiento...</div>
+  } @else if(!users.length) {
+    <div class="performance-empty">Todavia no hay escaneos sincronizados para esta sesion.</div>
+  } @else {
+    <section class="performance-summary">
+      <div class="summary-table-wrap">
+        <table mat-table [dataSource]="users" class="summary-table">
+          <ng-container matColumnDef="user">
+            <th mat-header-cell *matHeaderCellDef>Pocket</th>
+            <td mat-cell *matCellDef="let user">
+              <button type="button" class="user-link" (click)="onSelectUser(user.user_id)" [class.active]="user.user_id === selectedUserId">
+                {{ user.username }}
+              </button>
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="scans">
+            <th mat-header-cell *matHeaderCellDef>Escaneos</th>
+            <td mat-cell *matCellDef="let user">{{ user.scans | number }}</td>
+          </ng-container>
+          <ng-container matColumnDef="units">
+            <th mat-header-cell *matHeaderCellDef>Unidades</th>
+            <td mat-cell *matCellDef="let user">{{ user.units | number }}</td>
+          </ng-container>
+          <ng-container matColumnDef="sections">
+            <th mat-header-cell *matHeaderCellDef>Secciones</th>
+            <td mat-cell *matCellDef="let user">{{ user.sections_count | number }}</td>
+          </ng-container>
+          <ng-container matColumnDef="elapsed">
+            <th mat-header-cell *matHeaderCellDef>Total</th>
+            <td mat-cell *matCellDef="let user">{{ formatDuration(user.elapsed_seconds) }}</td>
+          </ng-container>
+          <ng-container matColumnDef="active">
+            <th mat-header-cell *matHeaderCellDef>Activo</th>
+            <td mat-cell *matCellDef="let user">{{ formatDuration(user.active_seconds) }}</td>
+          </ng-container>
+          <ng-container matColumnDef="rate">
+            <th mat-header-cell *matHeaderCellDef>Esc/h</th>
+            <td mat-cell *matCellDef="let user">{{ userRate(user) }}</td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="userColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: userColumns;" [class.selected-row]="row.user_id === selectedUserId"></tr>
+        </table>
+      </div>
+    </section>
+
+    <section class="section-detail">
+      <div class="detail-header">
+        <h3>{{ selectedUserName() }}</h3>
+        <label>
+          Pocket
+          <select [ngModel]="selectedUserId" (ngModelChange)="onSelectUser($event)">
+            @for(user of users; track user.user_id) {
+              <option [ngValue]="user.user_id">{{ user.username }}</option>
+            }
+          </select>
+        </label>
+      </div>
+
+      <table mat-table [dataSource]="sections" class="section-table">
+        <ng-container matColumnDef="section">
+          <th mat-header-cell *matHeaderCellDef>Seccion</th>
+          <td mat-cell *matCellDef="let item">{{ item.section_name }}</td>
+        </ng-container>
+        <ng-container matColumnDef="scans">
+          <th mat-header-cell *matHeaderCellDef>Escaneos</th>
+          <td mat-cell *matCellDef="let item">{{ item.scans | number }}</td>
+        </ng-container>
+        <ng-container matColumnDef="units">
+          <th mat-header-cell *matHeaderCellDef>Unidades</th>
+          <td mat-cell *matCellDef="let item">{{ item.units | number }}</td>
+        </ng-container>
+        <ng-container matColumnDef="first">
+          <th mat-header-cell *matHeaderCellDef>Inicio</th>
+          <td mat-cell *matCellDef="let item">{{ item.first_scan }}</td>
+        </ng-container>
+        <ng-container matColumnDef="last">
+          <th mat-header-cell *matHeaderCellDef>Fin</th>
+          <td mat-cell *matCellDef="let item">{{ item.last_scan }}</td>
+        </ng-container>
+        <ng-container matColumnDef="elapsed">
+          <th mat-header-cell *matHeaderCellDef>Tiempo</th>
+          <td mat-cell *matCellDef="let item">{{ formatDuration(item.elapsed_seconds) }}</td>
+        </ng-container>
+        <ng-container matColumnDef="active">
+          <th mat-header-cell *matHeaderCellDef>Activo</th>
+          <td mat-cell *matCellDef="let item">{{ formatDuration(item.active_seconds) }}</td>
+        </ng-container>
+        <tr mat-header-row *matHeaderRowDef="sectionColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: sectionColumns;"></tr>
+        <tr class="mat-row" *matNoDataRow>
+          <td class="mat-cell" colspan="7">Este pocket no tiene secciones registradas.</td>
+        </tr>
+      </table>
+      <mat-paginator [pageSize]="10" [pageSizeOptions]="[10, 20, 50]" showFirstLastButtons aria-label="Pagina rendimiento por seccion"></mat-paginator>
+    </section>
+
+    <p class="performance-note">
+      Total usa la diferencia entre el primer y ultimo escaneo. Activo estima solo intervalos de hasta {{ inactivitySeconds / 60 }} minutos dentro de la misma seccion.
+    </p>
+  }
+</div>

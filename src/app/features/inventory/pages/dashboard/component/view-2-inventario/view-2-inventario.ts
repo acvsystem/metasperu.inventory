@@ -21,6 +21,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { ModalReport } from './component/modal-report/modal-report';
 import { MtDatatable } from '@metasperu/component/mt-datatable/mt-datatable';
 import { MtLoader } from '@metasperu/component/mt-loader/mt-loader';
+import { PocketChat } from '@metasperu/component/pocket-chat/pocket-chat';
 import * as XLSX from 'xlsx-js-style';
 import { firstValueFrom } from 'rxjs';
 
@@ -51,7 +52,7 @@ export interface tableColumns {
 @Component({
   selector: 'view-2-inventario',
   standalone: true,
-  imports: [MtDatatable, MtLoader, MatTableModule, MatTooltipModule, BaseChartDirective, MatSidenavModule, MatCheckboxModule, MtSelect, IonCardContent, IonGrid, IonCard, MatBadgeModule, MatMenuModule, IonIcon, MatFormFieldModule, MatPaginatorModule, MatIconModule, MatSortModule, IonCol, IonRow, CommonModule],
+  imports: [MtDatatable, MtLoader, PocketChat, MatTableModule, MatTooltipModule, BaseChartDirective, MatSidenavModule, MatCheckboxModule, MtSelect, IonCardContent, IonGrid, IonCard, MatBadgeModule, MatMenuModule, IonIcon, MatFormFieldModule, MatPaginatorModule, MatIconModule, MatSortModule, IonCol, IonRow, CommonModule],
   templateUrl: './view-2-inventario.html',
   styleUrl: './view-2-inventario.scss',
 })

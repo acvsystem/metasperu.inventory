@@ -170,6 +170,13 @@
                 <i class="fa fa-bar-chart" aria-hidden="true"></i>
               </button>
 
+              <button (click)="openPocketPerformance()" matTooltip="Rendimiento por Pocket" type="button" class="btn btn-primary btn-sm"
+                style="margin-right: 10px;">
+                <mat-icon>speed</mat-icon>
+              </button>
+
+              <pocket-chat></pocket-chat>
+
               <!-- Botón Exportar Excel -->
               <button mat-raised-button class="btn-excel" (click)="exportarExcel()">
                 <mat-icon>file_download</mat-icon>

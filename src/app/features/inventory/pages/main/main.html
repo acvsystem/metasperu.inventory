@@ -24,9 +24,13 @@
                 <ion-menu-button></ion-menu-button>
             </ion-buttons>
 
-            <ion-title>METAS PERU</ion-title>
+            <ion-title class="app-title">METAS PERU</ion-title>
 
             <ion-buttons slot="end">
+                <span class="toolbar-connection" [class.offline]="!isOnline()">
+                    <ion-icon [name]="isOnline() ? 'wifi-outline' : 'cloud-offline-outline'"></ion-icon>
+                    {{ isOnline() ? 'Conectado' : 'Sin conexión' }}
+                </span>
                 <ion-button id="profile-popover-trigger">
                     <ion-avatar class="avatar-header">
                         <img src="assets/metasicon.png" />
@@ -53,6 +57,15 @@
         </div>
 
         <ion-list lines="full">
+            <div class="profile-pocket-mode">
+                <span>Funcionamiento Pocket</span>
+                <div role="radiogroup" aria-label="Funcionamiento Pocket">
+                    <label><input type="radio" name="profilePocketMode" [checked]="(pocketSettings.operationMode | async) === 'online'"
+                        [disabled]="!pocketSettings.modeChangeAllowed()" (change)="pocketSettings.setOperationMode('online')">Online</label>
+                    <label><input type="radio" name="profilePocketMode" [checked]="(pocketSettings.operationMode | async) === 'manual'"
+                        [disabled]="!pocketSettings.modeChangeAllowed()" (change)="pocketSettings.setOperationMode('manual')">Manual</label>
+                </div>
+            </div>
             <ion-item button>
                 <ion-icon slot="start" name="notifications-outline"></ion-icon>
                 <ion-label>Notificaciones</ion-label>

@@ -1,4 +1,28 @@
 // Avatar pequeño en el header
+.app-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.toolbar-connection {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-right: 4px;
+  color: #087d54;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+
+  ion-icon {
+    font-size: 18px;
+  }
+}
+
+.toolbar-connection.offline {
+  color: #a24b14;
+}
+
 .avatar-header {
   width: 28px;
   height: 28px;
@@ -413,4 +437,12 @@ ion-item {
 
 .name::first-letter {
   text-transform: uppercase;
+}
+.profile-pocket-mode {
+    padding: 12px 16px;
+    border-bottom: 1px solid #e1e5e9;
+    > span { font-size: 12px; color: #626b75; }
+    > div { display: flex; gap: 16px; }
+    label { display: flex; align-items: center; gap: 8px; min-height: 44px; font-size: 14px; cursor: pointer; }
+    input { width: 18px; height: 18px; accent-color: #0054d9; }
 }

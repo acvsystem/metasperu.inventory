@@ -1,0 +1,63 @@
+<button class="chat-trigger" (click)="open()" aria-label="Abrir mensajes" title="Mensajes">
+  <mat-icon>chat</mat-icon>
+  @if(unread) { <span class="badge">{{ unread }}</span> }
+</button>
+@if(notice && !opened) {
+  <button class="chat-notice" role="status" (click)="open()">{{ notice }}</button>
+}
+@if(opened) {
+  <section class="chat-panel" [class.minimized]="minimized" [class.has-attention]="attention || activeUnread" role="dialog" aria-label="Mensajes" cdkTrapFocus [cdkTrapFocusAutoCapture]="!minimized" (keydown.escape)="close()">
+    <header class="chat-header">
+      <div class="chat-title">
+        <mat-icon>forum</mat-icon>
+        <div>
+          <strong>{{ selected?.username || 'Mensajes' }} @if(activeUnread) { <span class="inline-badge">{{ activeUnread }}</span> }</strong>
+          <small>{{ activeUnread ? 'Nuevo mensaje' : (selected ? (loading ? 'Cargando...' : 'Chat activo') : 'Seleccione destinatario') }}</small>
+        </div>
+      </div>
+      <div class="chat-actions">
+        <button type="button" (click)="toggleMinimize()" [attr.aria-label]="minimized ? 'Restaurar chat' : 'Minimizar chat'">
+          <mat-icon>{{ minimized ? 'open_in_full' : 'remove' }}</mat-icon>
+        </button>
+        <button type="button" (click)="close()" aria-label="Cerrar chat"><mat-icon>close</mat-icon></button>
+      </div>
+    </header>
+
+    @if(!minimized) {
+      <div class="recipient-picker">
+        <mat-icon>person_search</mat-icon>
+        <input aria-label="Buscar destinatario" placeholder="Buscar usuario" [(ngModel)]="search">
+        <select aria-label="Destinatario" [(ngModel)]="selectedId" (ngModelChange)="chooseById($event)" [disabled]="sending">
+          <option [ngValue]="null">Seleccione destinatario</option>
+          @for(c of filtered; track c.id) {
+            <option [ngValue]="c.id">{{ c.username }}{{ c.unread ? ' (' + c.unread + ')' : '' }}</option>
+          }
+        </select>
+      </div>
+
+      @if(selected) {
+        <div class="messages" #messageList aria-live="polite">
+          @if(rows.length === 50) { <button class="history-btn" type="button" (click)="load(rows[0].id)" [disabled]="loading">Anteriores</button> }
+          @if(older) { <button class="history-btn" type="button" (click)="load()">Ver recientes</button> }
+          @for(m of rows; track m.id) {
+            <article [class.mine]="m.mine">
+              <div>{{ m.body }}</div>
+              <small>{{ m.created_at | date:'dd/MM HH:mm' }}{{ m.mine ? (m.read_at ? ' · Leido' : ' · Enviado') : '' }}</small>
+            </article>
+          }
+          @if(!rows.length) { <p class="empty">{{ loading ? 'Cargando...' : 'Aun no hay mensajes' }}</p> }
+        </div>
+        <form (ngSubmit)="send()">
+          <textarea #messageInput aria-label="Mensaje" placeholder="Aa" [(ngModel)]="draft" name="message" maxlength="2000" [readOnly]="sending" rows="1" (keydown.enter)="submitOnEnter($event)"></textarea>
+          <button type="submit" [disabled]="sending || !draft.trim()" aria-label="Enviar" title="Enviar"><mat-icon>send</mat-icon></button>
+        </form>
+      } @else {
+        <div class="empty-state">
+          <mat-icon>mark_unread_chat_alt</mat-icon>
+          <p>Selecciona un usuario para iniciar el chat.</p>
+        </div>
+      }
+      @if(error) { <div class="chat-error" role="status">{{ error }}</div> }
+    }
+  </section>
+}

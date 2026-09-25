@@ -1,5 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { PocketInventoryService } from '../../../../shared/services/pocket-inventory.service';
 // 1. CORRECCIÓN: Importar MenuController desde /standalone
 import { MenuController } from '@ionic/angular/standalone';
 import { RouterOutlet, Router } from '@angular/router';
@@ -8,7 +9,9 @@ import {
   chevronDownOutline,
   notificationsOutline,
   settingsOutline,
-  logOutOutline
+  logOutOutline,
+  wifiOutline,
+  cloudOfflineOutline
 } from 'ionicons/icons';
 import {
   IonContent, IonHeader, IonTitle, IonToolbar, IonItem,
@@ -37,6 +40,8 @@ import { InventoryService } from '@metasperu/services/inventory.service';
   styleUrl: './main.scss'
 })
 export default class MainComponent {
+  readonly pocketSettings = inject(PocketInventoryService);
+  readonly isOnline = signal(navigator.onLine);
   private authService = inject(AuthService);
   private router = inject(Router);
   // 3. Ahora este controlador sí tendrá autoridad sobre los componentes standalone
@@ -60,13 +65,17 @@ export default class MainComponent {
       chevronDownOutline,
       notificationsOutline,
       settingsOutline,
-      logOutOutline
+      logOutOutline,
+      wifiOutline,
+      cloudOfflineOutline
     });
   }
 
 
 
   ngOnInit() {
+    window.addEventListener('online', this.setOnline);
+    window.addEventListener('offline', this.setOffline);
     const userRole = localStorage.getItem('role') || ""; // O de tu servicio de Auth
     this.userRole = userRole
     this.menuFiltrado = this.arMenuList.filter(item => item.roles.includes(userRole as any));
@@ -77,6 +86,14 @@ export default class MainComponent {
       this.redireccionarPorRol(role);
     });
   }
+
+  ngOnDestroy() {
+    window.removeEventListener('online', this.setOnline);
+    window.removeEventListener('offline', this.setOffline);
+  }
+
+  private setOnline = () => this.isOnline.set(true);
+  private setOffline = () => this.isOnline.set(false);
 
   redireccionarPorRol(role: string) {
     switch (role) {
