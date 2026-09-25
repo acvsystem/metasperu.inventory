@@ -11,6 +11,8 @@
 
   @if(!stats) {
     <div class="empty">Esperando métricas del servidor...</div>
+  } @else if(stats.denied) {
+    <div class="empty">{{ stats.message || 'No tiene permiso para ver el monitor.' }}</div>
   } @else {
     <div class="cards">
       <article><span>Conectados</span><strong>{{ stats.connected || 0 }}</strong></article>
