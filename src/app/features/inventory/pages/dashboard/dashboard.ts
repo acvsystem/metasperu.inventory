@@ -32,6 +32,7 @@ import { MtSelect } from '@metasperu/component/mt-select/mt-select';
 import { firstValueFrom } from 'rxjs';
 import { PocketPerformance } from './component/pocket-performance/pocket-performance';
 import { PocketChat } from '@metasperu/component/pocket-chat/pocket-chat';
+import { SocketMonitor } from './component/socket-monitor/socket-monitor';
 
 export interface tableColumns {
   matColumnDef: string;
@@ -123,6 +124,7 @@ export default class DashboardComponent implements OnInit, OnDestroy {
   inventoryFilterOptions: any = null;
   inventoryFilterValues: any = {};
   pocketStatistics: any = null;
+  isAdministrator = localStorage.getItem('role') === 'administrador';
   dataColumns: tableColumns[] = [
     { matColumnDef: 'sku', titleColumn: 'Sku', propertyValue: 'sku', filterActive: false, id: 0 },
     { matColumnDef: 'usuario', titleColumn: 'Usuario', propertyValue: 'user', filterActive: false, id: 0 },
@@ -504,6 +506,14 @@ export default class DashboardComponent implements OnInit, OnDestroy {
       maxWidth: '96vw',
       maxHeight: '92vh',
       data: { sessionCode: this.sessionCode }
+    });
+  }
+
+  openSocketMonitor() {
+    this.dialog.open(SocketMonitor, {
+      width: '1000px',
+      maxWidth: '96vw',
+      maxHeight: '92vh'
     });
   }
 

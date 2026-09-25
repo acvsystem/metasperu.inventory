@@ -1,0 +1,63 @@
+<section class="socket-monitor">
+  <header>
+    <div>
+      <span>Tiempo real</span>
+      <h2>Monitor de Sockets</h2>
+    </div>
+    <button mat-icon-button mat-dialog-close aria-label="Cerrar monitor">
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
+
+  @if(!stats) {
+    <div class="empty">Esperando métricas del servidor...</div>
+  } @else {
+    <div class="cards">
+      <article><span>Conectados</span><strong>{{ stats.connected || 0 }}</strong></article>
+      <article><span>Autenticados</span><strong>{{ stats.authenticated || 0 }}</strong></article>
+      <article><span>Salas activas</span><strong>{{ stats.rooms?.length || 0 }}</strong></article>
+      <article><span>Uptime</span><strong>{{ formatUptime(stats.uptime_seconds) }}</strong></article>
+    </div>
+
+    <div class="monitor-grid">
+      <section class="panel">
+        <h3>Eventos</h3>
+        @for(event of stats.events; track event.name) {
+          <div class="bar-row">
+            <span>{{ event.name }}</span>
+            <div><i [style.width.%]="percent(event.count, maxEventCount())"></i></div>
+            <strong>{{ event.count }}</strong>
+          </div>
+        } @empty {
+          <p class="muted">Sin eventos todavía.</p>
+        }
+      </section>
+
+      <section class="panel">
+        <h3>Salas</h3>
+        @for(room of stats.rooms; track room.room) {
+          <div class="room-row">
+            <span>{{ room.room }}</span>
+            <strong>{{ room.sockets }}</strong>
+          </div>
+        } @empty {
+          <p class="muted">Sin salas activas.</p>
+        }
+      </section>
+    </div>
+
+    <section class="panel recent">
+      <h3>Actividad reciente</h3>
+      @for(event of stats.recent; track event.ts + event.event + event.socket_id) {
+        <div class="event-row" [class.out]="event.direction === 'out'">
+          <span>{{ event.ts | date:'HH:mm:ss' }}</span>
+          <strong>{{ event.event }}</strong>
+          <em>{{ event.direction === 'out' ? 'salida' : 'entrada' }}</em>
+          <small>{{ event.room || event.target || event.reason || event.socket_id }}</small>
+        </div>
+      } @empty {
+        <p class="muted">Sin actividad reciente.</p>
+      }
+    </section>
+  }
+</section>

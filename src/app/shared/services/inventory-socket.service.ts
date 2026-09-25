@@ -13,6 +13,7 @@ export class InventorySocketService implements OnDestroy {
   public pendingCount = signal(0);                      // ← NUEVO: cantidad de escaneos pendientes
   public chatMessage$ = new Subject<any>();
   public chatRead$ = new Subject<any>();
+  public socketMonitor$ = new Subject<any>();
 
   // Cache interno de escaneos pendientes
   private pendingScans: any[] = [];
@@ -86,6 +87,10 @@ export class InventorySocketService implements OnDestroy {
     this.socket.on('chat_read', (data: any) => {
       this.chatRead$.next(data);
     });
+
+    this.socket.on('socket_monitor_stats', (data: any) => {
+      this.socketMonitor$.next(data);
+    });
   }
 
   // =====================================================
@@ -158,6 +163,14 @@ export class InventorySocketService implements OnDestroy {
    */
   leaveSession(sessionCode: string) {
     this.socket.emit('leave_session', sessionCode);
+  }
+
+  subscribeSocketMonitor() {
+    if (!this.socket.connected) {
+      this.socket.once('connect', () => this.socket.emit('subscribe_socket_monitor'));
+      return;
+    }
+    this.socket.emit('subscribe_socket_monitor');
   }
 
   // =====================================================

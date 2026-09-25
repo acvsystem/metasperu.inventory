@@ -160,3 +160,61 @@
   }
 
 }
+
+.toolbar-icon-btn {
+  width: 34px !important;
+  min-width: 34px !important;
+  height: 34px !important;
+  min-height: 34px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  line-height: 1 !important;
+  border-radius: 6px !important;
+  vertical-align: middle !important;
+
+  mat-icon,
+  ion-icon,
+  i {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 18px !important;
+    height: 18px !important;
+    margin: 0 !important;
+    font-size: 18px !important;
+    line-height: 18px !important;
+    vertical-align: middle !important;
+  }
+
+  .fa {
+    transform: translateY(0) !important;
+  }
+}
+
+:host ::ng-deep ion-list-header pocket-chat .chat-trigger {
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 10px 0 0;
+  padding: 0;
+  line-height: 1;
+  vertical-align: middle;
+  transform: translateY(0);
+}
+
+:host ::ng-deep ion-list-header pocket-chat .chat-trigger mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  line-height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+}

@@ -139,7 +139,7 @@
               </button>
 
               <!-- Botón Sincronizar (con badge de pendientes) -->
-              <button (click)="sincronizar()" matTooltip="Sincronizar" type="button" class="btn btn-primary btn-sm"
+              <button (click)="sincronizar()" matTooltip="Sincronizar" type="button" class="btn btn-primary btn-sm toolbar-icon-btn"
                 style="margin-right: 10px; position: relative;">
                 <ion-icon name="refresh-outline"></ion-icon>
 
@@ -165,15 +165,22 @@
               </button>
 
               <!-- Botón Estadísticas -->
-              <button (click)="loadPocketStatistics(); drawer.toggle()" matTooltip="Estadisticas" type="button" class="btn btn-primary btn-sm"
+              <button (click)="loadPocketStatistics(); drawer.toggle()" matTooltip="Estadisticas" type="button" class="btn btn-primary btn-sm toolbar-icon-btn"
                 style="margin-right: 10px;">
                 <i class="fa fa-bar-chart" aria-hidden="true"></i>
               </button>
 
-              <button (click)="openPocketPerformance()" matTooltip="Rendimiento por Pocket" type="button" class="btn btn-primary btn-sm"
+              <button (click)="openPocketPerformance()" matTooltip="Rendimiento por Pocket" type="button" class="btn btn-primary btn-sm toolbar-icon-btn"
                 style="margin-right: 10px;">
                 <mat-icon>speed</mat-icon>
               </button>
+
+              @if(isAdministrator) {
+                <button (click)="openSocketMonitor()" matTooltip="Monitor Socket en vivo" type="button" class="btn btn-primary btn-sm toolbar-icon-btn"
+                  style="margin-right: 10px;">
+                  <mat-icon>desktop_windows</mat-icon>
+                </button>
+              }
 
               <pocket-chat></pocket-chat>
 
