@@ -27,7 +27,7 @@ export class PocketChat implements OnInit, OnDestroy {
   private revision = 0;
   private pulseTimer?: ReturnType<typeof setTimeout>;
   private pending?: { body: string; client_id: string; peer: number };
-  private notificationAudio = new Audio('assets/sounds/error-beep.mp3');
+  private notificationAudio = new Audio('assets/sounds/chat-pop.wav');
   contacts: Contact[] = []; rows: Message[] = [];
   selected?: Contact; selectedId: number | null = null; opened = false; minimized = false; sending = false; loading = false;
   draft = ''; search = ''; error = ''; notice = ''; older = false; attention = false;
