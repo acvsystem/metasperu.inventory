@@ -1,4 +1,4 @@
-import { Component, signal, ViewChild, OnDestroy, ElementRef } from '@angular/core';
+import { AfterViewInit, Component, signal, ViewChild, OnDestroy, ElementRef } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -19,6 +19,7 @@ import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { PocketChat } from '@metasperu/component/pocket-chat/pocket-chat';
+import { BrowserMultiFormatReader } from '@zxing/library';
 
 @Component({
   selector: 'pocket-scanner',
@@ -30,9 +31,11 @@ import { PocketChat } from '@metasperu/component/pocket-chat/pocket-chat';
   templateUrl: './pocket.html',
   styleUrl: './pocket.scss',
 })
-export default class Pocket implements OnDestroy {
+export default class Pocket implements AfterViewInit, OnDestroy {
   activePocketTab = 0;
   @ViewChild('newBarcodeInput') newBarcodeInput?: ElementRef<HTMLInputElement>;
+  @ViewChild('nextQuantityInput') nextQuantityInput?: ElementRef<HTMLInputElement>;
+  @ViewChild('cameraVideo') cameraVideo?: ElementRef<HTMLVideoElement>;
 
   focusScanInput() {
     if (this.activePocketTab === 0) this.newBarcodeInput?.nativeElement.focus();
@@ -50,12 +53,17 @@ export default class Pocket implements OnDestroy {
   historyLoading = false;
   syncStatus: PocketSyncStatus = { sessionCode: '', phase: 'idle', confirmed: 0, total: 0, message: '', lastSuccess: null };
   lastFeedback = 'Listo para escanear';
+  isCameraScanning = false;
+  cameraScanTarget: 'sku' | 'section' | null = null;
   private historyRequest?: Subscription;
   private historyTimer?: ReturnType<typeof setTimeout>;
   private readonly onlineListener = () => this.onNetworkChange(true);
   private readonly offlineListener = () => this.onNetworkChange(false);
+  private readonly cameraReader = new BrowserMultiFormatReader(undefined, 250);
+  private cameraHandled = false;
 
   ngOnDestroy() {
+    this.stopCameraScan(false);
     this.modeSubscription?.unsubscribe();
     this.pocketService.modeChangeAllowed = () => true;
     window.removeEventListener('online', this.onlineListener);
@@ -67,6 +75,10 @@ export default class Pocket implements OnDestroy {
 
   private modeSubscription?: Subscription;
   private syncStatusSubscription?: Subscription;
+
+  ngAfterViewInit() {
+    setTimeout(() => this.focusScanInput(), 150);
+  }
 
   startEdit(row: any) {
     if (this.operationMode !== 'manual' || this.isSyncing) return;
@@ -290,7 +302,7 @@ export default class Pocket implements OnDestroy {
         return;
       }
     } else {
-      if (!sku || !this.selectedSectionId || !this.inCantidad) {
+      if (!this.selectedSectionId || !this.inCantidad || !sku) {
         this.playErrorSound();
         this.onNotification({ error: 'error', message: 'Llene todos los campos' });
         return;
@@ -335,6 +347,115 @@ export default class Pocket implements OnDestroy {
 
     this.inCantidad = "";
     this.onRefreshSectionCount();
+  }
+
+  async scanSkuByCamera() {
+    await this.startCameraScan('sku');
+  }
+
+  async scanSectionByCamera() {
+    await this.startCameraScan('section');
+  }
+
+  async startCameraScan(target: 'sku' | 'section') {
+    if (!this.cameraVideo?.nativeElement) {
+      this.onNotification({ error: 'error', message: 'No se encontro el visor de camara.' });
+      return;
+    }
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      this.onNotification({ error: 'error', message: 'Este navegador no permite usar la camara.' });
+      return;
+    }
+
+    this.stopCameraScan(false);
+    this.cameraScanTarget = target;
+    this.cameraHandled = false;
+    this.isCameraScanning = true;
+    this.lastFeedback = target === 'section' ? 'Apunte al QR de la seccion' : 'Apunte al codigo con la camara';
+
+    try {
+      await this.cameraReader.decodeFromVideoDevice(
+        null,
+        this.cameraVideo.nativeElement,
+        async (result) => {
+          if (!result || this.cameraHandled) return;
+
+          const code = result.getText().trim();
+          if (!code) return;
+
+          this.cameraHandled = true;
+          this.stopCameraScan();
+          await this.processCameraCode(code, target);
+        }
+      );
+    } catch (error) {
+      console.error('Error al abrir la camara', error);
+      this.stopCameraScan();
+      this.onNotification({ error: 'error', message: 'No se pudo abrir la camara. Use el lector de la pocket o revise permisos.' });
+    }
+  }
+
+  stopCameraScan(refocusInput = true) {
+    try {
+      this.cameraReader.reset();
+    } catch {
+      // ZXing puede lanzar si no habia una sesion activa.
+    }
+    this.isCameraScanning = false;
+    this.cameraScanTarget = null;
+    this.cameraHandled = false;
+
+    if (refocusInput) {
+      setTimeout(() => this.focusScanInput(), 100);
+    }
+  }
+
+  private async processCameraCode(code: string, target: 'sku' | 'section') {
+    if (target === 'section') {
+      this.selectSectionFromCode(code);
+      return;
+    }
+
+    this.skuInput.set(code);
+
+    if (this.OptionTypeScan === 'cantidad') {
+      setTimeout(() => {
+        const quantityInput = this.nextQuantityInput?.nativeElement;
+        quantityInput?.focus();
+        quantityInput?.select();
+      }, 80);
+      return;
+    }
+
+    await this.handleScan();
+  }
+
+  private selectSectionFromCode(code: string) {
+    const normalizedCode = this.normalizeScanValue(code);
+    const section = this.arAsignatedSections.find((item) => {
+      return [
+        item?.value,
+        item?.values,
+        item?.key,
+        item?.id,
+      ].some((value) => this.normalizeScanValue(value) === normalizedCode);
+    });
+
+    if (!section) {
+      this.playErrorSound();
+      this.onNotification({ error: 'error', message: `No se encontro la seccion ${code}.` });
+      return;
+    }
+
+    void this.onChangeSelect(section);
+    this.lastFeedback = `Seccion seleccionada: ${section.value || code}`;
+    this.onNotification({ message: `Seccion seleccionada: ${section.value || code}` });
+    setTimeout(() => this.focusScanInput(), 100);
+  }
+
+  private normalizeScanValue(value: any): string {
+    return String(value ?? '').trim().toUpperCase();
   }
 
   async saveScanLocally(seccion_id: number, session_code: string, sku: any, cantidad: any) {
@@ -477,6 +598,13 @@ export default class Pocket implements OnDestroy {
     this.historyRequest?.unsubscribe();
     clearTimeout(this.historyTimer);
     this.historyTimer = setTimeout(() => this.loadHistory(), 500);
+  }
+
+  nextInput(quantityInput: HTMLInputElement) {
+    setTimeout(() => {
+      quantityInput.focus();
+      quantityInput.select();
+    });
   }
 
   // ========== SONIDO DE ERROR ==========

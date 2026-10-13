@@ -33,6 +33,8 @@ import { firstValueFrom } from 'rxjs';
 import { PocketPerformance } from './component/pocket-performance/pocket-performance';
 import { PocketChat } from '@metasperu/component/pocket-chat/pocket-chat';
 import { SocketMonitor } from './component/socket-monitor/socket-monitor';
+import jsPDF from 'jspdf';
+import QRCode from 'qrcode';
 
 export interface tableColumns {
   matColumnDef: string;
@@ -41,6 +43,13 @@ export interface tableColumns {
   filterActive?: boolean;
   id?: number;
 }
+
+type CodigoQr = {
+  id: number;
+  codigo_sesion: string;
+  seccion_id_fk: number;
+  nombre_seccion: string;
+};
 
 const toNumber = (value: any) => {
   const numericValue = typeof value === 'string' ? value.replace(',', '.').trim() : value;
@@ -616,10 +625,23 @@ export default class DashboardComponent implements OnInit, OnDestroy {
     this.conteoFilterDebounce = setTimeout(() => this.loadData(), 500);
   }
 
+  private normalizeBarcode(value: any): string {
+    const text = String(value ?? '').trim();
+    return text ? text.replace(/^0+/, '') : '';
+  }
+
+  private productMatchesSku(item: any, sku: any): boolean {
+    const normalizedSku = this.normalizeBarcode(sku);
+    if (!normalizedSku) return false;
+
+    return [item?.cCodigoBarra, item?.cCodigoBarra2, item?.cCodigoBarra3]
+      .some((code) => this.normalizeBarcode(code) === normalizedSku);
+  }
+
   processDataFilter(currentData: any[]) {
     const totales = currentData.reduce((acc: any, curr: any) => {
       const conteo = toNumber(curr.total_cantidad);
-      const dataSearch = this.dataInventario.find(item => item.cCodigoBarra == curr.sku);
+      const dataSearch = this.dataInventario.find(item => this.productMatchesSku(item, curr.sku));
       const stock = dataSearch ? toNumber(dataSearch.cStock) : 0;
 
       return {
@@ -940,6 +962,153 @@ export default class DashboardComponent implements OnInit, OnDestroy {
     };
 
     reader.readAsArrayBuffer(file);
+  }
+
+  async descargarQrPdf() {
+    const codigos: CodigoQr[] = this.arAsignatedSections;
+    if (!codigos || codigos.length === 0) {
+      console.warn('No hay codigos para generar QR');
+      return;
+    }
+
+    const logoMetas = await this.cargarImagenBase64('assets/metasicon.png');
+
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4',
+    });
+
+    const labelW = 55;
+    const labelH = 72;
+    const marginX = 10;
+    const marginY = 10;
+    const gapX = 5;
+    const gapY = 5;
+
+    let x = marginX;
+    let y = marginY;
+
+    for (const item of codigos) {
+      await this.dibujarEtiquetaQr(pdf, item, x, y, labelW, labelH, logoMetas);
+
+      x += labelW + gapX;
+
+      if (x + labelW > 200) {
+        x = marginX;
+        y += labelH + gapY;
+      }
+
+      if (y + labelH > 287) {
+        pdf.addPage();
+        x = marginX;
+        y = marginY;
+      }
+    }
+
+    pdf.save('codigos-qr.pdf');
+  }
+
+  private obtenerValorQr(item: any): string {
+    if (typeof item === 'string') {
+      return item.trim();
+    }
+
+    return String(
+      item?.nombre_seccion ??
+      item?.codigo_sesion ??
+      item?.id ??
+      ''
+    ).trim();
+  }
+
+  private async cargarImagenBase64(path: string): Promise<string> {
+    const response = await fetch(path);
+    const blob = await response.blob();
+
+    return await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+
+      reader.readAsDataURL(blob);
+      
+    });
+  }
+
+  private async dibujarEtiquetaQr(
+    pdf: jsPDF,
+    item: any,
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+    logoMetas: string
+  ) {
+    const valorQr = this.obtenerValorQr(item);
+
+    if (!valorQr) {
+      console.warn('Item sin texto para QR:', item);
+      return;
+    }
+
+    const morado = '#0b569c';
+
+    pdf.setDrawColor(morado);
+    pdf.setLineWidth(0.5);
+    pdf.rect(x, y, w, h);
+
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(morado);
+    pdf.setFontSize(11);
+    pdf.text('PISO DE VENTAS', x + w / 2, y + 9, { align: 'center' });
+
+    pdf.line(x, y + 13, x + w, y + 13);
+
+    pdf.setFontSize(6);
+    pdf.text('Sub- Zona #', x + 13, y + 20);
+
+    pdf.setFillColor('#fff200');
+    pdf.setDrawColor(morado);
+    pdf.rect(x + 35, y + 13, 12, 8, 'FD');
+
+    pdf.setTextColor('#000000');
+    pdf.setFontSize(6);
+    pdf.text(valorQr, x + 41, y + 18.5, {
+      align: 'center',
+      maxWidth: 11,
+    });
+
+    const qrDataUrl = await QRCode.toDataURL(valorQr, {
+      margin: 0,
+      width: 120,
+    });
+
+    pdf.addImage(qrDataUrl, 'PNG', x + 47.5, y + 13.5, 7, 7);
+
+    pdf.setDrawColor(morado);
+    pdf.line(x, y + 22, x + w, y + 22);
+    pdf.line(x, y + 30, x + w, y + 30);
+    pdf.line(x, y + 39, x + w, y + 39);
+    pdf.line(x, y + 48, x + w, y + 48);
+    pdf.line(x, y + 57, x + w, y + 57);
+
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(morado);
+    pdf.setFontSize(6);
+
+    pdf.text('Conteo:', x + 2, y + 27);
+    pdf.text('Reconteo:', x + 2, y + 36);
+    pdf.text('Contado por:', x + 2, y + 45);
+    pdf.text('Recontado por:', x + 2, y + 54);
+
+    pdf.addImage(logoMetas, 'PNG', x + 10, y + 61, 6, 6);
+
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor('#777777');
+    pdf.setFontSize(6);
+    pdf.text('METAS PERU', x + 18, y + 65);
   }
 
 }

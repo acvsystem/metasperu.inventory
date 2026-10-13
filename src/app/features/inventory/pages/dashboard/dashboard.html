@@ -137,10 +137,13 @@
                 type="button" class="btn btn-primary btn-sm" style="margin-right: 10px;">
                 Eliminar Subzona
               </button>
-
+              <button (click)="descargarQrPdf()" [disabled]="!arAsignatedSections.length" matTooltip="Generar QR PDF"
+                type="button" class="btn btn-primary btn-sm" style="margin-right: 10px;">
+                 QR
+              </button>
               <!-- Botón Sincronizar (con badge de pendientes) -->
-              <button (click)="sincronizar()" matTooltip="Sincronizar" type="button" class="btn btn-primary btn-sm toolbar-icon-btn"
-                style="margin-right: 10px; position: relative;">
+              <button (click)="sincronizar()" matTooltip="Sincronizar" type="button"
+                class="btn btn-primary btn-sm toolbar-icon-btn" style="margin-right: 10px; position: relative;">
                 <ion-icon name="refresh-outline"></ion-icon>
 
                 @if (pendingCount() > 0) {
@@ -165,21 +168,21 @@
               </button>
 
               <!-- Botón Estadísticas -->
-              <button (click)="loadPocketStatistics(); drawer.toggle()" matTooltip="Estadisticas" type="button" class="btn btn-primary btn-sm toolbar-icon-btn"
-                style="margin-right: 10px;">
+              <button (click)="loadPocketStatistics(); drawer.toggle()" matTooltip="Estadisticas" type="button"
+                class="btn btn-primary btn-sm toolbar-icon-btn" style="margin-right: 10px;">
                 <i class="fa fa-bar-chart" aria-hidden="true"></i>
               </button>
 
-              <button (click)="openPocketPerformance()" matTooltip="Rendimiento por Pocket" type="button" class="btn btn-primary btn-sm toolbar-icon-btn"
-                style="margin-right: 10px;">
+              <button (click)="openPocketPerformance()" matTooltip="Rendimiento por Pocket" type="button"
+                class="btn btn-primary btn-sm toolbar-icon-btn" style="margin-right: 10px;">
                 <mat-icon>speed</mat-icon>
               </button>
 
               @if(isAdministrator) {
-                <button (click)="openSocketMonitor()" matTooltip="Monitor Socket en vivo" type="button" class="btn btn-primary btn-sm toolbar-icon-btn"
-                  style="margin-right: 10px;">
-                  <mat-icon>desktop_windows</mat-icon>
-                </button>
+              <button (click)="openSocketMonitor()" matTooltip="Monitor Socket en vivo" type="button"
+                class="btn btn-primary btn-sm toolbar-icon-btn" style="margin-right: 10px;">
+                <mat-icon>desktop_windows</mat-icon>
+              </button>
               }
 
               <pocket-chat></pocket-chat>
@@ -287,10 +290,9 @@
               aria-label="Paginación inventario tienda">
             </mat-paginator>
             <view-2-inventario (onAllDataProcess)="onAllDataProcess($event)" (onChangeInventario)="loadInventaryPage()"
-              (inventoryFilterChange)="onInventoryFilterChange($event)"
-              [sessionCode]="sessionCode" [serieStore]="serieStore"
-              [inventorySummary]="inventorySummary" [inventoryFilteredSummary]="inventoryFilteredSummary"
-              [inventoryFilterOptions]="inventoryFilterOptions"
+              (inventoryFilterChange)="onInventoryFilterChange($event)" [sessionCode]="sessionCode"
+              [serieStore]="serieStore" [inventorySummary]="inventorySummary"
+              [inventoryFilteredSummary]="inventoryFilteredSummary" [inventoryFilterOptions]="inventoryFilterOptions"
               [inAsignatedSections]="arAsignatedSections" [pocketScan]="[]" [onDataView]="dataInventario"
               [onDataConteo]="dataExportar">
             </view-2-inventario>

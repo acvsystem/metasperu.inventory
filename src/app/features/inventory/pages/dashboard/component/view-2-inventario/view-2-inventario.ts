@@ -489,9 +489,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
 
     data.forEach((item, index) => {
       const entry = { item, index };
-      if (item.cCodigoBarra) dataMap.set(String(item.cCodigoBarra), entry);
-      if (item.cCodigoBarra2) dataMap.set(String(item.cCodigoBarra2), entry);
-      if (item.cCodigoBarra3) dataMap.set(String(item.cCodigoBarra3), entry);
+      this.getProductCodeKeys(item).forEach((code) => dataMap.set(code, entry));
     });
 
     // 2. Agrupamos por el registro real (no por el código escaneado)
@@ -500,7 +498,8 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
 
     dataPocket.forEach(item => {
       const scannedCode = String(item.sku);
-      const existing = dataMap.get(scannedCode);
+      const normalizedScannedCode = this.normalizeBarcode(scannedCode);
+      const existing = dataMap.get(normalizedScannedCode);
 
       // Clave estable del producto (preferimos el código principal del registro)
       let productKey: string;
@@ -551,7 +550,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
       let index: number | null = scan._matchedIndex;
 
       if (index === null) {
-        const existing = dataMap.get(productKey);
+        const existing = dataMap.get(this.normalizeBarcode(productKey));
         index = existing ? existing.index : null;
       }
 
@@ -650,6 +649,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
 
       const workbook = XLSX.utils.book_new();
       const matrizWorksheet = this.createWorksheet(exportRowsGeneral);
+      this.applyMatrizAuditFormulas(matrizWorksheet);
       const subzonasWorksheet = this.createWorksheet(exportRowsConteos);
       const informeWorksheet = XLSX.utils.aoa_to_sheet(informeDiferenciasRows);
       const conteosWorksheet = this.createWorksheet(conteoRows);
@@ -660,6 +660,10 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
       XLSX.utils.book_append_sheet(workbook, informeWorksheet, 'INFORME DIFERENCIAS');
       XLSX.utils.book_append_sheet(workbook, codigosNoReconocidosWorksheet, 'CODIGOS NO RECONOCIDOS');
       XLSX.utils.book_append_sheet(workbook, conteosWorksheet, 'CONTEOS');
+      (workbook as any).Workbook = {
+        ...((workbook as any).Workbook || {}),
+        CalcPr: { fullCalcOnLoad: true }
+      };
 
       const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
       this.saveAsExcelFile(excelBuffer, `Cruce_Inventario_${this.sessionCode || 'reporte'}`);
@@ -671,10 +675,15 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     }
   }
 
+  private normalizeBarcode(value: any): string {
+    const text = String(value ?? '').trim();
+    return text ? text.replace(/^0+/, '') : '';
+  }
+
   private getProductCodeKeys(item: any) {
-    return [item.cCodigoBarra, item.cCodigoBarra2, item.cCodigoBarra3]
-      .filter(Boolean)
-      .map((code) => String(code).replace(/^0+/, ''));
+    return [...new Set([item.cCodigoBarra, item.cCodigoBarra2, item.cCodigoBarra3]
+      .map((code) => this.normalizeBarcode(code))
+      .filter(Boolean))];
   }
 
   private buildConteoTotalsForExport(conteoRows: any[]) {
@@ -748,7 +757,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
 
     (conteoRows || []).forEach((row: any) => {
       const originalCode = String(row.CODBARRAS || '').trim();
-      const cleanCode = originalCode.replace(/^0+/, '');
+      const cleanCode = this.normalizeBarcode(originalCode);
       if (!cleanCode || validCodes.has(cleanCode)) return;
 
       const zona = row.ZONA || '';
@@ -1100,6 +1109,55 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     }
 
     return worksheet;
+  }
+
+  private applyMatrizAuditFormulas(worksheet: XLSX.WorkSheet) {
+    if (!worksheet['!ref']) return;
+
+    const range = XLSX.utils.decode_range(worksheet['!ref']);
+    const headerRow = range.s.r;
+    const headerToColumn = new Map<string, number>();
+
+    for (let col = range.s.c; col <= range.e.c; col++) {
+      const address = XLSX.utils.encode_cell({ r: headerRow, c: col });
+      const header = String(worksheet[address]?.v || '').trim().toUpperCase();
+      if (header) headerToColumn.set(header, col);
+    }
+
+    const fisfinCol = headerToColumn.get('FISFIN');
+    const estfinCol = headerToColumn.get('ESTFIN');
+    const reconteoCol = headerToColumn.get('RECONTEO');
+    if (fisfinCol === undefined || estfinCol === undefined) return;
+
+    for (let row = headerRow + 1; row <= range.e.r; row++) {
+      const excelRow = row + 1;
+      const fisfinAddress = XLSX.utils.encode_cell({ r: row, c: fisfinCol });
+      const estfinAddress = XLSX.utils.encode_cell({ r: row, c: estfinCol });
+
+      worksheet[fisfinAddress] = {
+        ...(worksheet[fisfinAddress] || {}),
+        f: `IF(Z${excelRow}="L",W${excelRow},Z${excelRow})`
+      };
+
+      worksheet[estfinAddress] = {
+        ...(worksheet[estfinAddress] || {}),
+        t: 's',
+        f: `IF(AB${excelRow}<0,"FALTANTES",IF(AB${excelRow}>0,"SOBRANTES","CORRECTO"))`
+      };
+
+      if (reconteoCol !== undefined) {
+        const reconteoAddress = XLSX.utils.encode_cell({ r: row, c: reconteoCol });
+        worksheet[reconteoAddress] = {
+          ...(worksheet[reconteoAddress] || {}),
+          t: 's',
+          v: 'L',
+          s: {
+            ...(worksheet[reconteoAddress]?.s || {}),
+            fill: { fgColor: { rgb: 'FFFF00' } }
+          }
+        };
+      }
+    }
   }
 
   private paintNoScannedRows(worksheet: XLSX.WorkSheet) {
