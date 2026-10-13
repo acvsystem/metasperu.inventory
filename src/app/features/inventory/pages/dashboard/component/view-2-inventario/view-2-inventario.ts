@@ -650,16 +650,14 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
       const workbook = XLSX.utils.book_new();
       const matrizWorksheet = this.createWorksheet(exportRowsGeneral);
       this.applyMatrizAuditFormulas(matrizWorksheet);
-      const subzonasWorksheet = this.createWorksheet(exportRowsConteos);
       const informeWorksheet = XLSX.utils.aoa_to_sheet(informeDiferenciasRows);
       const conteosWorksheet = this.createWorksheet(conteoRows);
       const codigosNoReconocidosWorksheet = this.createWorksheet(codigosNoReconocidosRows);
 
       XLSX.utils.book_append_sheet(workbook, matrizWorksheet, 'MATRIZ');
-      XLSX.utils.book_append_sheet(workbook, subzonasWorksheet, 'SUBZONAS');
       XLSX.utils.book_append_sheet(workbook, informeWorksheet, 'INFORME DIFERENCIAS');
       XLSX.utils.book_append_sheet(workbook, codigosNoReconocidosWorksheet, 'CODIGOS NO RECONOCIDOS');
-      XLSX.utils.book_append_sheet(workbook, conteosWorksheet, 'CONTEOS');
+      XLSX.utils.book_append_sheet(workbook, conteosWorksheet, 'SUBZONAS');
       (workbook as any).Workbook = {
         ...((workbook as any).Workbook || {}),
         CalcPr: { fullCalcOnLoad: true }
@@ -697,7 +695,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     const categoryTotalsByCode = new Map<string, Record<string, number>>();
 
     (conteoRows || []).forEach((row: any) => {
-      const code = String(row.CODBARRAS || '').replace(/^0+/, '');
+      const code = this.normalizeBarcode(row.CODBARRAS);
       if (!code) return;
 
       const unidades = toNumber(row.UNIDADES);
@@ -807,7 +805,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
         return;
       }
 
-      const codigoLimpio = String(d.CODBARRAS || '').replace(/^0+/, '');
+      const codigoLimpio = this.normalizeBarcode(d.CODBARRAS);
       if (!codigoLimpio) return;
 
       if (!detallePorCodigo[codigoLimpio]) {
@@ -819,10 +817,10 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
     // ===== 2. Procesar productos =====
     const productosConDiferencia = data
       .map(item => {
-        const codigoLimpio = String(item.cCodigoBarra || '').replace(/^0+/, '');
+        const codigosProducto = this.getProductCodeKeys(item);
 
-        // Tomamos el detalle ya agrupado (sin RECONTEO)
-        const detalles = detallePorCodigo[codigoLimpio] || [];
+        // Tomamos el detalle de codigo barra 1, 2 y 3 ya agrupado (sin RECONTEO)
+        const detalles = codigosProducto.flatMap((codigo) => detallePorCodigo[codigo] || []);
 
         // Calculamos el físico sumando las unidades del detalle
         const fisico = detalles.reduce((sum, d) => sum + toNumber(d.UNIDADES), 0);
@@ -831,7 +829,8 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
 
         return {
           item,
-          codigoLimpio,
+          codigoLimpio: codigosProducto[0] || '',
+          codigosProducto,
           fisico,
           stock,
           diferencia,
@@ -883,7 +882,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
 
     // ===== 3. Generar las filas agrupadas por código de barras =====
     productosConDiferencia.forEach(p => {
-      const { item, fisico, stock, diferencia, detalles } = p;
+      const { item, fisico, stock, diferencia, detalles, codigosProducto } = p;
       const detallesAgrupados = Array.from(
         detalles.reduce((acc: Map<string, any>, d: any) => {
           const zona = String(d.ZONA || '').trim();
@@ -901,7 +900,7 @@ export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
 
       // Cabecera del producto
       rows.push([
-        { v: `CodBarras: ${item.cCodigoBarra || ''}`, t: 's', s: headerStyle },
+        { v: `CodBarras: ${codigosProducto.join(' / ') || item.cCodigoBarra || ''}`, t: 's', s: headerStyle },
         { v: `Referencia: ${item.cReferencia || ''}`, t: 's', s: headerStyle },
         { v: `Descripcion: ${item.cDescripcion || ''}`, t: 's', s: headerStyle },
         { v: `Talla: ${item.cTalla || 'NA'}`, t: 's', s: headerStyle },

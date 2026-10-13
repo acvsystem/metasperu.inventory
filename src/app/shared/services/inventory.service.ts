@@ -281,6 +281,24 @@ export class InventoryService {
         );
     }
 
+    getUnscannedSections(sessionCode: string, params?: any): Observable<any> {
+        let httpParams = new HttpParams();
+
+        if (params) {
+            Object.keys(params).forEach(key => {
+                if (params[key] !== null && params[key] !== undefined && params[key] !== '') {
+                    httpParams = httpParams.append(key, params[key]);
+                }
+            });
+        }
+
+        return this.http.get(`${this.API_URL}/revision/unscanned-sections/${sessionCode}`, {
+            params: httpParams
+        }).pipe(
+            catchError(this.handleError)
+        );
+    }
+
     getSubzonas(): Observable<any[]> {
         return this.http.get<any[]>(`${this.API_URL}/api/v1/seccion`);
     }

@@ -119,6 +119,7 @@ export default class DashboardComponent implements OnInit, OnDestroy {
   allDataProcess: any[] = [];
   dataExportar: any[] = [];
   cboSections: any[] = [];
+  zonasSub: any[] = [];
   displayedColumns = ['sku', 'usuario', 'zona', 'subzona', 'cantidad', 'accion'];
   conteoPage = 1;
   conteoPageSize = 10;
@@ -142,6 +143,24 @@ export default class DashboardComponent implements OnInit, OnDestroy {
     { matColumnDef: 'cantidad', titleColumn: 'Cantidad', propertyValue: 'total_cantidad', filterActive: false, id: 0 },
     { matColumnDef: 'accion', titleColumn: 'Accion', propertyValue: '', filterActive: false, id: 0 }
   ];
+  revisionDataSource = new MatTableDataSource<any>([]);
+  revisionDisplayedColumns = ['zona', 'subzona', 'escaneos'];
+  revisionDataColumns: tableColumns[] = [
+    { matColumnDef: 'zona', titleColumn: 'Zona', propertyValue: 'zona', filterActive: false, id: 0 },
+    { matColumnDef: 'subzona', titleColumn: 'Subzona', propertyValue: 'subzona', filterActive: false, id: 0 },
+    { matColumnDef: 'escaneos', titleColumn: 'Escaneos', propertyValue: 'escaneos', filterActive: false, id: 0 }
+  ];
+  revisionPage = 1;
+  revisionPageSize = 10;
+  revisionTotalRows = 0;
+  revisionPageSizeOptions = [10, 20, 50, 100, 250];
+  revisionFilterValues: any = {};
+  revisionRangeValues = {
+    letter: '',
+    start: '',
+    end: ''
+  };
+  isRevisionLoading = signal(false);
 
   // ====================== COMPUTED ======================
   totalUnidades = computed(() =>
@@ -152,8 +171,10 @@ export default class DashboardComponent implements OnInit, OnDestroy {
 
   private autoSyncInterval: any;
   private conteoFilterDebounce: any;
+  private revisionFilterDebounce: any;
   private conteoRequestId = 0;
   private inventoryRequestId = 0;
+  private revisionRequestId = 0;
 
   constructor() {
     addIcons({
@@ -192,6 +213,7 @@ export default class DashboardComponent implements OnInit, OnDestroy {
 
     this.socketService.joinSession(this.sessionCode);
     this.asignedSections();
+    this.loadZonasSubzonas();
     this.loadPocketStatistics();
 
     const offlineData = localStorage.getItem('offline_inventory');
@@ -258,6 +280,10 @@ export default class DashboardComponent implements OnInit, OnDestroy {
     if (this.conteoFilterDebounce) {
       clearTimeout(this.conteoFilterDebounce);
     }
+
+    if (this.revisionFilterDebounce) {
+      clearTimeout(this.revisionFilterDebounce);
+    }
   }
 
   // ====================== SINCRONIZAR ======================
@@ -280,13 +306,17 @@ export default class DashboardComponent implements OnInit, OnDestroy {
     this.titleLoader = 'Sincronizando escaneos...';
 
     this.loadData(() => {
-      // Esta función se ejecuta cuando loadData termina
-      this.socketService.clearPending();
-      this.isLoading2.set(false);
+      this.loadInventaryPage(this.inventoryPage, this.inventoryPageSize, () => {
+        if (this.tabIndex === 3 || this.revisionTotalRows > 0) {
+          this.loadRevisionSections(1, this.revisionPageSize);
+        }
+        this.socketService.clearPending();
+        this.isLoading2.set(false);
 
-      if (!silent) {
-        this.presentToast(`Se sincronizaron ${cantidad} productos.`);
-      }
+        if (!silent) {
+          this.presentToast(`Se sincronizaron ${cantidad} productos.`);
+        }
+      });
     });
   }
 
@@ -439,7 +469,7 @@ export default class DashboardComponent implements OnInit, OnDestroy {
     });
   }
 
-  loadInventaryPage(page = this.inventoryPage, pageSize = this.inventoryPageSize) {
+  loadInventaryPage(page = this.inventoryPage, pageSize = this.inventoryPageSize, onComplete?: () => void) {
     this.isLoading2.set(true);
     this.inventoryPage = page;
     this.inventoryPageSize = pageSize;
@@ -478,12 +508,18 @@ export default class DashboardComponent implements OnInit, OnDestroy {
           }
         }
         this.isLoading2.set(false);
+        if (onComplete) {
+          onComplete();
+        }
       },
       error: () => {
         if (requestId !== this.inventoryRequestId) return;
 
         this.isLoading2.set(false);
         this.presentToast('No se pudo cargar la página de inventario.');
+        if (onComplete) {
+          onComplete();
+        }
       }
     });
   }
@@ -578,6 +614,17 @@ export default class DashboardComponent implements OnInit, OnDestroy {
     });
   }
 
+  private loadZonasSubzonas() {
+    this.invService.getZonaVista().subscribe({
+      next: (zonas) => {
+        this.zonasSub = zonas || [];
+      },
+      error: () => {
+        this.zonasSub = [];
+      }
+    });
+  }
+
   deleteSectionConteo() {
     this.invService.delSectionConteo(this.sessionCode, this.selectedSectionId).subscribe({
       next: (res) => {
@@ -623,6 +670,81 @@ export default class DashboardComponent implements OnInit, OnDestroy {
       clearTimeout(this.conteoFilterDebounce);
     }
     this.conteoFilterDebounce = setTimeout(() => this.loadData(), 500);
+  }
+
+  loadRevisionSections(page = this.revisionPage, pageSize = this.revisionPageSize) {
+    if (!this.sessionCode) return;
+
+    this.revisionPage = page;
+    this.revisionPageSize = pageSize;
+    this.isRevisionLoading.set(true);
+    const requestId = ++this.revisionRequestId;
+
+    this.invService.getUnscannedSections(this.sessionCode, {
+      page,
+      pageSize,
+      ...this.revisionFilterValues
+    }).subscribe({
+      next: (res) => {
+        if (requestId !== this.revisionRequestId) return;
+
+        this.revisionDataSource.data = res.items || [];
+        this.revisionTotalRows = res.pagination?.totalRows ?? res.summary?.total_pending_sections ?? 0;
+        this.isRevisionLoading.set(false);
+      },
+      error: () => {
+        if (requestId !== this.revisionRequestId) return;
+
+        this.isRevisionLoading.set(false);
+        this.presentToast('No se pudo cargar la revisión de subzonas.');
+      }
+    });
+  }
+
+  applyRevisionFilterTable(event: Event, column: string) {
+    const filterValue = (event.target as HTMLInputElement).value;
+    const property = this.revisionDataColumns.find(t => t.matColumnDef === column);
+    const indexHeader = this.revisionDataColumns.findIndex(t => t.matColumnDef === column);
+
+    if (indexHeader >= 0) {
+      this.revisionDataColumns[indexHeader].filterActive = !!filterValue.length;
+    }
+
+    this.revisionFilterValues[property?.propertyValue || column] = filterValue.trim();
+    this.revisionPage = 1;
+
+    if (this.revisionFilterDebounce) {
+      clearTimeout(this.revisionFilterDebounce);
+    }
+    this.revisionFilterDebounce = setTimeout(() => this.loadRevisionSections(1, this.revisionPageSize), 500);
+  }
+
+  updateRevisionRangeFilter(event: Event, key: 'letter' | 'start' | 'end') {
+    const value = (event.target as HTMLInputElement).value;
+    this.revisionRangeValues[key] = key === 'letter' ? value.trim().toUpperCase() : value.trim();
+  }
+
+  applyRevisionRangeFilter() {
+    const { letter, start, end } = this.revisionRangeValues;
+
+    this.revisionFilterValues.rangeLetter = letter;
+    this.revisionFilterValues.rangeStart = start;
+    this.revisionFilterValues.rangeEnd = end;
+
+    this.loadRevisionSections(1, this.revisionPageSize);
+  }
+
+  clearRevisionRangeFilter() {
+    this.revisionRangeValues = {
+      letter: '',
+      start: '',
+      end: ''
+    };
+    delete this.revisionFilterValues.rangeLetter;
+    delete this.revisionFilterValues.rangeStart;
+    delete this.revisionFilterValues.rangeEnd;
+
+    this.loadRevisionSections(1, this.revisionPageSize);
   }
 
   private normalizeBarcode(value: any): string {
@@ -765,6 +887,10 @@ export default class DashboardComponent implements OnInit, OnDestroy {
     if (index === 1 && this.dataInventario.length === 0 && this.inventoryTotalRows > 0) {
       this.loadInventaryPage(1, this.inventoryPageSize);
     }
+
+    if (index === 3 && this.revisionDataSource.data.length === 0) {
+      this.loadRevisionSections(1, this.revisionPageSize);
+    }
   }
 
   onConteoPageChange(event: PageEvent) {
@@ -775,6 +901,10 @@ export default class DashboardComponent implements OnInit, OnDestroy {
 
   onInventoryPageChange(event: PageEvent) {
     this.loadInventaryPage(event.pageIndex + 1, event.pageSize);
+  }
+
+  onRevisionPageChange(event: PageEvent) {
+    this.loadRevisionSections(event.pageIndex + 1, event.pageSize);
   }
 
   onInventoryFilterChange(filters: any) {
@@ -971,6 +1101,14 @@ export default class DashboardComponent implements OnInit, OnDestroy {
       return;
     }
 
+    if (!this.zonasSub.length) {
+      try {
+        this.zonasSub = await firstValueFrom(this.invService.getZonaVista());
+      } catch {
+        this.zonasSub = [];
+      }
+    }
+
     const logoMetas = await this.cargarImagenBase64('assets/metasicon.png');
 
     const pdf = new jsPDF({
@@ -1022,6 +1160,20 @@ export default class DashboardComponent implements OnInit, OnDestroy {
     ).trim();
   }
 
+  private obtenerTituloZonaQr(item: any): string {
+    const seccionId = Number(item?.seccion_id_fk ?? item?.seccion_id);
+    const nombreSeccion = sectionColumnKey(item?.nombre_seccion || '');
+
+    const zona = (this.zonasSub || []).find((z: any) => {
+      const zonaSeccionId = Number(z?.seccion_id ?? z?.seccion_id_fk);
+      const zonaNombreSeccion = sectionColumnKey(z?.nombre_seccion || '');
+
+      return (seccionId && zonaSeccionId === seccionId) || (nombreSeccion && zonaNombreSeccion === nombreSeccion);
+    });
+
+    return String(zona?.nombre_zona || item?.nombre_zona || 'PISO DE VENTAS').trim().toUpperCase();
+  }
+
   private async cargarImagenBase64(path: string): Promise<string> {
     const response = await fetch(path);
     const blob = await response.blob();
@@ -1047,6 +1199,7 @@ export default class DashboardComponent implements OnInit, OnDestroy {
     logoMetas: string
   ) {
     const valorQr = this.obtenerValorQr(item);
+    const tituloZona = this.obtenerTituloZonaQr(item);
 
     if (!valorQr) {
       console.warn('Item sin texto para QR:', item);
@@ -1062,7 +1215,7 @@ export default class DashboardComponent implements OnInit, OnDestroy {
     pdf.setFont('helvetica', 'bold');
     pdf.setTextColor(morado);
     pdf.setFontSize(11);
-    pdf.text('PISO DE VENTAS', x + w / 2, y + 9, { align: 'center' });
+    pdf.text(tituloZona, x + w / 2, y + 9, { align: 'center', maxWidth: w - 4 });
 
     pdf.line(x, y + 13, x + w, y + 13);
 

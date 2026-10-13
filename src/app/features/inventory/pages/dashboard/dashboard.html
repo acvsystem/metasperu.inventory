@@ -307,6 +307,92 @@
           </ng-template>
         </mat-tab>
 
+        <!-- ===================== TAB 4: Revision ===================== -->
+        <mat-tab label="Revision">
+          <ng-template matTabContent>
+            <div class="table-container ion-margin-top revision-tab">
+              <ion-list-header>
+                <ion-label>
+                  Subzonas sin escaneo
+                  <span class="revision-count">{{ revisionTotalRows | number }} pendientes</span>
+                </ion-label>
+
+                <button (click)="loadRevisionSections(1, revisionPageSize)" matTooltip="Actualizar revision" type="button"
+                  class="btn btn-primary btn-sm toolbar-icon-btn">
+                  <ion-icon name="refresh-outline"></ion-icon>
+                </button>
+              </ion-list-header>
+
+              @if (isRevisionLoading()) {
+              <div class="revision-loading">Cargando revision...</div>
+              }
+
+              <div class="revision-range-filter">
+                <span>Rango de subzona</span>
+                <input type="text" maxlength="4" placeholder="Letra" [value]="revisionRangeValues.letter"
+                  (input)="updateRevisionRangeFilter($event, 'letter')" (keyup.enter)="applyRevisionRangeFilter()">
+                <input type="number" min="1" placeholder="Desde" [value]="revisionRangeValues.start"
+                  (input)="updateRevisionRangeFilter($event, 'start')" (keyup.enter)="applyRevisionRangeFilter()">
+                <input type="number" min="1" placeholder="Hasta" [value]="revisionRangeValues.end"
+                  (input)="updateRevisionRangeFilter($event, 'end')" (keyup.enter)="applyRevisionRangeFilter()">
+                <button type="button" class="btn btn-primary btn-sm" (click)="applyRevisionRangeFilter()">
+                  Filtrar
+                </button>
+                <button type="button" class="btn btn-light btn-sm" (click)="clearRevisionRangeFilter()">
+                  Limpiar
+                </button>
+              </div>
+
+              <ion-row>
+                <ion-col sizeXs="12" sizeSm="12" sizeMd="12" sizeLg="12">
+                  <table mat-table [dataSource]="revisionDataSource" class="mat-elevation-z8">
+
+                    @for (col of revisionDataColumns; track col) {
+                    <ng-container matColumnDef="{{col.matColumnDef}}">
+                      <th mat-header-cell *matHeaderCellDef>
+                        <div class="head-table">
+                          {{ col.titleColumn }}
+                          @if (col.matColumnDef !== 'escaneos' && col.matColumnDef !== 'unidades') {
+                          <div class="filter-content" slot="end">
+                            <div class="btn-filter" [matMenuTriggerFor]="revisionFilterMenu">
+                              @if (col.filterActive) {
+                              <div matBadge="1" matBadgeSize="small" style="width: 2px;"></div>
+                              }
+                              <i class="fa fa-filter" aria-hidden="true"></i>
+                            </div>
+                          </div>
+                          }
+                        </div>
+                        <mat-menu #revisionFilterMenu="matMenu">
+                          <mt-input id="revisionFilter" (click)="$event.stopPropagation()"
+                            (keydown)="$event.stopPropagation()" label="Filtro {{col.titleColumn}}"
+                            placeholder="Nombre {{col.titleColumn}}" type="text"
+                            (keyup)="applyRevisionFilterTable($event, col.matColumnDef)">
+                          </mt-input>
+                        </mat-menu>
+                      </th>
+                      <td mat-cell *matCellDef="let element">{{ element[col.propertyValue] }}</td>
+                    </ng-container>
+                    }
+
+                    <tr mat-header-row *matHeaderRowDef="revisionDisplayedColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: revisionDisplayedColumns;"></tr>
+
+                    <tr class="mat-row" *matNoDataRow>
+                      <td class="mat-cell" colspan="5">Todas las subzonas asignadas tienen escaneo.</td>
+                    </tr>
+                  </table>
+
+                  <mat-paginator [length]="revisionTotalRows" [pageSize]="revisionPageSize"
+                    [pageSizeOptions]="revisionPageSizeOptions" (page)="onRevisionPageChange($event)"
+                    showFirstLastButtons aria-label="Paginacion revision de subzonas">
+                  </mat-paginator>
+                </ion-col>
+              </ion-row>
+            </div>
+          </ng-template>
+        </mat-tab>
+
       </mat-tab-group>
     </ion-content>
   </mat-drawer-content>
