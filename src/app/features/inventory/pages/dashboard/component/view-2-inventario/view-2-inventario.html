@@ -1,169 +1,204 @@
-@if(isLoading || isProcessing()){
-<mt-loader [title]="titleLoader"></mt-loader>
+@if (isLoading || isProcessing()) {
+  <mt-loader [title]="titleLoader"></mt-loader>
 }
 
-<mat-drawer-container class="example-container" [hasBackdrop]="true" style="height: 100%;">
-    <mat-drawer #drawer [mode]="'over'" position="end">
+<mat-drawer-container class="example-container" [hasBackdrop]="true" style="height: 100%">
+  <mat-drawer #drawer [mode]="'over'" position="end">
+    <ion-row>
+      <ion-col size="12" size-md="12">
+        <div style="display: flex; justify-content: center">
+          <div class="row" style="display: contents">
+            <div style="width: 94%">
+              <div class="card shadow p-3">
+                <h5>Distribución por Area</h5>
+                <canvas baseChart [data]="barChartData" [type]="'bar'"> </canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      <ion-col size="12" size-md="12">
+        <mt-select
+          [data]="cboStadictics"
+          label="Seleccione un item"
+          (selectdOption)="onChangeSelectStadistic($event)"
+          title="Departamento"
+        ></mt-select>
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      <ion-col size="12" size-md="12">
+        <div style="display: flex; justify-content: center">
+          <div class="row" style="display: contents">
+            <div style="width: 80%">
+              <div class="card shadow p-3">
+                <h5>Distribución</h5>
+                <canvas baseChart [data]="pieChartData" [type]="'pie'"> </canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ion-col>
+    </ion-row>
+  </mat-drawer>
+  <mat-drawer-content>
+    <ion-row>
+      <ion-col sizeXs="12" sizeSm="12" sizeMd="12" sizeLg="12">
+        <div class="header-container only-mobil">
+          <h2>Cruce de Inventario</h2>
+        </div>
+
         <ion-row>
-            <ion-col size="12" size-md="12">
-                <div style="display: flex;justify-content: center;">
-                    <div class="row" style="display: contents;">
-                        <div style="width: 94%">
-                            <div class="card shadow p-3">
-                                <h5>Distribución por Area</h5>
-                                <canvas baseChart [data]="barChartData" [type]="'bar'">
-                                </canvas>
-                            </div>
+          <ion-col sizeXs="12" sizeSm="12" sizeMd="6" sizeLg="6">
+            <div style="display: flex; align-items: end; height: 100%">
+              <button
+                mat-raised-button
+                class="btn-update-inventory"
+                matTooltip="Sincronizar con Tienda"
+                (click)="onChangeInv()"
+              >
+                <mat-icon>repeat</mat-icon>
+              </button>
+
+              <button
+                (click)="loadStoreStatistics(); drawer.toggle()"
+                matTooltip="Estadisticas"
+                type="button"
+                class="btn-stadistics"
+              >
+                <i class="fa fa-bar-chart" aria-hidden="true"></i>
+              </button>
+              <input
+                type="file"
+                #fileInput
+                style="display: none"
+                (change)="importExcelInventario($event); $event.target.value = ''"
+                accept=".xlsx, .xls"
+              />
+              <button mat-raised-button class="btn-excel-upload" (click)="fileInput.click()">
+                <mat-icon>upload</mat-icon>
+                <span>Importar Inventario</span>
+              </button>
+
+              <button
+                mat-raised-button
+                class="btn-excel"
+                (click)="exportarReporte()"
+                matTooltip="Exportar Excel"
+              >
+                <mat-icon>file_download</mat-icon>
+                <span class="record-count">Exportar informe</span>
+              </button>
+
+              <div style="margin-bottom: 4px; display: flex; align-items: center; width: 20%">
+                <mt-select
+                  style="width: 100%"
+                  [data]="arTipoExport"
+                  label="Seleccione tipo reporte "
+                  title="Secciones"
+                  (selectdOption)="onChangeReporte($event)"
+                ></mt-select>
+              </div>
+            </div>
+          </ion-col>
+          <ion-col sizeXs="12" sizeSm="12" sizeMd="6" sizeLg="6">
+            <ion-grid>
+              <ion-row>
+                <ion-col size="12" size-md="4">
+                  <ion-card class="stat-card">
+                    <ion-card-content>
+                      <div class="stat-info">
+                        <ion-icon name="cube-outline" color="primary"></ion-icon>
+                        <div>
+                          <div style="display: inline-flex; width: 100%">
+                            <p style="margin-right: 19px">Total Stock</p>
+                            |
+                            <p style="margin-left: 19px">Filtrado</p>
+                          </div>
+                          <div
+                            style="display: inline-flex; justify-content: center; align-items: end"
+                          >
+                            <h2>{{ totalStock() }} |</h2>
+                            <p style="font-size: 20px; margin-left: 5px; color: green">
+                              {{ stockFilter }}
+                            </p>
+                          </div>
                         </div>
-                    </div>
-                </div>
-            </ion-col>
-        </ion-row>
-        <ion-row>
-            <ion-col size="12" size-md="12">
-                <mt-select [data]="cboStadictics" label="Seleccione un item"
-                    (selectdOption)="onChangeSelectStadistic($event)" title="Departamento"></mt-select>
-            </ion-col>
-        </ion-row>
-        <ion-row>
-            <ion-col size="12" size-md="12">
-                <div style="display: flex;justify-content: center;">
-                    <div class="row" style="display: contents;">
-                        <div style="width: 80%">
-                            <div class="card shadow p-3">
-                                <h5>Distribución</h5>
-                                <canvas baseChart [data]="pieChartData" [type]="'pie'">
-                                </canvas>
-                            </div>
+                      </div>
+                    </ion-card-content>
+                  </ion-card>
+                </ion-col>
+
+                <ion-col size="12" size-md="4">
+                  <ion-card class="stat-card">
+                    <ion-card-content>
+                      <div class="stat-info">
+                        <ion-icon name="barcode-outline" color="tertiary"></ion-icon>
+                        <div>
+                          <div style="display: inline-flex; width: 100%">
+                            <p style="margin-right: 19px">Total Conteo</p>
+                            |
+                            <p style="margin-left: 19px">Filtrado</p>
+                          </div>
+                          <div
+                            style="display: inline-flex; justify-content: center; align-items: end"
+                          >
+                            <h2>{{ totalConteo() }} |</h2>
+                            <p style="font-size: 20px; margin-left: 5px; color: green">
+                              {{ conteoFilter }}
+                            </p>
+                          </div>
                         </div>
-                    </div>
-                </div>
-            </ion-col>
-        </ion-row>
-    </mat-drawer>
-    <mat-drawer-content>
-        <ion-row>
-            <ion-col sizeXs="12" sizeSm="12" sizeMd="12" sizeLg="12">
-                <div class="header-container only-mobil">
-                    <h2>Cruce de Inventario</h2>
-                </div>
+                      </div>
+                    </ion-card-content>
+                  </ion-card>
+                </ion-col>
 
-                <ion-row>
-                    <ion-col sizeXs="12" sizeSm="12" sizeMd="6" sizeLg="6">
-                        <div style="display: flex;align-items: end;height: 100%;">
-                            <button mat-raised-button class="btn-update-inventory" matTooltip="Sincronizar con Tienda"
-                                (click)="onChangeInv()">
-                                <mat-icon>repeat</mat-icon>
-                            </button>
-
-                            <button (click)="loadStoreStatistics(); drawer.toggle()" matTooltip="Estadisticas" type="button"
-                                class="btn-stadistics">
-                                <i class="fa fa-bar-chart" aria-hidden="true"></i>
-                            </button>
-                            <input type="file" #fileInput style="display: none"
-                                (change)="importExcelInventario($event); $event.target.value = ''" accept=".xlsx, .xls">
-                            <button mat-raised-button class="btn-excel-upload" (click)="fileInput.click()">
-                                <mat-icon>upload</mat-icon>
-                                <span>Importar Inventario</span>
-                            </button>
-
-                            <button mat-raised-button class=" btn-excel" (click)="exportarReporte()" matTooltip="Exportar Excel">
-                                <mat-icon>file_download</mat-icon>
-                                <span class="record-count">Exportar informe</span>
-                            </button>
-
-                            <pocket-chat></pocket-chat>
-
-                            <div style="margin-bottom: 4px;display: flex;align-items: center;width: 20%;">
-                                <mt-select style="width: 100%;" [data]="arTipoExport" label="Seleccione tipo reporte " title="Secciones"
-                                    (selectdOption)="onChangeReporte($event)"></mt-select>
-                            </div>
-
+                <ion-col size="12" size-md="4">
+                  <ion-card class="stat-card">
+                    <ion-card-content>
+                      <div class="stat-info">
+                        <ion-icon name="cube-outline" color="primary"></ion-icon>
+                        <div>
+                          <div style="display: inline-flex; width: 100%">
+                            <p style="margin-right: 19px">Diferencias</p>
+                            |
+                            <p style="margin-left: 19px">Filtrado</p>
+                          </div>
+                          <div
+                            style="display: inline-flex; justify-content: center; align-items: end"
+                          >
+                            <h2>{{ totalDiferencia() }} |</h2>
+                            <p style="font-size: 20px; margin-left: 5px; color: green">
+                              {{ diferenciaFilter }}
+                            </p>
+                          </div>
                         </div>
-                    </ion-col>
-                    <ion-col sizeXs="12" sizeSm="12" sizeMd="6" sizeLg="6">
-                        <ion-grid>
-                            <ion-row>
-                                <ion-col size="12" size-md="4">
-                                    <ion-card class="stat-card">
-                                        <ion-card-content>
-                                            <div class="stat-info">
-                                                <ion-icon name="cube-outline" color="primary"></ion-icon>
-                                                <div>
-                                                    <div style="display: inline-flex;width: 100%;">
-                                                        <p style="margin-right: 19px;">Total Stock</p>|<p
-                                                            style="margin-left: 19px;">Filtrado</p>
-                                                    </div>
-                                                    <div
-                                                        style="display: inline-flex;justify-content: center;align-items: end;">
-                                                        <h2>{{ totalStock() }} | </h2>
-                                                        <p style="font-size: 20px;margin-left: 5px;color: green;">
-                                                            {{stockFilter}}</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </ion-card-content>
-                                    </ion-card>
-                                </ion-col>
-
-                                <ion-col size="12" size-md="4">
-                                    <ion-card class="stat-card">
-                                        <ion-card-content>
-                                            <div class="stat-info">
-                                                <ion-icon name="barcode-outline" color="tertiary"></ion-icon>
-                                                <div>
-
-                                                    <div style="display: inline-flex;width: 100%;">
-                                                        <p style="margin-right: 19px;">Total Conteo</p>|<p
-                                                            style="margin-left: 19px;">Filtrado</p>
-                                                    </div>
-                                                    <div
-                                                        style="display: inline-flex;justify-content: center;align-items: end;">
-                                                        <h2>{{ totalConteo() }} | </h2>
-                                                        <p style="font-size: 20px;margin-left: 5px;color: green;">
-                                                            {{conteoFilter}}</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </ion-card-content>
-                                    </ion-card>
-                                </ion-col>
-
-                                <ion-col size="12" size-md="4">
-                                    <ion-card class="stat-card">
-                                        <ion-card-content>
-                                            <div class="stat-info">
-                                                <ion-icon name="cube-outline" color="primary"></ion-icon>
-                                                <div>
-                                                    <div style="display: inline-flex;width: 100%;">
-                                                        <p style="margin-right: 19px;">Diferencias</p>|<p
-                                                            style="margin-left: 19px;">Filtrado</p>
-                                                    </div>
-                                                    <div
-                                                        style="display: inline-flex;justify-content: center;align-items: end;">
-                                                        <h2>{{ totalDiferencia() }} | </h2>
-                                                        <p style="font-size: 20px;margin-left: 5px;color: green;">
-                                                            {{diferenciaFilter}}</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </ion-card-content>
-                                    </ion-card>
-                                </ion-col>
-                            </ion-row>
-                        </ion-grid>
-                    </ion-col>
-                </ion-row>
-
-                @if(dataColumns.length > 0 && displayedColumns.length > 0){
-                <mt-datatable (currentDataFilter)="processDataFilter($event)" (filterChange)="onServerFilterChange($event)"
-                    [serverMode]="true" [isChecking]="true" [dataIn]="dataTable"
-                    [dataColumnsIn]="dataColumns" [extraColumns]="displayedColumns"></mt-datatable>
-                }
-
-
-                <br><br><br>
-            </ion-col>
+                      </div>
+                    </ion-card-content>
+                  </ion-card>
+                </ion-col>
+              </ion-row>
+            </ion-grid>
+          </ion-col>
         </ion-row>
-    </mat-drawer-content>
+
+        @if (dataColumns.length > 0 && displayedColumns.length > 0) {
+          <mt-datatable
+            (currentDataFilter)="processDataFilter($event)"
+            (filterChange)="onServerFilterChange($event)"
+            [serverMode]="true"
+            [isChecking]="true"
+            [dataIn]="dataTable"
+            [dataColumnsIn]="dataColumns"
+            [extraColumns]="displayedColumns"
+          ></mt-datatable>
+        }
+
+        <br /><br /><br />
+      </ion-col>
+    </ion-row>
+  </mat-drawer-content>
 </mat-drawer-container>

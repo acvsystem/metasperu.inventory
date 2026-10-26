@@ -7,11 +7,24 @@ import { MatIconModule } from '@angular/material/icon';
 import { Subscription, firstValueFrom, timeout } from 'rxjs';
 import { InventorySocketService } from '@metasperu/services/inventory-socket.service';
 
-interface Contact { id: number; username: string; unread: number; }
-interface Message { id: number; body: string; created_at: string; read_at: string | null; mine: boolean; }
+interface Contact {
+  id: number;
+  username: string;
+  unread: number;
+}
+interface Message {
+  id: number;
+  body: string;
+  created_at: string;
+  read_at: string | null;
+  mine: boolean;
+}
 @Component({
-  selector: 'pocket-chat', standalone: true, imports: [CommonModule, FormsModule, MatIconModule, A11yModule],
-  templateUrl: './pocket-chat.html', styleUrl: './pocket-chat.scss'
+  selector: 'pocket-chat',
+  standalone: true,
+  imports: [CommonModule, FormsModule, MatIconModule, A11yModule],
+  templateUrl: './pocket-chat.html',
+  styleUrl: './pocket-chat.scss',
 })
 export class PocketChat implements OnInit, OnDestroy {
   @ViewChild('messageList') messageList?: ElementRef<HTMLElement>;
@@ -28,21 +41,60 @@ export class PocketChat implements OnInit, OnDestroy {
   private pulseTimer?: ReturnType<typeof setTimeout>;
   private pending?: { body: string; client_id: string; peer: number };
   private notificationAudio = new Audio('assets/sounds/chat-pop.wav');
-  contacts: Contact[] = []; rows: Message[] = [];
-  selected?: Contact; selectedId: number | null = null; opened = false; minimized = false; sending = false; loading = false;
-  draft = ''; search = ''; error = ''; notice = ''; older = false; attention = false;
-  get unread() { return this.contacts.reduce((n, c) => n + Number(c.unread), 0); }
-  get activeUnread() { return this.selected ? Number(this.contacts.find(c => c.id === this.selected?.id)?.unread || this.selected.unread || 0) : this.unread; }
-  get filtered() { return this.contacts.filter(c => c.username.toLowerCase().includes(this.search.toLowerCase())); }
+  contacts: Contact[] = [];
+  rows: Message[] = [];
+  selected?: Contact;
+  selectedId: number | null = null;
+  opened = false;
+  minimized = false;
+  sending = false;
+  loading = false;
+  viewportHeight = window.visualViewport?.height ?? window.innerHeight;
+  viewportTop = window.visualViewport?.offsetTop ?? 0;
+  private updateViewport = () => {
+    this.viewportHeight = window.visualViewport?.height ?? window.innerHeight;
+    this.viewportTop = window.visualViewport?.offsetTop ?? 0;
+  };
+  draft = '';
+  search = '';
+  error = '';
+  notice = '';
+  older = false;
+  attention = false;
+  get unread() {
+    return this.contacts.reduce((n, c) => n + Number(c.unread), 0);
+  }
+  get activeUnread() {
+    return this.selected
+      ? Number(
+          this.contacts.find((c) => c.id === this.selected?.id)?.unread ||
+            this.selected.unread ||
+            0,
+        )
+      : this.unread;
+  }
+  get filtered() {
+    return this.contacts.filter((c) =>
+      c.username.toLowerCase().includes(this.search.toLowerCase()),
+    );
+  }
   ngOnInit() {
+    window.visualViewport?.addEventListener('resize', this.updateViewport);
+    window.visualViewport?.addEventListener('scroll', this.updateViewport);
+    window.addEventListener('resize', this.updateViewport);
     this.notificationAudio.preload = 'auto';
     this.notificationAudio.volume = 0.55;
     void this.refresh();
-    this.timer = setInterval(() => { if (!document.hidden) void this.refresh(); }, 30000);
-    this.socketSub = this.socket.chatMessage$.subscribe(message => this.onSocketMessage(message));
-    this.readSub = this.socket.chatRead$.subscribe(data => this.onSocketRead(data));
+    this.timer = setInterval(() => {
+      if (!document.hidden) void this.refresh();
+    }, 30000);
+    this.socketSub = this.socket.chatMessage$.subscribe((message) => this.onSocketMessage(message));
+    this.readSub = this.socket.chatRead$.subscribe((data) => this.onSocketRead(data));
   }
   ngOnDestroy() {
+    window.visualViewport?.removeEventListener('resize', this.updateViewport);
+    window.visualViewport?.removeEventListener('scroll', this.updateViewport);
+    window.removeEventListener('resize', this.updateViewport);
     this.destroyed = true;
     this.revision++;
     clearInterval(this.timer);
@@ -54,24 +106,41 @@ export class PocketChat implements OnInit, OnDestroy {
     if (this.busy || this.destroyed) return;
     this.busy = true;
     try {
-      const list = await firstValueFrom(this.http.get<Contact[]>(`${this.url}/contacts`).pipe(timeout(15000)));
+      const list = await firstValueFrom(
+        this.http.get<Contact[]>(`${this.url}/contacts`).pipe(timeout(15000)),
+      );
       if (this.destroyed) return;
-      const incoming = list.find(c => Number(c.unread) > Number(this.contacts.find(old => old.id === c.id)?.unread || 0));
+      const incoming = list.find(
+        (c) => Number(c.unread) > Number(this.contacts.find((old) => old.id === c.id)?.unread || 0),
+      );
       if (incoming) {
         this.notice = `Nuevo mensaje de ${incoming.username}`;
         this.playNotificationTone();
       }
-      this.contacts = list; this.error = '';
+      this.contacts = list;
+      this.error = '';
       if (this.selected) {
-        this.selected = this.contacts.find(c => c.id === this.selected?.id) || this.selected;
+        this.selected = this.contacts.find((c) => c.id === this.selected?.id) || this.selected;
         this.selectedId = this.selected.id;
       }
       if (this.opened && this.selected && !this.older) await this.load();
-    } catch { this.error = 'Chat sin conexion. Reintentando...'; }
-    finally { this.busy = false; }
+    } catch {
+      this.error = 'Chat sin conexion. Reintentando...';
+    } finally {
+      this.busy = false;
+    }
   }
-  open() { this.opened = true; this.minimized = false; this.attention = false; this.notice = ''; void this.refresh(); }
-  close() { this.opened = false; this.revision++; }
+  open() {
+    this.opened = true;
+    this.minimized = false;
+    this.attention = false;
+    this.notice = '';
+    void this.refresh();
+  }
+  close() {
+    this.opened = false;
+    this.revision++;
+  }
   toggleMinimize() {
     this.minimized = !this.minimized;
     if (!this.minimized) {
@@ -90,7 +159,7 @@ export class PocketChat implements OnInit, OnDestroy {
       return;
     }
 
-    const contact = this.contacts.find(c => c.id === Number(id));
+    const contact = this.contacts.find((c) => c.id === Number(id));
     if (contact) this.choose(contact);
   }
   choose(c: Contact) {
@@ -113,18 +182,24 @@ export class PocketChat implements OnInit, OnDestroy {
       body: String(message.body || ''),
       created_at: message.created_at,
       read_at: message.read_at || null,
-      mine
+      mine,
     };
 
     if (!mine) this.playNotificationTone();
 
-    this.contacts = this.contacts.map(c => {
+    this.contacts = this.contacts.map((c) => {
       if (c.id !== peerId) return c;
-      return { ...c, unread: this.opened && !this.minimized && this.selected?.id === peerId ? 0 : Number(c.unread || 0) + (mine ? 0 : 1) };
+      return {
+        ...c,
+        unread:
+          this.opened && !this.minimized && this.selected?.id === peerId
+            ? 0
+            : Number(c.unread || 0) + (mine ? 0 : 1),
+      };
     });
 
     if (this.opened && this.selected?.id === peerId && !this.older) {
-      if (!this.rows.some(item => Number(item.id) === row.id)) {
+      if (!this.rows.some((item) => Number(item.id) === row.id)) {
         this.rows = [...this.rows, row].sort((a, b) => Number(a.id) - Number(b.id));
         requestAnimationFrame(() => {
           const el = this.messageList?.nativeElement;
@@ -137,7 +212,10 @@ export class PocketChat implements OnInit, OnDestroy {
     }
 
     if (!mine) {
-      const contactName = this.contacts.find(c => c.id === peerId)?.username || message.sender_username || 'usuario';
+      const contactName =
+        this.contacts.find((c) => c.id === peerId)?.username ||
+        message.sender_username ||
+        'usuario';
       this.notice = `Nuevo mensaje de ${contactName}`;
       if (this.opened && this.minimized) this.flagAttention(contactName);
     }
@@ -155,23 +233,26 @@ export class PocketChat implements OnInit, OnDestroy {
     this.attention = true;
     this.notice = `Nuevo mensaje${name ? ' de ' + name : ''}`;
     clearTimeout(this.pulseTimer);
-    this.pulseTimer = setTimeout(() => this.attention = false, 6000);
+    this.pulseTimer = setTimeout(() => (this.attention = false), 6000);
   }
   private onSocketRead(data: any) {
     if (!data?.peer_id || !data?.through || this.selected?.id !== Number(data.peer_id)) return;
     const through = Number(data.through);
-    this.rows = this.rows.map(row => row.mine && Number(row.id) <= through
-      ? { ...row, read_at: row.read_at || new Date().toISOString() }
-      : row
+    this.rows = this.rows.map((row) =>
+      row.mine && Number(row.id) <= through
+        ? { ...row, read_at: row.read_at || new Date().toISOString() }
+        : row,
     );
   }
   private async markRead(through: number) {
     const selected = this.selected;
     if (!selected) return;
     try {
-      await firstValueFrom(this.http.post(`${this.url}/${selected.id}/read`, { through }).pipe(timeout(15000)));
+      await firstValueFrom(
+        this.http.post(`${this.url}/${selected.id}/read`, { through }).pipe(timeout(15000)),
+      );
       selected.unread = 0;
-      this.contacts = this.contacts.map(c => c.id === selected.id ? { ...c, unread: 0 } : c);
+      this.contacts = this.contacts.map((c) => (c.id === selected.id ? { ...c, unread: 0 } : c));
     } catch {}
   }
   async load(before?: number) {
@@ -180,20 +261,32 @@ export class PocketChat implements OnInit, OnDestroy {
     const revision = ++this.revision;
     this.loading = true;
     try {
-      const rows = await firstValueFrom(this.http.get<Message[]>(`${this.url}/${selected.id}/messages`, { params: before ? { before } : {} }).pipe(timeout(15000)));
+      const rows = await firstValueFrom(
+        this.http
+          .get<Message[]>(`${this.url}/${selected.id}/messages`, {
+            params: before ? { before } : {},
+          })
+          .pipe(timeout(15000)),
+      );
       if (this.destroyed || revision !== this.revision) return;
       const changed = rows[rows.length - 1]?.id !== this.rows[this.rows.length - 1]?.id;
-      this.rows = rows; this.older = !!before; this.error = '';
-      if (changed && !before) requestAnimationFrame(() => {
-        const el = this.messageList?.nativeElement;
-        if (el && revision === this.revision) el.scrollTop = el.scrollHeight;
-      });
-      if (rows.length && this.opened && !document.hidden) {
+      this.rows = rows;
+      this.older = !!before;
+      this.error = '';
+      if (changed && !before)
+        requestAnimationFrame(() => {
+          const el = this.messageList?.nativeElement;
+          if (el && revision === this.revision) el.scrollTop = el.scrollHeight;
+        });
+      if (rows.length && this.opened && !this.minimized && !document.hidden) {
         await this.markRead(rows[rows.length - 1].id);
         if (!before) selected.unread = 0;
       }
-    } catch { if (revision === this.revision) this.error = 'No se pudieron cargar los mensajes.'; }
-    finally { if (revision === this.revision) this.loading = false; }
+    } catch {
+      if (revision === this.revision) this.error = 'No se pudieron cargar los mensajes.';
+    } finally {
+      if (revision === this.revision) this.loading = false;
+    }
   }
   submitOnEnter(event: Event) {
     const keyboard = event as KeyboardEvent;
@@ -202,18 +295,33 @@ export class PocketChat implements OnInit, OnDestroy {
     void this.send();
   }
   async send() {
-    const body = this.draft.trim(), peer = this.selected?.id;
+    const body = this.draft.trim(),
+      peer = this.selected?.id;
     if (!body || !peer || this.sending || body.length > 2000) return;
     if (!this.pending || this.pending.body !== body || this.pending.peer !== peer) {
-      const bytes = new Uint8Array(16); crypto.getRandomValues(bytes);
-      this.pending = { body, peer, client_id: Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('') };
+      const bytes = new Uint8Array(16);
+      crypto.getRandomValues(bytes);
+      this.pending = {
+        body,
+        peer,
+        client_id: Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join(''),
+      };
     }
     this.sending = true;
     try {
-      await firstValueFrom(this.http.post(`${this.url}/${peer}/messages`, this.pending).pipe(timeout(15000)));
-      this.draft = ''; this.pending = undefined; this.older = false; await this.load();
-    } catch { this.error = 'No se confirmo el envio. Puedes reintentar.'; }
-    finally { this.sending = false; this.focusMessageInput(); }
+      await firstValueFrom(
+        this.http.post(`${this.url}/${peer}/messages`, this.pending).pipe(timeout(15000)),
+      );
+      this.draft = '';
+      this.pending = undefined;
+      this.older = false;
+      await this.load();
+    } catch {
+      this.error = 'No se confirmo el envio. Puedes reintentar.';
+    } finally {
+      this.sending = false;
+      this.focusMessageInput();
+    }
   }
   private focusMessageInput() {
     requestAnimationFrame(() => this.messageInput?.nativeElement.focus());

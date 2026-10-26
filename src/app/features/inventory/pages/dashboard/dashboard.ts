@@ -51,7 +51,6 @@ import { MtLoader } from '@metasperu/component/mt-loader/mt-loader';
 import { MtSelect } from '@metasperu/component/mt-select/mt-select';
 import { firstValueFrom } from 'rxjs';
 import { PocketPerformance } from './component/pocket-performance/pocket-performance';
-import { PocketChat } from '@metasperu/component/pocket-chat/pocket-chat';
 import { SocketMonitor } from './component/socket-monitor/socket-monitor';
 import jsPDF from 'jspdf';
 import QRCode from 'qrcode';
@@ -113,7 +112,6 @@ const sectionColumnKey = (name: string) => (name || '').trim().replace(/\s+/g, '
     MtInput,
     MatMenuModule,
     MtSelect,
-    PocketChat,
   ],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',

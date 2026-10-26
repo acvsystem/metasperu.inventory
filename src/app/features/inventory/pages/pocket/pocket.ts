@@ -21,7 +21,6 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
-import { PocketChat } from '@metasperu/component/pocket-chat/pocket-chat';
 import { BrowserMultiFormatReader } from '@zxing/library';
 
 @Component({
@@ -42,7 +41,6 @@ import { BrowserMultiFormatReader } from '@zxing/library';
     IonRow,
     MatTableModule,
     MatSortModule,
-    PocketChat,
   ],
   templateUrl: './pocket.html',
   styleUrl: './pocket.scss',

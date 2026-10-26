@@ -255,3 +255,10 @@ ion-item {
     --padding-end: 2px;
   }
 }
+
+.workspace-chat {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 900;
+}

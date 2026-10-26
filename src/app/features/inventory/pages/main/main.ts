@@ -1,3 +1,4 @@
+import { PocketChat } from '../../../../shared/component/pocket-chat/pocket-chat';
 import { Component, inject, signal, OnDestroy, OnInit } from '@angular/core';
 import { MatPaginatorIntl } from '@angular/material/paginator';
 import { inventoryPaginator } from '../../../../shared/component/inventory-paginator';
@@ -46,6 +47,7 @@ import { InventoryService } from '@metasperu/services/inventory.service';
   host: { class: 'inventory-ui' },
   imports: [
     CommonModule,
+    PocketChat,
     RouterOutlet,
     ToasNotification,
     IonContent,
