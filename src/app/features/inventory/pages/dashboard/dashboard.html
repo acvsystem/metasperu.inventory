@@ -30,20 +30,28 @@
       <mat-tab-group (selectedIndexChange)="onTabChange($event)">
         <!-- ===================== TAB 1: Inventario Pocket ===================== -->
         <mat-tab label="Conteos">
-          <section class="inventory-metrics" aria-label="Resumen del inventario">
+          <section
+            class="inventory-metrics tw:grid tw:grid-cols-1 tw:sm:grid-cols-2 tw:xl:grid-cols-4 tw:gap-4"
+            aria-label="Resumen del inventario"
+          >
             <div class="inventory-metric">
-              <span>Stock esperado</span><strong>{{ totalStock() | number }}</strong
+              <mat-icon class="metric-icon metric-purple" aria-hidden="true">inventory_2</mat-icon
+              ><span>Stock esperado</span><strong>{{ totalStock() | number }}</strong
               ><small>{{
                 hasConteoFilters ? 'Filtrado: ' + stockFilter : 'Unidades de stock base'
               }}</small>
             </div>
             <div class="inventory-metric">
-              <span>Unidades contadas</span><strong>{{ totalConteo() | number }}</strong
+              <mat-icon class="metric-icon metric-teal" aria-hidden="true">qr_code_scanner</mat-icon
+              ><span>Unidades contadas</span><strong>{{ totalConteo() | number }}</strong
               ><small>{{
                 hasConteoFilters ? 'Filtrado: ' + conteoFilter : 'Conteos recibidos en el servidor'
               }}</small>
             </div>
             <div class="inventory-metric metric-difference">
+              <mat-icon class="metric-icon metric-amber" aria-hidden="true"
+                >compare_arrows</mat-icon
+              >
               <span>{{
                 sessionState === 'FINALIZADO' ? 'Diferencia registrada' : 'Diferencia provisional'
               }}</span
@@ -53,7 +61,8 @@
               }}</small>
             </div>
             <div class="inventory-metric">
-              <span>SKU únicos contados</span><strong>{{ uniqueSkusCount() | number }}</strong
+              <mat-icon class="metric-icon metric-rose" aria-hidden="true">sell</mat-icon
+              ><span>SKU únicos contados</span><strong>{{ uniqueSkusCount() | number }}</strong
               ><small>Productos distintos con conteo</small>
             </div>
           </section>

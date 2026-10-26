@@ -11,7 +11,7 @@ html {
         primary: mat.$azure-palette,
         tertiary: mat.$blue-palette,
       ),
-      typography: Roboto,
+      typography: 'DM Sans',
       density: 0,
     ));
 }
@@ -68,7 +68,7 @@ body {
 
 body {
   margin: 0;
-  font-family: Roboto, "Helvetica Neue", sans-serif;
+  font-family: 'DM Sans', sans-serif;
 }
 
 .custom-notification-panel .mat-mdc-dialog-container .mdc-dialog__surface {

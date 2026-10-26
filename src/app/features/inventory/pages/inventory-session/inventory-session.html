@@ -1,11 +1,13 @@
 <ion-content class="session-content"
-  ><main class="session-workspace">
+  ><main class="session-workspace tw:font-sans">
     <header class="workspace-heading">
       <div>
         <h1>Inventarios</h1>
-        <p>Abre una sesión y supervisa el conteo de cada tienda.</p>
+        <p>{{ sessions.length }} sesiones registradas</p>
       </div>
-      <span class="status-pill">{{ sessions.length }} sesiones registradas</span>
+      <div class="tw:hidden tw:md:flex tw:items-center tw:gap-3 tw:text-xs tw:text-gray-500">
+        <span>Inventario</span><span aria-hidden="true">›</span><span>Sesiones</span>
+      </div>
     </header>
     <section class="inventory-panel session-create" aria-labelledby="new-inventory-heading">
       <div class="panel-heading">

@@ -37,8 +37,8 @@
     min-height: 28px;
     padding: 4px 12px;
     border-radius: 999px;
-    background: #eef6ff;
-    color: #0054d9;
+    background: #f1eeff;
+    color: var(--inv-blue);
     font-size: 12px;
     font-weight: 700;
     white-space: nowrap;
@@ -107,13 +107,13 @@
   }
   .pn-segments input:checked + span {
     background: #fff;
-    color: #0054d9;
+    color: var(--inv-blue);
     box-shadow: 0 1px 3px #0000001a;
     font-weight: 600;
   }
   input:focus-visible + span,
   button:focus-visible {
-    outline: 2px solid #0054d9;
+    outline: 2px solid var(--inv-blue);
     outline-offset: 2px;
   }
   input:disabled + span,
@@ -179,7 +179,7 @@
   .pn-checkbox input {
     width: 20px;
     height: 20px;
-    accent-color: #0054d9;
+    accent-color: var(--inv-blue);
   }
   .pn-register,
   .pn-sync {
@@ -195,11 +195,11 @@
     padding: 10px 16px;
   }
   .pn-register {
-    background: #0054d9;
+    background: var(--inv-blue);
     color: #fff;
   }
   .pn-register:hover:not(:disabled) {
-    background: #0044ae;
+    background: #5144da;
   }
   .pn-last {
     display: flex;
@@ -246,7 +246,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 8px;
-    color: #0054d9;
+    color: var(--inv-blue);
     text-align: left;
   }
   .pn-sync {
@@ -341,7 +341,7 @@
 .pending-summary strong {
   display: block;
   margin-top: 2px;
-  color: #0054d9;
+  color: var(--inv-blue);
   font-size: 24px;
   font-variant-numeric: tabular-nums;
 }
@@ -445,7 +445,7 @@
       justify-content: flex-end;
     }
     .pending-editing {
-      border-color: #0055e9;
+      border-color: #6155f5;
     }
     .pending-sku,
     .pending-quantity {

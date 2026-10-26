@@ -12,9 +12,12 @@
       ></ion-header
     >
     <ion-content>
-      <div class="navigation-caption">Espacio de trabajo</div>
+      <div class="navigation-caption">Menú</div>
       <nav aria-label="Navegación principal">
         @for (menu of menuFiltrado; track menu.ruta) {
+          @if (menu.ruta === 'inventory/maintenance') {
+            <div class="navigation-caption section-caption">Administración</div>
+          }
           <ion-menu-toggle [autoHide]="false"
             ><button
               type="button"
@@ -31,8 +34,8 @@
         }
       </nav>
       <div class="sidebar-note">
-        <ion-icon name="cube-outline" aria-hidden="true"></ion-icon>
-        <p>Todo tu inventario,<br />en el mismo lugar.</p>
+        <span class="sidebar-dot"></span>
+        <div><strong>METAS PERÚ</strong><span>Control de inventarios</span></div>
       </div>
     </ion-content>
   </ion-menu>

@@ -19,7 +19,7 @@
 .compact-field > span {
   font-size: 11px;
   line-height: 13px;
-  color: #53657d;
+  color: #6b7280;
 }
 .compact-field input {
   display: block;
@@ -33,11 +33,11 @@
   font: inherit;
   font-size: 13px;
   line-height: 18px;
-  color: #243247;
+  color: #18181b;
 }
 .compact-field:focus-within {
-  border-color: #155eef;
-  outline: 1px solid #155eef;
+  border-color: var(--inv-blue, #6155f5);
+  outline: 1px solid var(--inv-blue, #6155f5);
 }
 @media (max-width: 600px) {
   .compact-field input {
