@@ -1,0 +1,10 @@
+/* Utilities are prefixed and Preflight is omitted to preserve Ionic/Material controls. */
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme) prefix(tw);
+@import "tailwindcss/utilities.css" layer(utilities) prefix(tw);
+@source "../app";
+@theme {
+  --font-sans: "DM Sans", sans-serif;
+  --color-brand: #6155f5;
+  --color-canvas: #f8f9fb;
+}

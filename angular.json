@@ -33,6 +33,7 @@
               "src/manifest.webmanifest"
             ],
             "styles": [
+              "src/styles/tailwind.css",
               "src/styles.scss",
               "node_modules/@ionic/angular/css/core.css",
               "node_modules/@ionic/angular/css/normalize.css",
@@ -104,6 +105,7 @@
               "src/manifest.webmanifest"
             ],
             "styles": [
+              "src/styles/tailwind.css",
               "src/styles.scss"
             ]
           }
