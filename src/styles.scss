@@ -107,7 +107,7 @@ body.barcode-scanner-active {
 }
 
 .custom-dialog-modal.mt-select {
-  --width: 400px !important;
+  --width: min(400px, calc(100vw - 24px));
 }
 
 
@@ -258,9 +258,7 @@ ion-select::part(container) {
   }
 }
 
-ion-modal {
-  z-index: 1000 !important;
-}
+// Ionic owns overlay stacking; selectors must appear above the workspace chat.
 
 ion-alert {
   z-index: 9999 !important;

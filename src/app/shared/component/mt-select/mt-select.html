@@ -19,7 +19,7 @@
 <ion-modal
   [isOpen]="isModalOpen"
   class="custom-dialog-modal mt-select"
-  (didDismiss)="isModalOpen = false"
+  (didDismiss)="cancelSelection()"
 >
   <ng-template>
     <div class="dialog-container">
@@ -37,24 +37,32 @@
       <div class="dialog-body">
         <ion-list lines="none">
           @if (isMultiselect) {
-            <ion-item class="selectable-item select-all-item" (click)="toggleSelectAll()">
+            <ion-item class="selectable-item select-all-item">
               <ion-checkbox
-                slot="start"
+                justify="start"
+                labelPlacement="end"
+                (ionChange)="setAllSelected($event)"
                 [checked]="isAllSelected"
                 [indeterminate]="isIndeterminate"
                 mode="md"
               >
-              </ion-checkbox>
-              <ion-label><strong>SELECCIONAR TODOS</strong></ion-label>
+                Seleccionar todos</ion-checkbox
+              >
             </ion-item>
           }
 
           <div class="separator"></div>
           @for (item of filteredData; track item.value) {
             @if (isMultiselect) {
-              <ion-item (click)="toggleItem(item)" class="selectable-item">
-                <ion-checkbox slot="start" [checked]="item.selected" mode="md"></ion-checkbox>
-                <ion-label>{{ item.value }}</ion-label>
+              <ion-item class="selectable-item">
+                <ion-checkbox
+                  justify="start"
+                  labelPlacement="end"
+                  [checked]="item.selected"
+                  (ionChange)="onCheckboxChange($event, item)"
+                  mode="md"
+                  >{{ item.value }}</ion-checkbox
+                >
               </ion-item>
             } @else {
               <ion-item button (click)="selectItem(item)" class="selectable-item notMultiselect">
@@ -68,7 +76,7 @@
       </div>
 
       <div class="dialog-footer">
-        <ion-button fill="clear" color="medium" (click)="isModalOpen = false">CANCELAR</ion-button>
+        <ion-button fill="clear" color="medium" (click)="cancelSelection()">CANCELAR</ion-button>
         <ion-button fill="clear" color="primary" (click)="confirmSelection()">ACEPTAR</ion-button>
       </div>
     </div>

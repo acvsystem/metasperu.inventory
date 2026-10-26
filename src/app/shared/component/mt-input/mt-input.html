@@ -1,16 +1,11 @@
-<ion-row>
-    <ion-col>
-        <div class="filter-wrapper">
-            <mat-form-field appearance="fill" class="custom-filter-internal">
-                <mat-label>{{label}}</mat-label>
-                @if(type != 'number'){
-                <input matInput [(ngModel)]="autoText" (keyup)="onChange($event)" placeholder="{{placeholder}}">
-                }@else{
-                <input matInput type="text" inputmode="numeric" (keypress)="onlyNumbers($event)" [(ngModel)]="autoText" (keyup)="onChange($event)"
-                    placeholder="{{placeholder}}">
-                }
-
-            </mat-form-field>
-        </div>
-    </ion-col>
-</ion-row>
+<label class="compact-field"
+  ><span>{{ label }}</span>
+  <input
+    [id]="id"
+    [type]="type === 'number' ? 'text' : type"
+    [attr.inputmode]="type === 'number' ? 'numeric' : null"
+    [(ngModel)]="autoText"
+    (input)="onChange($event)"
+    (keypress)="type === 'number' ? onlyNumbers($event) : null"
+    [placeholder]="placeholder"
+/></label>

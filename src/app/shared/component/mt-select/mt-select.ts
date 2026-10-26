@@ -1,21 +1,45 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, input, Output, signal, SimpleChanges } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  input,
+  Output,
+  signal,
+  SimpleChanges,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import {
-  IonCol, IonSearchbar,
-  IonItem, IonLabel, IonRow,
-  IonList, IonModal,
-  IonButton, IonCheckbox
+  IonCol,
+  IonSearchbar,
+  IonItem,
+  IonLabel,
+  IonRow,
+  IonList,
+  IonModal,
+  IonButton,
+  IonCheckbox,
 } from '@ionic/angular/standalone';
 
 @Component({
   selector: 'mt-select',
   standalone: true,
   imports: [
-    MatInputModule, MatFormFieldModule, FormsModule, CommonModule, IonList, IonCheckbox,
-    IonCol, IonRow, IonItem, IonSearchbar, IonLabel, IonButton, IonModal
+    MatInputModule,
+    MatFormFieldModule,
+    FormsModule,
+    CommonModule,
+    IonList,
+    IonCheckbox,
+    IonCol,
+    IonRow,
+    IonItem,
+    IonSearchbar,
+    IonLabel,
+    IonButton,
+    IonModal,
   ],
   templateUrl: './mt-select.html',
   styleUrl: './mt-select.scss',
@@ -24,11 +48,11 @@ export class MtSelect {
   @Output() selectdOption: EventEmitter<any> = new EventEmitter();
   @Input() data: Array<any> = []; // Signal para la lista de tiendas
   @Input() isMultiselect: boolean = false;
-  @Input() label: string = "";
-  @Input() title: string = "";
-  @Input() modalUser: string = "";
+  @Input() label: string = '';
+  @Input() title: string = '';
+  @Input() modalUser: string = '';
   @Input() checkAll: boolean = false;
-  @Input() id: string = "";
+  @Input() id: string = '';
   @Input() selectedKey?: number;
   isAllSelected = false;
 
@@ -39,6 +63,7 @@ export class MtSelect {
   isModalOpen = false;
   selectedText = '';
   selectedValues: any[] = [];
+  private selectionSnapshot: Array<{ item: any; selected: boolean }> | null = null;
   customAlertOptions = {
     header: this.title,
     cssClass: 'custom-alert-inventory',
@@ -47,14 +72,14 @@ export class MtSelect {
       {
         text: 'CANCEL',
         role: 'cancel',
-        cssClass: 'alert-button-cancel'
+        cssClass: 'alert-button-cancel',
       },
       {
         text: 'OK',
         role: 'confirm',
-        cssClass: 'alert-button-confirm'
-      }
-    ]
+        cssClass: 'alert-button-confirm',
+      },
+    ],
   };
 
   ngOnInit() {
@@ -72,7 +97,6 @@ export class MtSelect {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-
     if (changes['data'] && changes['data'].currentValue) {
       this.customAlertOptions.header = this.title;
       this.filteredData = this.data;
@@ -87,14 +111,13 @@ export class MtSelect {
       }
     }
     if (!this.isMultiselect && this.selectedKey !== undefined) {
-      this.selectedText = this.data.find(item => item.key === this.selectedKey)?.value || '';
+      this.selectedText = this.data.find((item) => item.key === this.selectedKey)?.value || '';
     }
   }
 
-
   setDefaultItem(value: string) {
     // 1. Buscamos el item en el arreglo original
-    const item = this.data.find(i => i.value === value);
+    const item = this.data.find((i) => i.value === value);
 
     if (item) {
       // Si es selección simple, usamos tu lógica de selectItem
@@ -103,17 +126,33 @@ export class MtSelect {
   }
 
   updateSelectedText() {
-    const selectedNodes = this.data.filter(i => i.selected);
+    const selectedNodes = this.data.filter((i) => i.selected);
     if (selectedNodes.length > 0) {
-      this.selectedText = selectedNodes.map(i => i.value).join(', ');
+      this.selectedText = selectedNodes.map((i) => i.value).join(', ');
     } else {
       this.selectedText = '';
     }
   }
 
   openStoreModal() {
+    this.selectionSnapshot = this.isMultiselect
+      ? this.data.map((item) => ({ item, selected: !!item.selected }))
+      : null;
     this.filteredData = [...this.data]; // Mostramos todo al inicio
+    this.checkMasterState();
     this.isModalOpen = true;
+  }
+
+  cancelSelection() {
+    this.selectionSnapshot?.forEach(({ item, selected }) => (item.selected = selected));
+    this.selectionSnapshot = null;
+    this.checkMasterState();
+    this.isModalOpen = false;
+  }
+
+  setAllSelected(event: any) {
+    this.filteredData.forEach((item) => (item.selected = event.detail.checked));
+    this.checkMasterState();
   }
 
   // 3. Seleccionar item
@@ -128,7 +167,7 @@ export class MtSelect {
   }
 
   toggleSelection(tienda: any) {
-    const index = this.selectedValues.findIndex(v => v.value === tienda.value);
+    const index = this.selectedValues.findIndex((v) => v.value === tienda.value);
     if (index > -1) {
       this.selectedValues.splice(index, 1);
     } else {
@@ -138,7 +177,10 @@ export class MtSelect {
   }
 
   checkSelected(tienda: any) {
-    return this.selectedValues.some(v => v.value === tienda.value) || this.selectedText === tienda.value;
+    return (
+      this.selectedValues.some((v) => v.value === tienda.value) ||
+      this.selectedText === tienda.value
+    );
   }
 
   onSelectedOption(ev: any) {
@@ -146,7 +188,7 @@ export class MtSelect {
     this.optionSelected = {
       id: (selected || {}).id,
       key: (selected || {}).key,
-      value: (selected || {}).value
+      value: (selected || {}).value,
     };
     console.log(this.optionSelected);
     this.selectedText = (selected || {}).value;
@@ -169,17 +211,19 @@ export class MtSelect {
       // Si el buscador está vacío, mostramos todo
       this.filteredData = this.data;
     }
+    this.checkMasterState();
   }
 
   // Alternar selección al hacer clic en cualquier parte del item
   onCheckboxChange(event: any, item: any) {
     item.selected = event.detail.checked;
+    this.checkMasterState();
   }
 
   toggleSelectAll() {
     this.isAllSelected = !this.isAllSelected;
     // Aplicamos el cambio a toda la lista (basado en lo que está filtrado o en todo)
-    this.filteredData.forEach(item => item.selected = this.isAllSelected);
+    this.filteredData.forEach((item) => (item.selected = this.isAllSelected));
     this.checkMasterState();
   }
 
@@ -190,7 +234,7 @@ export class MtSelect {
 
   checkMasterState() {
     const totalItems = this.filteredData.length;
-    const selectedItems = this.filteredData.filter(i => i.selected).length;
+    const selectedItems = this.filteredData.filter((i) => i.selected).length;
 
     if (selectedItems > 0 && selectedItems < totalItems) {
       this.isIndeterminate = true;
@@ -206,7 +250,8 @@ export class MtSelect {
 
   // Al dar OK, procesamos los seleccionados
   confirmSelection() {
-    const selectedItems = this.data.filter(i => i.selected);
+    this.selectionSnapshot = null;
+    const selectedItems = this.data.filter((i) => i.selected);
     if (this.isMultiselect) {
       // Actualizamos el texto que se ve en el botón principal
       if (selectedItems.length > 0) {
@@ -224,5 +269,4 @@ export class MtSelect {
     this.onSelectedOptionMultiple(selectedItems);
     this.isModalOpen = false;
   }
-
 }

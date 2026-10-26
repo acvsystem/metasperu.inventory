@@ -79,3 +79,18 @@
     }
   }
 }
+@media (max-width: 480px) {
+  .verification-container {
+    padding: 16px;
+  }
+  .verification-container .code-inputs {
+    gap: 5px;
+  }
+  .verification-container .code-inputs input {
+    width: 100%;
+    min-width: 0;
+    max-width: 45px;
+    height: 44px;
+    padding: 0;
+  }
+}

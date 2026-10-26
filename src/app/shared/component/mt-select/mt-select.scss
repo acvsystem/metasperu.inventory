@@ -1,328 +1,113 @@
-/* En global.scss */
-.custom-alert-inventory.alert-wrapper {
-  /* 1. Bordes redondeados de la ventana */
-  border-radius: 8px !important;
-
-  /* 2. Controlar la altura máxima para que no ocupe toda la pantalla */
-  max-height: 80% !important;
-  width: 90% !important;
-  max-width: 400px !important;
-
-  -z-index: 99999 !important;
+:host {
+  display: block;
+  min-width: 0;
 }
-
-.custom-alert-inventory.alert-wrapper.sc-ion-alert-md {
-  -z-index: 99999 !important;
-}
-
-/* 3. Estilo de los botones CANCEL y OK */
-.custom-alert-inventory .alert-button-group {
-  padding-right: 10px;
-}
-
-.custom-alert-inventory .alert-button-inner {
-  color: #3880ff;
-  /* Color azul de los botones */
-  font-weight: 500;
-}
-
-/* 4. Estilo de los radio buttons (círculos) */
-.custom-alert-inventory .alert-radio-icon {
-  border-color: #666;
-  /* Color del círculo cuando no está marcado */
-}
-
-.custom-alert-inventory .alert-radio-label {
-  font-size: 14px;
-  color: #333;
-}
-
 .custom-item {
-  /* 1. Creamos nuestro propio borde fino */
-  border: 1px solid #d1d1d1;
-  border-radius: 4px;
-
-  /* 2. Quitamos el color de fondo y sombras de Ionic */
-  --background: transparent;
-  --padding-start: 12px;
-  --inner-padding-end: 12px;
-  --highlight-height: 0;
-  /* ESTO QUITA LA LÍNEA VERDE */
-  height: 39px !important;
-  min-height: 39px !important;
-  transition: border-color 0.2s;
-  display: flex;
-  align-items: center;
-}
-
-/* 3. Ajustamos el select para que la flecha se pegue a la derecha */
-ion-select {
-  width: 100%;
-  --placeholder-color: #999;
-  --placeholder-opacity: 1;
-  min-height: 40px !important;
-}
-
-ion-select::part(container) {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-}
-
-/* 4. Efecto de foco (opcional) */
-.custom-item:focus-within {
-  border-color: #3880ff;
-}
-
-/* Aplicamos a la clase que definimos en interfaceOptions */
-.custom-alert-inventory {
-  z-index: 99999999999 !important;
-
-  /* 1. Quitar el anillo de enfoque de toda la ventana de alerta */
-  .alert-wrapper:focus {
-    outline: none !important;
-  }
-
-  /* 2. Quitar el borde de enfoque en las opciones (Radio buttons) */
-  .alert-radio-button:focus,
-  .alert-radio-button:focus-visible,
-  .alert-radio-button.ion-focused {
-    --background-focused: transparent;
-    outline: none !important;
-  }
-
-  /* 3. Quitar el borde de los botones CANCEL y OK al hacer click */
-  .alert-button:focus,
-  .alert-button:focus-visible,
-  .alert-button.ion-focused {
-    outline: none !important;
-    background: transparent !important;
-    --background-focused: transparent;
-    --background-hover: rgba(0, 0, 0, 0.05);
-    /* Opcional: un toque sutil al pasar el mouse */
-  }
-
-  /* 4. Específico para navegadores basados en Chromium */
-  * {
-    outline: none !important;
-  }
-}
-
-ion-modal {
-  z-index: 1000 !important;
-}
-
-ion-alert {
-  z-index: 9999 !important;
-}
-
-/* Centrar el modal y darle tamaño de diálogo */
-.custom-alert-modal {
-  --width: 90%;
-  --height: fit-content;
-  --max-height: 80%;
-  --border-radius: 4px;
-}
-
-.modal-main-container {
-  display: flex;
-  flex-direction: column;
-  background: white;
-}
-
-.modal-title {
-  padding: 20px 20px 10px 20px;
-  margin: 0;
-  font-size: 20px;
-  font-weight: 500;
-}
-
-.filter-searchbar {
-  padding: 0 10px;
-  --box-shadow: none;
-  --background: #f2f2f2;
-}
-
-.modal-body {
-  max-height: 400px;
-  /* Ajusta según necesites */
-}
-
-.item-checkbox {
-  --padding-start: 10px;
-  font-size: 14px;
-}
-
-.modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  padding: 8px;
-}
-
-.modal-footer ion-button {
-  --color: #1a73e8;
-  /* Azul profesional */
-  font-weight: bold;
-}
-
-// 1. El disparador (lo que ves en la pantalla principal)
-.selector-wrapper {
-  background: #ffffff;
-  border: 1px solid #e0e0e0;
-  border-radius: 12px;
-  padding: 12px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-
-  &:active {
-    background: #f8f9fa;
-    transform: scale(0.98);
-  }
-
-  .selector-content {
-    display: grid;
-    flex-direction: column;
-    padding-left: 10px !important;
-
-    .selector-label {
-      font-size: 16px;
-      font-weight: 300;
-      text-transform: uppercase;
-    }
-
-    .selector-value {
-      font-size: 1rem;
-      color: #212529;
-      font-weight: 500;
-      margin-top: 2px;
-
-      &.placeholder {
-        color: #adb5bd;
-        font-weight: 400;
-      }
-    }
-  }
-
-  .selector-icon {
-    font-size: 1.2rem;
-    color: #495057;
-  }
-}
-
-// 2. El Modal personalizado
-.custom-dialog-modal {
-  --width: 90%;
-  --height: fit-content;
-  --max-height: 80%;
-  --border-radius: 16px;
-  --box-shadow: 0 28px 48px rgba(0, 0, 0, 0.4);
-
-  .dialog-container {
-    background: #fff;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .dialog-header {
-    padding: 20px 20px 10px;
-
-    h2 {
-      margin: 0 0 15px;
-      font-size: 1.25rem;
-      color: #1a1a1a;
-    }
-  }
-
-  .custom-searchbar {
-    --border-radius: 10px;
-    --background: #f1f3f5;
-    --box-shadow: none;
-    padding: 0;
-  }
-
-  .dialog-body {
-    max-height: 350px;
-    overflow-y: auto;
-    padding: 0 10px;
-
-    .selectable-item {
-      --padding-start: 10px;
-      --border-radius: 8px;
-      margin-bottom: 2px;
-
-      ion-checkbox {
-        --border-radius: 6px;
-        margin-right: 15px;
-      }
-    }
-
-    .notMultiselect:hover {
-      cursor: pointer;
-    }
-  }
-
-  .no-results {
-    padding: 20px;
-    text-align: center;
-    color: #adb5bd;
-    font-size: 0.9rem;
-  }
-
-  .dialog-footer {
-    display: flex;
-    justify-content: flex-end;
-    padding: 10px 15px;
-    border-top: 1px solid #f1f3f5;
-
-    ion-button {
-      font-weight: 700;
-      font-size: 0.85rem;
-    }
-  }
-}
-
-.mobil {
-  width: 90% !important;
-}
-.custom-item {
   width: 100%;
-  min-height: 52px !important;
-  height: auto !important;
-  padding: 8px 12px;
-  text-align: left;
-  justify-content: space-between;
+  min-width: 0;
+  height: 39px;
+  padding: 3px 8px;
   gap: 8px;
-  cursor: pointer;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
   background: white;
-  border-color: var(--inv-line, #d1d1d1);
-  border-radius: 7px;
+  text-align: left;
+  cursor: pointer;
 }
 .custom-item:focus-visible {
-  outline: 3px solid #7da9ff;
+  outline: 2px solid #155eef;
   outline-offset: 2px;
 }
 .selector-content {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  gap: 3px;
 }
 .selector-label {
   font-size: 11px;
-  color: var(--inv-muted, #53657d);
-  font-weight: 500;
+  line-height: 13px;
+  color: #53657d;
 }
 .selector-value {
-  font-size: 14px;
-  color: var(--inv-ink, #243247);
+  font-size: 13px;
+  line-height: 17px;
+  color: #243247;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .selector-chevron {
-  font-size: 19px;
-  color: var(--inv-muted, #53657d);
+  font-size: 16px;
+  color: #53657d;
+}
+.custom-dialog-modal {
+  --width: min(400px, calc(100vw - 24px));
+  --height: auto;
+  --max-height: calc(100dvh - 24px);
+  --border-radius: 10px;
+}
+.dialog-container {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 24px);
+  overflow: hidden;
+  background: white;
+  color: #243247;
+}
+.dialog-header {
+  flex: 0 0 auto;
+  padding: 16px 16px 10px;
+}
+.dialog-header h2 {
+  margin: 0 0 10px;
+  font-size: 18px;
+}
+.custom-searchbar {
+  padding: 0;
+  --box-shadow: none;
+  --background: #f1f3f5;
+  --border-radius: 5px;
+}
+.dialog-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 350px;
+  overflow: auto;
+  padding: 0 8px;
+  overscroll-behavior: contain;
+}
+.dialog-body ion-list {
+  background: white;
+}
+.selectable-item {
+  --background: white;
+  --min-height: 44px;
+  --padding-start: 8px;
+  color: #243247;
+}
+.selectable-item ion-checkbox {
+  width: 100%;
+  --size: 20px;
+  font-size: 14px;
+}
+.dialog-footer {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 8px 12px;
+  border-top: 1px solid #dde4ee;
+}
+.dialog-footer ion-button {
+  min-height: 40px;
+  margin: 0;
+  font-size: 13px;
+}
+.no-results {
+  padding: 24px 12px;
+  text-align: center;
+  color: #53657d;
 }

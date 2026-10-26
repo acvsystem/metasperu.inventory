@@ -20,7 +20,8 @@
 }
 .session-form {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr) auto;
+  grid-template-columns: minmax(0, 280px) minmax(0, 340px) auto;
+  justify-content: start;
   gap: 16px;
   align-items: center;
 }
@@ -57,8 +58,8 @@
   gap: 8px;
   border: 1px solid var(--inv-line);
   border-radius: 7px;
-  min-height: 44px;
-  padding: 8px 12px;
+  min-height: 39px;
+  padding: 6px 10px;
   max-width: 350px;
   width: 100%;
   color: var(--inv-muted);
