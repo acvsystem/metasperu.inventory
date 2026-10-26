@@ -2,10 +2,7 @@ import { Component, signal, inject, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import {
-  IonContent, IonHeader, IonTitle, IonToolbar,
-  IonButton, IonCard, IonRow, IonCol
-} from '@ionic/angular/standalone';
+import { IonContent } from '@ionic/angular/standalone';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -43,10 +40,26 @@ export interface tableColumns {
 
 @Component({
   selector: 'app-inventory-session',
-  imports: [MatDialogModule, MatButtonModule, MatIconModule, MatInputModule, MatFormFieldModule, MatTableModule, IonCol,
-    CommonModule, FormsModule, IonContent, IonHeader, IonTitle, IonRow, MatTooltipModule, MatBadgeModule,
-    IonToolbar, IonButton, MatSelectModule, MatPaginator, MatPaginatorModule, MatSortModule,
-    IonCard, MtSelect, MtInput, MatMenu, MatMenuModule
+  imports: [
+    MatDialogModule,
+    MatButtonModule,
+    MatIconModule,
+    MatInputModule,
+    MatFormFieldModule,
+    MatTableModule,
+    CommonModule,
+    FormsModule,
+    IonContent,
+    MatTooltipModule,
+    MatBadgeModule,
+    MatSelectModule,
+    MatPaginator,
+    MatPaginatorModule,
+    MatSortModule,
+    MtSelect,
+    MtInput,
+    MatMenu,
+    MatMenuModule,
   ],
   templateUrl: './inventory-session.html',
   styleUrl: './inventory-session.scss',
@@ -62,23 +75,54 @@ export default class InventorySession {
   isLoading = signal(false);
   stores: Array<any> = []; // Signal para la lista de tiendas
   selectedStoreId = ''; // Almacena el ID seleccionado
-  displayedColumns: string[] = ['codigo_sesion', 'nombre_tienda', 'usuario', 'fecha_inicio', 'estado', 'accion'];
+  displayedColumns: string[] = [
+    'codigo_sesion',
+    'nombre_tienda',
+    'usuario',
+    'fecha_inicio',
+    'estado',
+    'accion',
+  ];
   dataColumns: tableColumns[] = [
-    { matColumnDef: 'codigo_sesion', titleColumn: 'Codigo Sesion', propertyValue: 'codigo_sesion', filterActive: false },
-    { matColumnDef: 'nombre_tienda', titleColumn: 'Tienda', propertyValue: 'nombre_tienda', filterActive: false },
-    { matColumnDef: 'usuario', titleColumn: 'Creado por', propertyValue: 'usuario', filterActive: false },
-    { matColumnDef: 'fecha_inicio', titleColumn: 'Fecha inicio', propertyValue: 'fecha_inicio', filterActive: false },
+    {
+      matColumnDef: 'codigo_sesion',
+      titleColumn: 'Código de sesión',
+      propertyValue: 'codigo_sesion',
+      filterActive: false,
+    },
+    {
+      matColumnDef: 'nombre_tienda',
+      titleColumn: 'Tienda',
+      propertyValue: 'nombre_tienda',
+      filterActive: false,
+    },
+    {
+      matColumnDef: 'usuario',
+      titleColumn: 'Creado por',
+      propertyValue: 'usuario',
+      filterActive: false,
+    },
+    {
+      matColumnDef: 'fecha_inicio',
+      titleColumn: 'Fecha inicio',
+      propertyValue: 'fecha_inicio',
+      filterActive: false,
+    },
     { matColumnDef: 'estado', titleColumn: 'Estado', propertyValue: 'estado', filterActive: false },
-    { matColumnDef: 'accion', titleColumn: 'Accion', propertyValue: '', filterActive: false }];
+    { matColumnDef: 'accion', titleColumn: 'Acción', propertyValue: '', filterActive: false },
+  ];
   filterValues: any = {};
   sessions: Array<any> = [];
   arSections: Array<any> = [];
   sectionsSelected: Array<any> = [];
-  formSection: string[] = []
-  inFilter: string = "";
+  formSection: string[] = [];
+  inFilter: string = '';
   dataSource = new MatTableDataSource(this.sessions);
-  roleUser: any = "";
-  constructor(private dialog: MatDialog, private store: StorageService) { }
+  roleUser: any = '';
+  constructor(
+    private dialog: MatDialog,
+    private store: StorageService,
+  ) {}
 
   ngOnInit() {
     this.getSections();
@@ -91,23 +135,44 @@ export default class InventorySession {
   }
 
   applyFilterTable(event: Event, column: string) {
-    const value=(event.target as HTMLInputElement).value.trim().toLowerCase();
-    const definition=this.dataColumns.find(item=>item.matColumnDef===column);
-    if(!definition)return;
-    definition.filterActive=!!value;
-    this.filterValues[definition.propertyValue]=value;
+    const value = (event.target as HTMLInputElement).value.trim().toLowerCase();
+    const definition = this.dataColumns.find((item) => item.matColumnDef === column);
+    if (!definition) return;
+    definition.filterActive = !!value;
+    this.filterValues[definition.propertyValue] = value;
     this.updateSessionFilter();
   }
 
-  get hasColumnFilters(){return Object.values(this.filterValues).some(Boolean);}
-  clearSessionFilters(){this.inFilter='';this.filterValues={};this.dataColumns.forEach(column=>column.filterActive=false);this.updateSessionFilter();}
-  private updateSessionFilter(){
-    this.dataSource.filterPredicate=(row:any, filter:string)=>{
-      const query=JSON.parse(filter);
-      const search=Object.values(row).some(value=>String(value??'').toLowerCase().includes(query.search));
-      return search && Object.entries(query.columns).every(([key,value])=>String(row[key]??'').toLowerCase().includes(String(value)));
+  get hasColumnFilters() {
+    return Object.values(this.filterValues).some(Boolean);
+  }
+  clearSessionFilters() {
+    this.inFilter = '';
+    this.filterValues = {};
+    this.dataColumns.forEach((column) => (column.filterActive = false));
+    this.updateSessionFilter();
+  }
+  private updateSessionFilter() {
+    this.dataSource.filterPredicate = (row: any, filter: string) => {
+      const query = JSON.parse(filter);
+      const search = Object.values(row).some((value) =>
+        String(value ?? '')
+          .toLowerCase()
+          .includes(query.search),
+      );
+      return (
+        search &&
+        Object.entries(query.columns).every(([key, value]) =>
+          String(row[key] ?? '')
+            .toLowerCase()
+            .includes(String(value)),
+        )
+      );
     };
-    this.dataSource.filter=JSON.stringify({search:this.inFilter.trim().toLowerCase(),columns:this.filterValues});
+    this.dataSource.filter = JSON.stringify({
+      search: this.inFilter.trim().toLowerCase(),
+      columns: this.filterValues,
+    });
     this.dataSource.paginator?.firstPage();
   }
 
@@ -117,8 +182,8 @@ export default class InventorySession {
       panelClass: 'custom-notification-panel',
       data: {
         isSession: true,
-        inCodeGen: this.generatedCode()
-      }
+        inCodeGen: this.generatedCode(),
+      },
     });
   }
 
@@ -126,13 +191,14 @@ export default class InventorySession {
     this.inventoryService.getStores().subscribe({
       next: (data) => {
         (data || []).filter((store) => {
-
           (this.stores || []).push({
-            key: (store || {}).id, value: (store || {}).nombre_tienda, serie: (store || {}).serie
+            key: (store || {}).id,
+            value: (store || {}).nombre_tienda,
+            serie: (store || {}).serie,
           });
         });
       },
-      error: (err) => console.error('Error al cargar tiendas', err)
+      error: (err) => console.error('Error al cargar tiendas', err),
     });
   }
 
@@ -145,14 +211,14 @@ export default class InventorySession {
         this.dataSource.sort = this.sort;
         this.updateSessionFilter();
       },
-      error: (err) => console.error('Error al cargar tiendas', err)
+      error: (err) => console.error('Error al cargar tiendas', err),
     });
   }
 
   async onChangeSelect(data: any) {
     console.log(data);
     let selectData = data || {};
-    this.selectedStoreId = (selectData || {}).key || "";
+    this.selectedStoreId = (selectData || {}).key || '';
   }
 
   async onChangeSelectMultiple(data: any) {
@@ -168,12 +234,12 @@ export default class InventorySession {
 
     this.isLoading.set(true);
 
-    const store = this.stores.find(s => s.key === +this.selectedStoreId);
+    const store = this.stores.find((s) => s.key === +this.selectedStoreId);
 
     // --- FILTRO DE DUPLICADOS PARA OBJETOS ---
     // Filtramos usando un Map tomando como llave única el 'id' (o cambia 'id' por 'nombre_seccion' si prefieres)
     const assignedSection = Array.from(
-      new Map(this.sectionsSelected.map(item => [item.nombre_seccion, item])).values()
+      new Map(this.sectionsSelected.map((item) => [item.nombre_seccion, item])).values(),
     );
     // ------------------------------------------
 
@@ -181,16 +247,16 @@ export default class InventorySession {
       next: (res) => {
         this.generatedCode.set(res.session_code);
         this.store.setStore('storeName', store!.value);
-        this.store.setStore("codeSession", res.session_code);
-        this.store.setStore("serieStore", store!.serie);
+        this.store.setStore('codeSession', res.session_code);
+        this.store.setStore('serieStore', store!.serie);
         this.isLoading.set(false);
         this.loeadSessions();
         this.showNotification();
       },
       error: (err) => {
         this.isLoading.set(false);
-        console.error("Error al crear sesión:", err);
-      }
+        console.error('Error al crear sesión:', err);
+      },
     });
   }
 
@@ -199,23 +265,26 @@ export default class InventorySession {
     this.router.navigate(['/inventory/dashboard', this.generatedCode()]);
   }
 
-  applyFilter(data: any) {this.inFilter=String(data?.value??'');this.updateSessionFilter();}
+  applyFilter(data: any) {
+    this.inFilter = String(data?.value ?? '');
+    this.updateSessionFilter();
+  }
 
   getSections() {
     this.inventoryService.getSubzonas().subscribe({
       next: (data) => {
         (data || []).filter((sec) => {
           (this.arSections || []).push({
-            key: (sec || {}).seccion_id, value: (sec || {}).nombre_seccion
+            key: (sec || {}).seccion_id,
+            value: (sec || {}).nombre_seccion,
           });
         });
       },
       error: (err) => {
         this.onNotification({ error: 'error', message: err?.message });
-      }
-    })
+      },
+    });
   }
-
 
   onActiveSession(element: any) {
     this.inventoryService.putStartSession(element?.codigo_sesion).subscribe({
@@ -225,30 +294,31 @@ export default class InventorySession {
       },
       error: (err) => {
         this.onNotification({ error: 'error', message: err?.message });
-      }
-    })
+      },
+    });
   }
 
   onNotification(result: any) {
-    let notificationList = [{
-      isSuccess: !result?.error?.length ? true : false,
-      isError: result?.error?.length ? true : false,
-      bodyNotification: result?.message
-    }];
+    let notificationList = [
+      {
+        isSuccess: !result?.error?.length ? true : false,
+        isError: result?.error?.length ? true : false,
+        bodyNotification: result?.message,
+      },
+    ];
 
     this.inventoryService.onNotification.emit(notificationList);
   }
 
   async onNavigatorDashboard(element: any) {
-    const store = this.stores.find(s => s.value === element?.nombre_tienda);
+    const store = this.stores.find((s) => s.value === element?.nombre_tienda);
 
     if (!element?.codigo_sesion || !store!.serie) return;
 
     localStorage.removeItem('offline_inventory');
     this.store.setStore('storeName', element.nombre_tienda || '');
-    this.store.setStore("codeSession", element?.codigo_sesion);
-    this.store.setStore("serieStore", store!.serie);
+    this.store.setStore('codeSession', element?.codigo_sesion);
+    this.store.setStore('serieStore', store!.serie);
     this.router.navigate([`/inventory/dashboard`, element?.codigo_sesion, store?.serie]);
   }
-
 }

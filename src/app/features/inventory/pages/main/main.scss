@@ -1,3 +1,257 @@
-:host{display:block;height:100%;}ion-split-pane{--side-width:224px;--side-min-width:224px;--side-max-width:224px;}ion-menu{--background:var(--inv-surface);border-right:1px solid var(--inv-line);}ion-menu ion-content{--background:var(--inv-surface);}ion-menu ion-toolbar{--min-height:92px;--background:white;} .brand-lockup{display:flex;align-items:center;gap:12px;padding:20px;} .brand-lockup img{width:36px;height:36px;object-fit:contain;} .brand-lockup strong{display:block;color:var(--inv-ink);font-size:15px;letter-spacing:.2px;} .brand-lockup span{display:block;font-size:11px;color:var(--inv-muted);margin-top:4px;} .navigation-caption{padding:22px 24px 12px;color:var(--inv-muted);font-size:12px;}nav{padding:0 12px;} .navigation-item{display:flex;align-items:center;gap:12px;width:100%;min-height:46px;padding:12px;border:0;border-radius:7px;margin:4px 0;background:transparent;color:var(--inv-muted);font-size:14px;font-weight:500;text-align:left;} .navigation-item ion-icon{font-size:20px;} .navigation-item:hover{background:#f5f7fa;} .navigation-item.selected{color:var(--inv-blue);background:var(--inv-blue-soft);font-weight:650;} .navigation-item:disabled{opacity:.45;} .sidebar-note{margin:36px 24px 0;padding-top:24px;border-top:1px solid var(--inv-line);color:var(--inv-muted);} .sidebar-note ion-icon{font-size:23px;color:var(--inv-blue);} .sidebar-note p{font-size:12px;line-height:1.7;margin:10px 0;} .workspace-toolbar{--background:white;--min-height:78px;--padding-start:16px;--padding-end:16px;border-bottom:1px solid var(--inv-line);} .workspace-context{padding:12px 16px;min-width:0;} .workspace-context strong{display:block;font-size:16px;line-height:1.4;color:var(--inv-ink);} .workspace-brand{display:none;} .workspace-session{display:block;font-size:12px;color:var(--inv-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:3px;} .toolbar-connection{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--inv-success);margin-right:16px;} .toolbar-connection ion-icon{font-size:17px;} .toolbar-connection.offline{color:var(--inv-warning);} .profile-button{--color:var(--inv-ink);text-transform:none;font-size:12px;--padding-start:8px;--padding-end:8px;} .profile-initial{display:grid;place-items:center;width:32px;height:32px;background:var(--inv-blue-soft);color:var(--inv-blue);font-size:14px;font-weight:700;border-radius:50%;margin-right:8px;} .profile-role{margin-right:8px;} .profile-pocket-mode{padding:12px 16px;border-bottom:1px solid var(--inv-line);} .profile-pocket-mode>span{font-size:12px;color:var(--inv-muted);} .profile-pocket-mode>div{display:flex;gap:16px;} .profile-pocket-mode label{display:flex;align-items:center;gap:8px;min-height:44px;font-size:13px;cursor:pointer;} .profile-pocket-mode input{width:18px;height:18px;accent-color:var(--inv-blue);} .account-heading{padding:16px;border-bottom:1px solid var(--inv-line);} .account-heading strong,.account-heading span{display:block;} .account-heading span{margin-top:4px;color:var(--inv-muted);font-size:12px;} ion-popover{--width:270px;}ion-item{--min-height:48px;font-size:14px;}
-@media(max-width:1099px){.workspace-brand{display:block;font-size:10px;font-weight:700;color:var(--inv-muted);margin-bottom:2px;}.workspace-context{padding-left:8px;} .workspace-toolbar{--padding-start:4px;--padding-end:8px;}}
-@media(max-width:600px){.workspace-toolbar{--min-height:72px;}.workspace-context strong{font-size:14px;}.workspace-context{max-width:calc(100% - 130px);padding:10px 4px;}.toolbar-connection{margin-right:4px;}.toolbar-connection>span,.profile-role{display:none;}.workspace-session{font-size:11px;}.profile-initial{width:28px;height:28px;margin-right:2px;}.profile-button{--padding-start:2px;--padding-end:2px;}}
+:host {
+  display: block;
+  height: 100%;
+}
+ion-split-pane {
+  --side-width: 224px;
+  --side-min-width: 224px;
+  --side-max-width: 224px;
+}
+ion-menu {
+  --background: var(--inv-surface);
+  border-right: 1px solid var(--inv-line);
+}
+ion-menu ion-content {
+  --background: var(--inv-surface);
+}
+ion-menu ion-toolbar {
+  --min-height: 92px;
+  --background: white;
+}
+.brand-lockup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+}
+.brand-lockup img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+.brand-lockup strong {
+  display: block;
+  color: var(--inv-ink);
+  font-size: 15px;
+  letter-spacing: 0.2px;
+}
+.brand-lockup span {
+  display: block;
+  font-size: 11px;
+  color: var(--inv-muted);
+  margin-top: 4px;
+}
+.navigation-caption {
+  padding: 22px 24px 12px;
+  color: var(--inv-muted);
+  font-size: 12px;
+}
+nav {
+  padding: 0 12px;
+}
+.navigation-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 46px;
+  padding: 12px;
+  border: 0;
+  border-radius: 7px;
+  margin: 4px 0;
+  background: transparent;
+  color: var(--inv-muted);
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+}
+.navigation-item ion-icon {
+  font-size: 20px;
+}
+.navigation-item:hover {
+  background: #f5f7fa;
+}
+.navigation-item.selected {
+  color: var(--inv-blue);
+  background: var(--inv-blue-soft);
+  font-weight: 650;
+}
+.navigation-item:disabled {
+  opacity: 0.45;
+}
+.sidebar-note {
+  margin: 36px 24px 0;
+  padding-top: 24px;
+  border-top: 1px solid var(--inv-line);
+  color: var(--inv-muted);
+}
+.sidebar-note ion-icon {
+  font-size: 23px;
+  color: var(--inv-blue);
+}
+.sidebar-note p {
+  font-size: 12px;
+  line-height: 1.7;
+  margin: 10px 0;
+}
+.workspace-toolbar {
+  --background: white;
+  --min-height: 78px;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  border-bottom: 1px solid var(--inv-line);
+}
+.workspace-context {
+  padding: 12px 16px;
+  min-width: 0;
+  width: 100%;
+  overflow: hidden;
+}
+.workspace-context strong {
+  display: block;
+  font-size: 16px;
+  line-height: 1.4;
+  color: var(--inv-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.workspace-brand {
+  display: none;
+}
+.workspace-session {
+  display: block;
+  font-size: 12px;
+  color: var(--inv-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: 3px;
+}
+.toolbar-connection {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--inv-success);
+  margin-right: 16px;
+}
+.toolbar-connection ion-icon {
+  font-size: 17px;
+}
+.toolbar-connection.offline {
+  color: var(--inv-warning);
+}
+.profile-button {
+  --color: var(--inv-ink);
+  text-transform: none;
+  font-size: 12px;
+  --padding-start: 8px;
+  --padding-end: 8px;
+}
+.profile-initial {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  background: var(--inv-blue-soft);
+  color: var(--inv-blue);
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+.profile-role {
+  margin-right: 8px;
+}
+.profile-pocket-mode {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--inv-line);
+}
+.profile-pocket-mode > span {
+  font-size: 12px;
+  color: var(--inv-muted);
+}
+.profile-pocket-mode > div {
+  display: flex;
+  gap: 16px;
+}
+.profile-pocket-mode label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.profile-pocket-mode input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--inv-blue);
+}
+.account-heading {
+  padding: 16px;
+  border-bottom: 1px solid var(--inv-line);
+}
+.account-heading strong,
+.account-heading span {
+  display: block;
+}
+.account-heading span {
+  margin-top: 4px;
+  color: var(--inv-muted);
+  font-size: 12px;
+}
+ion-popover {
+  --width: 270px;
+}
+ion-item {
+  --min-height: 48px;
+  font-size: 14px;
+}
+@media (max-width: 1099px) {
+  .workspace-brand {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--inv-muted);
+    margin-bottom: 2px;
+  }
+  .workspace-context {
+    padding-left: 8px;
+  }
+  .workspace-toolbar {
+    --padding-start: 4px;
+    --padding-end: 8px;
+  }
+}
+@media (max-width: 600px) {
+  .workspace-toolbar {
+    --min-height: 72px;
+  }
+  .workspace-context strong {
+    font-size: 14px;
+  }
+  .workspace-context {
+    padding: 10px 4px;
+  }
+  .toolbar-connection {
+    margin-right: 4px;
+  }
+  .toolbar-connection > span,
+  .profile-role {
+    display: none;
+  }
+  .workspace-session {
+    font-size: 11px;
+  }
+  .profile-initial {
+    width: 28px;
+    height: 28px;
+    margin-right: 2px;
+  }
+  .profile-button {
+    --padding-start: 2px;
+    --padding-end: 2px;
+  }
+}
