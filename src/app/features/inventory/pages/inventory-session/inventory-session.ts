@@ -87,34 +87,28 @@ export default class InventorySession {
     const userRole = localStorage.getItem('role');
     this.roleUser = userRole;
 
-    this.dataSource.filterPredicate = (data: any, filter: string) => {
-      const searchTerms = JSON.parse(filter);
-
-      return Object.keys(searchTerms).every(columnKey => {
-        const cellValue = data[columnKey]?.toString().toLowerCase() || '';
-        return cellValue.includes(searchTerms[columnKey]);
-      });
-    };
+    this.updateSessionFilter();
   }
 
   applyFilterTable(event: Event, column: string) {
-    const filterValue = (event.target as HTMLInputElement).value;
+    const value=(event.target as HTMLInputElement).value.trim().toLowerCase();
+    const definition=this.dataColumns.find(item=>item.matColumnDef===column);
+    if(!definition)return;
+    definition.filterActive=!!value;
+    this.filterValues[definition.propertyValue]=value;
+    this.updateSessionFilter();
+  }
 
-    const property: any = this.dataColumns.find((t) => t.matColumnDef == column);
-    const indexHeader: any = this.dataColumns.findIndex((t) => t.matColumnDef == column);
-    this.dataColumns[indexHeader]['filterActive'] = filterValue.length ? true : false;
-    this.filterValues[property?.propertyValue] = filterValue.trim().toLowerCase();
-
-    this.dataSource.filter = JSON.stringify(this.filterValues);
-
-    this.dataSource.filterPredicate = (data: any, filter: string) => {
-      const searchTerms = JSON.parse(filter);
-
-      return Object.keys(searchTerms).every(columnKey => {
-        const cellValue = data[columnKey]?.toString().toLowerCase() || '';
-        return cellValue.includes(searchTerms[columnKey]);
-      });
+  get hasColumnFilters(){return Object.values(this.filterValues).some(Boolean);}
+  clearSessionFilters(){this.inFilter='';this.filterValues={};this.dataColumns.forEach(column=>column.filterActive=false);this.updateSessionFilter();}
+  private updateSessionFilter(){
+    this.dataSource.filterPredicate=(row:any, filter:string)=>{
+      const query=JSON.parse(filter);
+      const search=Object.values(row).some(value=>String(value??'').toLowerCase().includes(query.search));
+      return search && Object.entries(query.columns).every(([key,value])=>String(row[key]??'').toLowerCase().includes(String(value)));
     };
+    this.dataSource.filter=JSON.stringify({search:this.inFilter.trim().toLowerCase(),columns:this.filterValues});
+    this.dataSource.paginator?.firstPage();
   }
 
   showNotification() {
@@ -149,6 +143,7 @@ export default class InventorySession {
         this.dataSource = new MatTableDataSource(data);
         this.dataSource.paginator = this.paginator;
         this.dataSource.sort = this.sort;
+        this.updateSessionFilter();
       },
       error: (err) => console.error('Error al cargar tiendas', err)
     });
@@ -185,6 +180,7 @@ export default class InventorySession {
     this.inventoryService.createSession(store!.key, assignedSection).subscribe({
       next: (res) => {
         this.generatedCode.set(res.session_code);
+        this.store.setStore('storeName', store!.value);
         this.store.setStore("codeSession", res.session_code);
         this.store.setStore("serieStore", store!.serie);
         this.isLoading.set(false);
@@ -203,13 +199,7 @@ export default class InventorySession {
     this.router.navigate(['/inventory/dashboard', this.generatedCode()]);
   }
 
-  applyFilter(data: any) {
-    if (!data) return;
-    const { id, value } = data;
-    this.inFilter = value ?? "";
-    const filterValue = value;
-    this.dataSource.filter = filterValue.trim().toLowerCase();
-  }
+  applyFilter(data: any) {this.inFilter=String(data?.value??'');this.updateSessionFilter();}
 
   getSections() {
     this.inventoryService.getSubzonas().subscribe({
@@ -255,6 +245,7 @@ export default class InventorySession {
     if (!element?.codigo_sesion || !store!.serie) return;
 
     localStorage.removeItem('offline_inventory');
+    this.store.setStore('storeName', element.nombre_tienda || '');
     this.store.setStore("codeSession", element?.codigo_sesion);
     this.store.setStore("serieStore", store!.serie);
     this.router.navigate([`/inventory/dashboard`, element?.codigo_sesion, store?.serie]);

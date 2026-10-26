@@ -1,140 +1,64 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { PocketInventoryService } from '../../../../shared/services/pocket-inventory.service';
-// 1. CORRECCIÓN: Importar MenuController desde /standalone
-import { MenuController } from '@ionic/angular/standalone';
-import { RouterOutlet, Router } from '@angular/router';
-import { AuthService } from '../../../../core/auth/auth.service';
-import {
-  chevronDownOutline,
-  notificationsOutline,
-  settingsOutline,
-  logOutOutline,
-  wifiOutline,
-  cloudOfflineOutline
-} from 'ionicons/icons';
-import {
-  IonContent, IonHeader, IonTitle, IonToolbar, IonItem,
-  IonLabel, IonButton, IonMenu, IonMenuButton, IonList, // Agregué IonList si lo usas
-  IonAvatar, IonIcon, IonButtons, IonPopover, IonMenuToggle // Agregué los que faltaban según tu HTML previo
-} from '@ionic/angular/standalone';
-
+import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
+import { Subscription } from 'rxjs';
+import { MenuController, IonContent, IonHeader, IonToolbar, IonItem, IonLabel, IonButton, IonMenu, IonMenuButton, IonList, IonIcon, IonButtons, IonPopover, IonMenuToggle, IonSplitPane } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
+import { chevronDownOutline, settingsOutline, logOutOutline, wifiOutline, cloudOfflineOutline, gridOutline, listOutline, scanOutline, cubeOutline } from 'ionicons/icons';
+import { PocketInventoryService } from '../../../../shared/services/pocket-inventory.service';
+import { AuthService } from '../../../../core/auth/auth.service';
 import { StorageService } from '@metasperu/services/store.service';
 import { ToasNotification } from '@metasperu/component/toas-notification/toas-notification';
 import { InventoryService } from '@metasperu/services/inventory.service';
+
 @Component({
-  selector: 'main-layout',
-  standalone: true, // Asegúrate de tener esto
-  imports: [
-    CommonModule,
-    RouterOutlet,
-    ToasNotification,
-    // 2. CORRECCIÓN: Solo importa los componentes específicos necesarios
-    IonContent, IonHeader, IonTitle, IonToolbar, IonItem,
-    IonLabel, IonButton, IonMenu, IonMenuButton, IonList,
-    IonAvatar, IonIcon, IonButtons, IonPopover, IonMenuToggle
-    // ELIMINÉ IonicModule porque causa conflicto con los Standalone
-  ],
-  templateUrl: './main.html',
-  styleUrl: './main.scss'
+ selector:'main-layout', standalone:true, host:{class:'inventory-ui'},
+ imports:[CommonModule,RouterOutlet,ToasNotification,IonContent,IonHeader,IonToolbar,IonItem,IonLabel,IonButton,IonMenu,IonMenuButton,IonList,IonIcon,IonButtons,IonPopover,IonMenuToggle,IonSplitPane],
+ templateUrl:'./main.html',styleUrl:'./main.scss'
 })
-export default class MainComponent {
-  readonly pocketSettings = inject(PocketInventoryService);
-  readonly isOnline = signal(navigator.onLine);
-  private authService = inject(AuthService);
-  private router = inject(Router);
-  // 3. Ahora este controlador sí tendrá autoridad sobre los componentes standalone
-  private menuCtrl = inject(MenuController);
-  private store = inject(StorageService);
-  private invService = inject(InventoryService);
-  menuFiltrado: Array<any> = [];
-  userRole: string = '';
-  user = this.authService.currentUser;
-  arMenuList = [
-    { nombre_menu: 'DASHBOARD', ruta: 'inventory/dashboard', roles: ['administrador', 'auditor'] },
-    { nombre_menu: 'SESIONES', ruta: 'inventory/session', roles: ['administrador', 'auditor'] },
-    { nombre_menu: 'POCKET', ruta: 'inventory/pocket', roles: ['administrador', 'auditor', 'pocket'] },
-    { nombre_menu: 'CONFIGURACION', ruta: 'inventory/maintenance', roles: ['administrador', 'auditor'] }
-  ];
-
-  constructor() {
-
-
-    addIcons({
-      chevronDownOutline,
-      notificationsOutline,
-      settingsOutline,
-      logOutOutline,
-      wifiOutline,
-      cloudOfflineOutline
-    });
-  }
-
-
-
-  ngOnInit() {
-    window.addEventListener('online', this.setOnline);
-    window.addEventListener('offline', this.setOffline);
-    const userRole = localStorage.getItem('role') || ""; // O de tu servicio de Auth
-    this.userRole = userRole
-    this.menuFiltrado = this.arMenuList.filter(item => item.roles.includes(userRole as any));
-
-    this.invService.onMenu.subscribe((rol) => {
-      const role = rol || userRole;
-      this.menuFiltrado = this.arMenuList.filter(item => item.roles.includes(role));
-      this.redireccionarPorRol(role);
-    });
-  }
-
-  ngOnDestroy() {
-    window.removeEventListener('online', this.setOnline);
-    window.removeEventListener('offline', this.setOffline);
-  }
-
-  private setOnline = () => this.isOnline.set(true);
-  private setOffline = () => this.isOnline.set(false);
-
-  redireccionarPorRol(role: string) {
-    switch (role) {
-      case 'administrador':
-        this.onNavigatorRoute('inventory/session');
-        break;
-      case 'auditor':
-        this.onNavigatorRoute('inventory/session');
-        break;
-      case 'pocket':
-        this.onNavigatorRoute('inventory/pocket');
-        break;
-      default:
-        this.onNavigatorRoute('inventory/dashboard');
-        break;
-    }
-  }
-
-  logout() {
-    this.authService.logout();
-  }
-
-  async onNavigatorRoute(route: string) {
-    // 4. Intentar cerrar con el ID 'first' que tienes en el HTML
-    try {
-      await this.menuCtrl.close('first');
-    } catch (error) {
-      console.log('Error cerrando menú:', error);
-    }
-
-    // Limpieza de bloqueos de accesibilidad
-    document.getElementById('app-root')?.removeAttribute('aria-hidden');
-    document.body.removeAttribute('aria-hidden');
-
-    if (route === 'inventory/dashboard') {
-      const codeSession = this.store.getStore('codeSession');
-      const serieStore = this.store.getStore('serieStore');
-      this.router.navigate([`/${route}`, codeSession?.value, serieStore?.value]);
-    } else {
-      this.router.navigate([`/${route}`]);
-    }
-
-  }
+export default class MainComponent implements OnInit,OnDestroy {
+ readonly pocketSettings=inject(PocketInventoryService);
+ readonly isOnline=signal(navigator.onLine);
+ private authService=inject(AuthService);
+ private router=inject(Router);
+ private menuCtrl=inject(MenuController);
+ private store=inject(StorageService);
+ private invService=inject(InventoryService);
+ private subscriptions=new Subscription();
+ readonly currentRoute=signal(this.router.url);
+ userRole='';
+ user=this.authService.currentUser;
+ arMenuList=[
+  {nombre_menu:'Inventarios',ruta:'inventory/session',icon:'list-outline',roles:['administrador','auditor']},
+  {nombre_menu:'Inventario activo',ruta:'inventory/dashboard',icon:'grid-outline',roles:['administrador','auditor']},
+  {nombre_menu:'Pocket',ruta:'inventory/pocket',icon:'scan-outline',roles:['administrador','auditor','pocket']},
+  {nombre_menu:'Configuración',ruta:'inventory/maintenance',icon:'settings-outline',roles:['administrador','auditor']}
+ ];
+ menuFiltrado=this.arMenuList.slice(0,0);
+ constructor(){addIcons({chevronDownOutline,settingsOutline,logOutOutline,wifiOutline,cloudOfflineOutline,gridOutline,listOutline,scanOutline,cubeOutline});}
+ ngOnInit(){
+  window.addEventListener('online',this.setOnline);window.addEventListener('offline',this.setOffline);
+  this.setRole(localStorage.getItem('role')||'');
+  this.subscriptions.add(this.router.events.subscribe(event=>{if(event instanceof NavigationEnd)this.currentRoute.set(event.urlAfterRedirects);}));
+  this.subscriptions.add(this.invService.onMenu.subscribe(role=>{this.setRole(role||this.userRole);this.redireccionarPorRol(this.userRole);}));
+ }
+ ngOnDestroy(){this.subscriptions.unsubscribe();window.removeEventListener('online',this.setOnline);window.removeEventListener('offline',this.setOffline);}
+ private setOnline=()=>this.isOnline.set(true);
+ private setOffline=()=>this.isOnline.set(false);
+ private setRole(role:string){this.userRole=role;this.menuFiltrado=this.arMenuList.filter(item=>item.roles.includes(role));}
+ private storedText(key:string){const data=this.store.getStore(key);return typeof data==='object'?String(data?.value??''):String(data??'');}
+ get activeCode(){return this.storedText('codeSession');}
+ get contextCode(){return this.currentRoute().includes('/pocket')?this.storedText('pocketCode'):this.currentRoute().includes('/dashboard/')?decodeURIComponent(this.currentRoute().split('/')[3]||''):'';}
+ get contextStore(){return this.currentRoute().includes('/dashboard/')?this.storedText('storeName')||'Tienda '+decodeURIComponent(this.currentRoute().split('/')[4]||''):'';}
+ get pageLabel(){if(this.currentRoute().includes('/pocket'))return 'Conteo Pocket';if(this.currentRoute().includes('/dashboard'))return 'Supervisión de inventario';if(this.currentRoute().includes('/maintenance'))return 'Configuración';return 'Inventarios de tienda';}
+ get roleLabel(){return this.userRole==='administrador'?'Administrador':this.userRole==='auditor'?'Auditor':'Operador Pocket';}
+ isRouteActive(route:string){return this.currentRoute().startsWith('/'+route);}
+ redireccionarPorRol(role:string){this.onNavigatorRoute(role==='pocket'?'inventory/pocket':'inventory/session');}
+ logout(){this.authService.logout();}
+ async onNavigatorRoute(route:string){
+  if(route==='inventory/dashboard'&&!this.activeCode)return;
+  await this.menuCtrl.close('inventory-menu');
+  if(route==='inventory/dashboard')this.router.navigate(['/'+route,this.activeCode,this.storedText('serieStore')]);
+  else this.router.navigate(['/'+route]);
+ }
 }

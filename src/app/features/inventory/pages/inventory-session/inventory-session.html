@@ -1,35 +1,9 @@
-<ion-header>
-    <ion-toolbar color="primary">
-        <ion-title>Nueva Sesión de Inventario</ion-title>
-    </ion-toolbar>
-</ion-header>
-
-<ion-content class="ion-padding">
-    <ion-card class="card-content">
-        <ion-row>
-            <ion-col sizeXs="12" sizeSm="12" sizeMd="2" sizeLg="2">
-                <mt-input (afterChange)="applyFilter($event)" label="Filtro" placeholder="Filtro"></mt-input>
-            </ion-col>
-            <ion-col sizeXs="12" sizeSm="12" sizeMd="3" sizeLg="3">
-                <mt-select [isMultiselect]=true [data]="arSections" label="Seleccione Seccion" title="Secciones"
-                    (selectdOption)="onChangeSelectMultiple($event)"></mt-select>
-            </ion-col>
-            <ion-col sizeXs="12" sizeSm="12" sizeMd="3" sizeLg="3">
-                <mt-select [data]="stores" (selectdOption)="onChangeSelect($event)" label="Seleccione una sucursal"
-                    title="Sucursales"></mt-select>
-            </ion-col>
-            <ion-col sizeXs="12" sizeSm="12" sizeMd="2" sizeLg="2">
-                <ion-button (click)="startInventory()" [disabled]="!selectedStoreId || isLoading() || !sectionsSelected.length"
-                    style="width: 100%;">
-                    <i class="fa fa-qrcode" aria-hidden="true" style="padding-right: 5px; font-weight: 100;"></i>
-                    {{ isLoading() ? 'Generando...' : 'Generar Codigo' }}
-                </ion-button>
-            </ion-col>
-        </ion-row>
-        <ion-row>
-            <ion-col sizeXs="12" sizeSm="12" sizeMd="12" sizeLg="12">
-                <div style="overflow: auto;">
-                    <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+<ion-content class="session-content"><main class="session-workspace">
+ <header class="workspace-heading"><div><h1>Inventarios</h1><p>Abre una sesión y supervisa el conteo de cada tienda.</p></div><span class="status-pill">{{sessions.length}} sesiones registradas</span></header>
+ <section class="inventory-panel session-create" aria-labelledby="new-inventory-heading"><div class="panel-heading"><div><h2 id="new-inventory-heading">Abrir un inventario</h2><p>Elige la tienda y las secciones que se van a contar.</p></div><mat-icon aria-hidden="true">inventory_2</mat-icon></div><div class="session-form"><div><mt-select [data]="stores" (selectdOption)="onChangeSelect($event)" label="Tienda" title="Tiendas"></mt-select></div><div><mt-select [isMultiselect]="true" [data]="arSections" label="Secciones del inventario" title="Secciones" (selectdOption)="onChangeSelectMultiple($event)"></mt-select></div><button type="button" class="action-primary" (click)="startInventory()" [disabled]="!selectedStoreId || isLoading() || !sectionsSelected.length"><mat-icon aria-hidden="true">add</mat-icon>{{isLoading() ? 'Abriendo…' : 'Abrir inventario'}}</button></div></section>
+ <section class="inventory-panel session-list" aria-labelledby="session-list-heading"><div class="session-list-header"><div><h2 id="session-list-heading">Sesiones de inventario</h2><p>Consulta el historial o continúa una sesión.</p></div><label class="session-search"><mat-icon aria-hidden="true">search</mat-icon><input id="session-search" type="search" aria-label="Buscar inventarios" placeholder="Buscar tienda, código o usuario" [value]="inFilter" (input)="applyFilter({value:$any($event.target).value})"></label></div>
+ @if(inFilter || hasColumnFilters){<div class="session-filter-state" role="status"><span>{{dataSource.filteredData.length}} resultados</span><button type="button" (click)="clearSessionFilters()">Limpiar filtros</button></div>}
+ <div class="inventory-table-scroll"><table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
                         @for(col of dataColumns; track col){
                         @if(col.matColumnDef == 'codigo_sesion'){
                         <ng-container matColumnDef="{{col.matColumnDef}}" sticky>
@@ -86,11 +60,11 @@
                                 }
                                 @if(col.matColumnDef == 'estado'){
                                 @if(element[col.propertyValue] != 'ACTIVO'){
-                                <h6 style="margin: 0;"><span class="badge bg-danger"
-                                        style="font-weight: 100;">{{element[col.propertyValue]}}</span></h6>
+                                <h6 style="margin: 0;"><span class="status-pill"
+                                        >{{element[col.propertyValue]}}</span></h6>
                                 }@else{
-                                <h6 style="margin: 0;"><span class="badge bg-primary"
-                                        style="font-weight: 100;">{{element[col.propertyValue]}}</span></h6>
+                                <h6 style="margin: 0;"><span class="status-pill active"
+                                        >{{element[col.propertyValue]}}</span></h6>
                                 }
                                 }
                                 @if(col.matColumnDef != 'fecha_inicio' && col.matColumnDef != 'estado'){
@@ -104,14 +78,14 @@
                         <ng-container matColumnDef="{{col.matColumnDef}}">
                             <th mat-header-cell *matHeaderCellDef> {{col.titleColumn}} </th>
                             <td mat-cell *matCellDef="let element">
-                                <button matTooltip="Ver Session" type="button" (click)="onNavigatorDashboard(element)"
+                                <button matTooltip="Abrir inventario" type="button" (click)="onNavigatorDashboard(element)"
                                     class="btn btn-primary btn-sm">
-                                    <i class="fa fa-exchange" aria-hidden="true"></i>
+                                    Ver inventario
                                 </button>
                                 @if(roleUser == 'administrador' && element.estado == 'FINALIZADO'){
                                 <button matTooltip="Activar Session" type="button" style="margin-left: 10px;"
                                     (click)="onActiveSession(element)" class="btn btn-primary btn-sm">
-                                    <i class="fa fa-play-circle" aria-hidden="true"></i>
+                                    Reabrir
                                 </button>
                                 }
                             </td>
@@ -126,14 +100,7 @@
 
                         <!-- Row shown when there is no matching data. -->
                         <tr class="mat-row" *matNoDataRow>
-                            <td class="mat-cell" colspan="4">No data matching the filter </td>
+                            <td class="mat-cell" colspan="6">No hay inventarios que coincidan con la búsqueda. </td>
                         </tr>
-                    </table>
-                    <mat-paginator [pageSizeOptions]="[10, 20, 30]" showFirstLastButtons
-                        aria-label="Select page of periodic elements">
-                    </mat-paginator>
-                </div>
-            </ion-col>
-        </ion-row>
-    </ion-card>
-</ion-content>
+                    </table></div><mat-paginator [pageSizeOptions]="[10,20,30]" showFirstLastButtons aria-label="Páginas de inventarios"></mat-paginator></section>
+</main></ion-content>

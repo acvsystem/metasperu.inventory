@@ -1,85 +1,24 @@
-<ion-menu contentId="main-content">
-    <ion-header>
-        <ion-toolbar>
-            <ion-title>Menú</ion-title>
-        </ion-toolbar>
-    </ion-header>
-    <ion-content class="ion-padding">
-        <div class="example-menu" *ngFor="let menu of menuFiltrado" cdkMenu>
-
-            <ion-menu-toggle class="example-menu" auto-hide="true">
-                <button class="menu-item" (click)="onNavigatorRoute(menu.ruta)" cdkMenuItem>
-                    <span>{{menu.nombre_menu}}</span>
-                </button>
-            </ion-menu-toggle>
-
-        </div>
-    </ion-content>
-</ion-menu>
-
-<div class="ion-page" id="main-content">
-    <ion-header>
-        <ion-toolbar>
-            <ion-buttons slot="start">
-                <ion-menu-button></ion-menu-button>
-            </ion-buttons>
-
-            <ion-title class="app-title">METAS PERU</ion-title>
-
-            <ion-buttons slot="end">
-                <span class="toolbar-connection" [class.offline]="!isOnline()">
-                    <ion-icon [name]="isOnline() ? 'wifi-outline' : 'cloud-offline-outline'"></ion-icon>
-                    {{ isOnline() ? 'Conectado' : 'Sin conexión' }}
-                </span>
-                <ion-button id="profile-popover-trigger">
-                    <ion-avatar class="avatar-header">
-                        <img src="assets/metasicon.png" />
-                    </ion-avatar>
-                    <ion-icon name="chevron-down-outline" size="small"></ion-icon>
-                </ion-button>
-            </ion-buttons>
-        </ion-toolbar>
-    </ion-header>
-
-    <ion-content>
-        <router-outlet></router-outlet>
-    </ion-content>
-</div>
-
-<ion-popover trigger="profile-popover-trigger" triggerAction="click" [dismissOnSelect]="true">
-    <ng-template>
-        <div class="user-popover-header ion-padding">
-            <img src="assets/metasicon.png" width="24">
-            <div class="user-info">
-                <span class="label">{{userRole}}</span>
-                <span class="name">{{ user() }}</span>
-            </div>
-        </div>
-
-        <ion-list lines="full">
-            <div class="profile-pocket-mode">
-                <span>Funcionamiento Pocket</span>
-                <div role="radiogroup" aria-label="Funcionamiento Pocket">
-                    <label><input type="radio" name="profilePocketMode" [checked]="(pocketSettings.operationMode | async) === 'online'"
-                        [disabled]="!pocketSettings.modeChangeAllowed()" (change)="pocketSettings.setOperationMode('online')">Online</label>
-                    <label><input type="radio" name="profilePocketMode" [checked]="(pocketSettings.operationMode | async) === 'manual'"
-                        [disabled]="!pocketSettings.modeChangeAllowed()" (change)="pocketSettings.setOperationMode('manual')">Manual</label>
-                </div>
-            </div>
-            <ion-item button>
-                <ion-icon slot="start" name="notifications-outline"></ion-icon>
-                <ion-label>Notificaciones</ion-label>
-            </ion-item>
-            <ion-item button>
-                <ion-icon slot="start" name="settings-outline"></ion-icon>
-                <ion-label>Configuración cuenta</ion-label>
-            </ion-item>
-            <ion-item button (click)="logout()" detail="false" class="logout-btn">
-                <ion-icon slot="start" name="log-out-outline" color="danger"></ion-icon>
-                <ion-label color="danger">Cerrar sesión</ion-label>
-            </ion-item>
-        </ion-list>
-    </ng-template>
-</ion-popover>
-
+<ion-split-pane contentId="main-content" [when]="userRole !== 'pocket' ? '(min-width: 1100px)' : false">
+ <ion-menu menuId="inventory-menu" contentId="main-content" type="overlay">
+  <ion-header class="ion-no-border"><ion-toolbar><div class="brand-lockup"><img src="assets/metasicon.png" alt=""><div><strong>METAS PERÚ</strong><span>Gestión de inventarios</span></div></div></ion-toolbar></ion-header>
+  <ion-content>
+   <div class="navigation-caption">Espacio de trabajo</div>
+   <nav aria-label="Navegación principal">
+    @for(menu of menuFiltrado; track menu.ruta){
+     <ion-menu-toggle [autoHide]="false"><button type="button" class="navigation-item" [class.selected]="isRouteActive(menu.ruta)" [attr.aria-current]="isRouteActive(menu.ruta) ? 'page' : null" [disabled]="menu.ruta === 'inventory/dashboard' && !activeCode" (click)="onNavigatorRoute(menu.ruta)"><ion-icon [name]="menu.icon" aria-hidden="true"></ion-icon><span>{{menu.nombre_menu}}</span></button></ion-menu-toggle>
+    }
+   </nav>
+   <div class="sidebar-note"><ion-icon name="cube-outline" aria-hidden="true"></ion-icon><p>Todo tu inventario,<br>en el mismo lugar.</p></div>
+  </ion-content>
+ </ion-menu>
+ <div class="ion-page" id="main-content">
+  <ion-header class="ion-no-border"><ion-toolbar class="workspace-toolbar">
+   <ion-buttons slot="start"><ion-menu-button menu="inventory-menu" aria-label="Abrir navegación"></ion-menu-button></ion-buttons>
+   <div class="workspace-context"><span class="workspace-brand">METAS PERÚ</span><strong>{{pageLabel}}</strong>@if(contextCode){<span class="workspace-session">{{contextStore ? contextStore + ' / ' : ''}}Sesión {{contextCode}}</span>}</div>
+   <ion-buttons slot="end"><span class="toolbar-connection" [class.offline]="!isOnline()"><ion-icon [name]="isOnline() ? 'wifi-outline' : 'cloud-offline-outline'" aria-hidden="true"></ion-icon><span>{{isOnline() ? 'Con conexión' : 'Sin conexión'}}</span></span><ion-button id="profile-popover-trigger" class="profile-button" aria-label="Abrir menú de cuenta"><span class="profile-initial" aria-hidden="true">{{(user() || roleLabel).slice(0,1).toUpperCase()}}</span><span class="profile-role">{{roleLabel}}</span><ion-icon name="chevron-down-outline" aria-hidden="true"></ion-icon></ion-button></ion-buttons>
+  </ion-toolbar></ion-header>
+  <ion-content><router-outlet></router-outlet></ion-content>
+ </div>
+</ion-split-pane>
+<ion-popover trigger="profile-popover-trigger" triggerAction="click" [dismissOnSelect]="false"><ng-template><ion-list class="account-menu"><div class="account-heading"><strong>{{user() || roleLabel}}</strong><span>{{roleLabel}}</span></div><div class="profile-pocket-mode"><span>Modo de Pocket</span><div><label><input type="radio" name="profilePocketMode" [checked]="(pocketSettings.operationMode | async) === 'online'" [disabled]="!pocketSettings.modeChangeAllowed()" (change)="pocketSettings.setOperationMode('online')">Automático</label><label><input type="radio" name="profilePocketMode" [checked]="(pocketSettings.operationMode | async) === 'manual'" [disabled]="!pocketSettings.modeChangeAllowed()" (change)="pocketSettings.setOperationMode('manual')">Manual</label></div></div><ion-item button (click)="logout()" detail="false"><ion-icon slot="start" name="log-out-outline" aria-hidden="true"></ion-icon><ion-label>Cerrar sesión</ion-label></ion-item></ion-list></ng-template></ion-popover>
 <toas-notification></toas-notification>
