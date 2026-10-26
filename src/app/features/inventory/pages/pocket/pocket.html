@@ -1,204 +1,396 @@
-<ion-content class="ion-padding ion-text-center">
-  <mat-tab-group [selectedIndex]="activePocketTab"
-    (selectedIndexChange)="activePocketTab = $event; $event === 2 ? loadHistory() : null">
-    <mat-tab label="Pocket">
+<ion-content class="pocket-content">
+  <mat-tab-group
+    [selectedIndex]="activePocketTab"
+    (selectedIndexChange)="activePocketTab = $event; $event === 2 ? loadHistory() : null"
+  >
+    <mat-tab label="Registrar conteo">
       <section class="pocket-next">
         <header class="pn-header">
-          <div class="pn-session"><span class="pn-label">Sesion de inventario</span>
-            <h2>{{ sessionCode() || 'Sin sesion' }}</h2>
+          <div class="pn-session">
+            <span class="pn-label">Sesion de inventario</span>
+            <h1>{{ sessionCode() || 'Sin sesión' }}</h1>
           </div>
           <span class="pn-mode" [class.manual]="operationMode === 'manual'">
-            <mat-icon aria-hidden="true">{{ operationMode === 'manual' ? 'inventory_2' : 'cloud_done' }}</mat-icon>
-            {{ operationMode === 'manual' ? 'Modo manual' : 'Modo online' }}
+            <mat-icon aria-hidden="true">{{
+              operationMode === 'manual' ? 'inventory_2' : 'cloud_done'
+            }}</mat-icon>
+            {{ operationMode === 'manual' ? 'Envío manual' : 'Envío automático' }}
           </span>
         </header>
+        <div
+          class="pn-sync-state"
+          [class.offline]="!isOnline()"
+          [class.has-pending]="pendingCount() > 0"
+          role="status"
+        >
+          <mat-icon aria-hidden="true">{{
+            isSyncing
+              ? 'sync'
+              : !isOnline()
+                ? 'cloud_off'
+                : pendingCount()
+                  ? 'schedule'
+                  : 'check_circle'
+          }}</mat-icon
+          ><span>{{ syncStateLabel }}</span>
+        </div>
 
         <div class="pn-settings">
           <fieldset>
-            <legend>Registro</legend>
+            <legend>Forma de registrar</legend>
             <div class="pn-segments">
-              <label><input type="radio" name="nextScan" value="pistola" [(ngModel)]="OptionTypeScan"><span><mat-icon
-                    aria-hidden="true">qr_code_scanner</mat-icon>Pistola</span></label>
-              <label><input type="radio" name="nextScan" value="cantidad" [(ngModel)]="OptionTypeScan"><span><mat-icon
-                    aria-hidden="true">tag</mat-icon>Cantidad</span></label>
+              <label
+                ><input
+                  type="radio"
+                  name="nextScan"
+                  value="pistola"
+                  [(ngModel)]="OptionTypeScan"
+                /><span><mat-icon aria-hidden="true">qr_code_scanner</mat-icon>Pistola</span></label
+              >
+              <label
+                ><input
+                  type="radio"
+                  name="nextScan"
+                  value="cantidad"
+                  [(ngModel)]="OptionTypeScan"
+                /><span><mat-icon aria-hidden="true">tag</mat-icon>Cantidad</span></label
+              >
             </div>
           </fieldset>
         </div>
 
         <div class="pn-entry">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-            <div style="width:90%;">
-              <mt-select [data]="arAsignatedSections" [selectedKey]="selectedSectionId"
-                (selectdOption)="onChangeSelect($event)" label="Seleccione una seccion" title="Secciones"></mt-select>
+          <div class="pn-active-section">
+            <mat-icon aria-hidden="true">location_on</mat-icon
+            ><span>{{ optionSeccion || 'Selecciona una sección para empezar' }}</span>
+          </div>
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 10px;
+            "
+          >
+            <div style="width: 90%">
+              <mt-select
+                [data]="arAsignatedSections"
+                [selectedKey]="selectedSectionId"
+                (selectdOption)="onChangeSelect($event)"
+                label="Sección del conteo"
+                title="Secciones"
+              ></mt-select>
             </div>
             <div>
-              <button matTooltip="QR Seccion" type="button" class="btn btn-primary btn-sm" style="display:flex;"
-                (click)="scanSectionByCamera()" [disabled]="isCameraScanning">
+              <button
+                matTooltip="Escanear QR de sección"
+                aria-label="Escanear QR de sección"
+                type="button"
+                class="btn btn-primary btn-sm"
+                style="display: flex"
+                (click)="scanSectionByCamera()"
+                [disabled]="isCameraScanning"
+              >
                 <mat-icon>qr_code_scanner</mat-icon>
               </button>
             </div>
           </div>
           <div class="pn-scan-fields" [class.with-quantity]="OptionTypeScan === 'cantidad'">
-
-            @if(OptionTypeScan === 'cantidad') {
-            <label class="pn-field" for="nextBarcode">Codigo de barras
-              <input #newBarcodeInput id="nextBarcode" type="text" inputmode="text" autocomplete="off"
-                autocapitalize="off" spellcheck="false" [ngModel]="skuInput()" (ngModelChange)="skuInput.set($event)"
-                (keydown.enter)="$event.preventDefault(); nextInput(nextQuantityInput)" placeholder="Escanear codigo">
-            </label>
-            <label class="pn-field" for="nextQuantity">Cantidad
-              <input #nextQuantityInput id="nextQuantity" type="number" inputmode="numeric" min="1" step="1"
-                [(ngModel)]="inCantidad" placeholder="0">
-            </label>
-            }@else{
-            <label class="pn-field" for="nextBarcode">Codigo de barras
-              <input #newBarcodeInput id="nextBarcode" type="text" inputmode="text" autocomplete="off"
-                autocapitalize="off" spellcheck="false" [ngModel]="skuInput()" (ngModelChange)="skuInput.set($event)"
-                (keydown.enter)="$event.preventDefault(); handleScan()" placeholder="Escanear codigo">
-            </label>
+            @if (OptionTypeScan === 'cantidad') {
+              <label class="pn-field" for="nextBarcode"
+                >Codigo de barras
+                <input
+                  #newBarcodeInput
+                  id="nextBarcode"
+                  type="text"
+                  inputmode="text"
+                  autocomplete="off"
+                  autocapitalize="off"
+                  spellcheck="false"
+                  [ngModel]="skuInput()"
+                  (ngModelChange)="skuInput.set($event)"
+                  (keydown.enter)="$event.preventDefault(); nextInput(nextQuantityInput)"
+                  placeholder="Escanear codigo"
+                />
+              </label>
+              <label class="pn-field" for="nextQuantity"
+                >Cantidad
+                <input
+                  #nextQuantityInput
+                  id="nextQuantity"
+                  type="number"
+                  inputmode="numeric"
+                  min="1"
+                  step="1"
+                  [(ngModel)]="inCantidad"
+                  placeholder="0"
+                />
+              </label>
+            } @else {
+              <label class="pn-field" for="nextBarcode"
+                >Codigo de barras
+                <input
+                  #newBarcodeInput
+                  id="nextBarcode"
+                  type="text"
+                  inputmode="text"
+                  autocomplete="off"
+                  autocapitalize="off"
+                  spellcheck="false"
+                  [ngModel]="skuInput()"
+                  (ngModelChange)="skuInput.set($event)"
+                  (keydown.enter)="$event.preventDefault(); handleScan()"
+                  placeholder="Escanear codigo"
+                />
+              </label>
             }
           </div>
-          @if(isPermision) {
-          <label class="pn-checkbox"><input type="checkbox" [checked]="isckeckedSku"
-              (change)="onFiltroBar($event)">Filtro SKU</label>
+          @if (isPermision) {
+            <label class="pn-checkbox"
+              ><input
+                type="checkbox"
+                [checked]="isckeckedSku"
+                (change)="onFiltroBar($event)"
+              />Filtro SKU</label
+            >
           }
-          <button class="pn-register" (click)="handleScan()"
-            [disabled]="!sessionCode() || !selectedSectionId || !skuInput().trim() || (OptionTypeScan === 'cantidad' && !inCantidad)">
+          <button
+            class="pn-register"
+            (click)="handleScan()"
+            [disabled]="
+              !sessionCode() ||
+              !selectedSectionId ||
+              !skuInput().trim() ||
+              (OptionTypeScan === 'cantidad' && !inCantidad)
+            "
+          >
             <mat-icon aria-hidden="true">add</mat-icon>Registrar escaneo
           </button>
         </div>
 
         <div class="pn-last" aria-live="polite">
           <mat-icon aria-hidden="true">{{ oldSKU ? 'check_circle' : 'qr_code' }}</mat-icon>
-          <div><span class="pn-label">Ultimo registro</span><strong>{{ oldSKU || 'Sin escaneos' }}</strong></div>
-          <div class="pn-last-count"><strong>{{ oldCantidad || 0 }}</strong><span class="pn-label">unidades</span></div>
-        </div>
-        <footer class="pn-footer">
-          <div class="pn-stat"><span class="pn-label">{{ optionSeccion || 'Seccion' }} · Enviados</span><strong>{{
-              countSkanSection || 0 }}</strong></div>
-          <div class="pn-stat"><span class="pn-label">Unidades contadas</span><strong>{{ pendingUnits() }}</strong>
+          <div>
+            <span class="pn-label">Ultimo registro</span
+            ><strong>{{ oldSKU || 'Sin escaneos' }}</strong>
           </div>
-          <button class="pn-pending pn-stat" (click)="activePocketTab = 1"><span><span
-                class="pn-label">Pendientes</span><strong>{{ pendingCount() }}</strong></span><mat-icon
-              aria-hidden="true">chevron_right</mat-icon></button>
-          <button class="pn-sync" (click)="sync()"
-            [disabled]="isSyncing || !isOnline() || !pendingCount() || editingId !== null"><mat-icon
-              aria-hidden="true">sync</mat-icon>{{ isSyncing ? 'Sincronizando...' : 'Sincronizar' }}</button>
+          <div class="pn-last-count">
+            <strong>{{ oldCantidad || 0 }}</strong
+            ><span class="pn-label">unidades</span>
+          </div>
+        </div>
+        <p class="pn-feedback" aria-live="polite">{{ lastFeedback }}</p>
+        <footer class="pn-footer">
+          <div class="pn-stat">
+            <span class="pn-label">{{ optionSeccion || 'Seccion' }} · Enviados</span
+            ><strong>{{ countSkanSection || 0 }}</strong>
+          </div>
+          <div class="pn-stat">
+            <span class="pn-label">Unidades pendientes</span><strong>{{ pendingUnits() }}</strong>
+          </div>
+          <button class="pn-pending pn-stat" (click)="activePocketTab = 1">
+            <span
+              ><span class="pn-label">Pendientes</span><strong>{{ pendingCount() }}</strong></span
+            ><mat-icon aria-hidden="true">chevron_right</mat-icon>
+          </button>
+          <button
+            class="pn-sync"
+            (click)="sync()"
+            [disabled]="isSyncing || !isOnline() || !pendingCount() || editingId !== null"
+          >
+            <mat-icon aria-hidden="true">sync</mat-icon
+            >{{ isSyncing ? 'Sincronizando…' : 'Sincronizar · ' + pendingCount() + ' pendientes' }}
+          </button>
         </footer>
       </section>
     </mat-tab>
     <mat-tab label="Pendientes">
-
       <section class="pending-summary" aria-label="Resumen de pendientes en memoria">
         <div>
           <span class="pn-label">Registros pendientes</span>
           <strong>{{ pendingCount() }}</strong>
         </div>
         <div>
-          <span class="pn-label">Unidades contadas</span>
+          <span class="pn-label">Unidades pendientes</span>
           <strong>{{ pendingUnits() }}</strong>
         </div>
       </section>
 
       <ion-row class="pending-toolbar">
         <ion-col sizeXs="12" sizeSm="12" sizeMd="3" sizeLg="3">
-          <mt-input (afterChange)="applyFilter($event)" label="Buscar pendientes"
-            placeholder="Codigo o seccion"></mt-input>
+          <mt-input
+            (afterChange)="applyFilter($event)"
+            label="Buscar pendientes"
+            placeholder="Codigo o seccion"
+          ></mt-input>
         </ion-col>
         <ion-col sizeXs="12" sizeSm="12" sizeMd="2" sizeLg="2" class="button-content">
-          <button class="btn btn-primary pending-sync" (click)="sync()"
-            [disabled]="isSyncing || !isOnline() || !pendingCount() || editingId !== null">
+          <button
+            class="btn btn-primary pending-sync"
+            (click)="sync()"
+            [disabled]="isSyncing || !isOnline() || !pendingCount() || editingId !== null"
+          >
             <mat-icon aria-hidden="true">sync</mat-icon>
             {{ isSyncing ? 'Sincronizando...' : 'Sincronizar' }}
-            <span class="pending-count">{{ pendingCount() }}</span></button>
+            <span class="pending-count">{{ pendingCount() }}</span>
+          </button>
         </ion-col>
       </ion-row>
       <ion-row class="pending-results">
         <ion-col sizeXs="12" sizeSm="12" sizeMd="12" sizeLg="12">
-          <table mat-table [dataSource]="dataSource" class="pending-table" aria-label="Escaneos pendientes">
+          <table
+            mat-table
+            [dataSource]="dataSource"
+            class="pending-table"
+            aria-label="Escaneos pendientes"
+          >
             <!-- Position Column -->
             <ng-container matColumnDef="sku">
-              <th mat-header-cell *matHeaderCellDef> Codigo barra </th>
+              <th mat-header-cell *matHeaderCellDef>Codigo barra</th>
               <td mat-cell *matCellDef="let element">
                 <span class="pending-mobile-label">Codigo de barras</span>
-                @if(editingId === element.id) {
-                <input class="form-control pending-sku" aria-label="Codigo de barras" [(ngModel)]="editSku"
-                  [disabled]="isSyncing">
-                } @else { <span class="pending-barcode">{{element.sku}}</span> }
+                @if (editingId === element.id) {
+                  <input
+                    class="form-control pending-sku"
+                    aria-label="Codigo de barras"
+                    [(ngModel)]="editSku"
+                    [disabled]="isSyncing"
+                  />
+                } @else {
+                  <span class="pending-barcode">{{ element.sku }}</span>
+                }
               </td>
             </ng-container>
 
             <!-- Weight Column -->
             <ng-container matColumnDef="cantidad">
-              <th mat-header-cell *matHeaderCellDef> Conteo </th>
+              <th mat-header-cell *matHeaderCellDef>Conteo</th>
               <td mat-cell *matCellDef="let element">
                 <span class="pending-mobile-label">Cantidad</span>
-                @if(editingId === element.id) {
-                <input class="form-control pending-quantity" aria-label="Cantidad" type="number" min="1" step="1"
-                  [(ngModel)]="editQuantity" [disabled]="isSyncing">
-                } @else { <span class="pending-units">{{element.conteo}}</span> }
+                @if (editingId === element.id) {
+                  <input
+                    class="form-control pending-quantity"
+                    aria-label="Cantidad"
+                    type="number"
+                    min="1"
+                    step="1"
+                    [(ngModel)]="editQuantity"
+                    [disabled]="isSyncing"
+                  />
+                } @else {
+                  <span class="pending-units">{{ element.conteo }}</span>
+                }
               </td>
             </ng-container>
 
             <!-- Symbol Column -->
             <ng-container matColumnDef="seccion">
-              <th mat-header-cell *matHeaderCellDef> Seccion </th>
-              <td mat-cell *matCellDef="let element"><span class="pending-mobile-label">Seccion</span>
-                {{element.seccion}} </td>
+              <th mat-header-cell *matHeaderCellDef>Seccion</th>
+              <td mat-cell *matCellDef="let element">
+                <span class="pending-mobile-label">Seccion</span> {{ element.seccion }}
+              </td>
             </ng-container>
 
             <!-- Symbol Column -->
             <ng-container matColumnDef="estado">
-              <th mat-header-cell *matHeaderCellDef> Estado </th>
+              <th mat-header-cell *matHeaderCellDef>Estado</th>
               <td mat-cell *matCellDef="let element">
-                @if(element.estado != 'enviado'){
-                <h6 style="margin: 0;"><span class="badge" [class.bg-warning]="element.locked"
-                    [class.bg-danger]="!element.locked" style="font-weight: 100;">{{element.estado}}</span>
-                </h6>
-                }@else{
-                <h6 style="margin: 0;"><span class="badge bg-primary"
-                    style="font-weight: 100;">{{element.estado}}</span></h6>
+                @if (element.estado != 'enviado') {
+                  <h6 style="margin: 0">
+                    <span
+                      class="badge"
+                      [class.bg-warning]="element.locked"
+                      [class.pending-waiting]="!element.locked"
+                      style="font-weight: 100"
+                      >{{ element.estado }}</span
+                    >
+                  </h6>
+                } @else {
+                  <h6 style="margin: 0">
+                    <span class="badge bg-primary" style="font-weight: 100">{{
+                      element.estado
+                    }}</span>
+                  </h6>
                 }
-
               </td>
             </ng-container>
 
             <ng-container matColumnDef="acciones">
               <th mat-header-cell *matHeaderCellDef>Acciones</th>
               <td mat-cell *matCellDef="let element">
-                @if(operationMode === 'manual') {
-                @if(editingId === element.id) {
-                <button mat-icon-button matTooltip="Guardar" aria-label="Guardar" (click)="savePendingEdit()"
-                  [disabled]="isSyncing"><mat-icon>check</mat-icon></button>
-                <button mat-icon-button matTooltip="Cancelar" aria-label="Cancelar" (click)="editingId = null"
-                  [disabled]="isSyncing"><mat-icon>close</mat-icon></button>
-                } @else {
-                <button mat-icon-button matTooltip="Editar" aria-label="Editar" (click)="startEdit(element)"
-                  [disabled]="isSyncing || editingId !== null || element.locked"><mat-icon>edit</mat-icon></button>
-                <button mat-icon-button matTooltip="Eliminar" aria-label="Eliminar" (click)="deletePending(element)"
-                  [disabled]="isSyncing || editingId !== null || element.locked"><mat-icon>delete</mat-icon></button>
-                }
+                @if (operationMode === 'manual') {
+                  @if (editingId === element.id) {
+                    <button
+                      mat-icon-button
+                      matTooltip="Guardar"
+                      aria-label="Guardar"
+                      (click)="savePendingEdit()"
+                      [disabled]="isSyncing"
+                    >
+                      <mat-icon>check</mat-icon>
+                    </button>
+                    <button
+                      mat-icon-button
+                      matTooltip="Cancelar"
+                      aria-label="Cancelar"
+                      (click)="editingId = null"
+                      [disabled]="isSyncing"
+                    >
+                      <mat-icon>close</mat-icon>
+                    </button>
+                  } @else {
+                    <button
+                      mat-icon-button
+                      matTooltip="Editar"
+                      aria-label="Editar"
+                      (click)="startEdit(element)"
+                      [disabled]="isSyncing || editingId !== null || element.locked"
+                    >
+                      <mat-icon>edit</mat-icon>
+                    </button>
+                    <button
+                      mat-icon-button
+                      matTooltip="Eliminar"
+                      aria-label="Eliminar"
+                      (click)="deletePending(element)"
+                      [disabled]="isSyncing || editingId !== null || element.locked"
+                    >
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  }
                 }
               </td>
             </ng-container>
             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumns;" [class.pending-editing]="editingId === row.id">
-            </tr>
+            <tr
+              mat-row
+              *matRowDef="let row; columns: displayedColumns"
+              [class.pending-editing]="editingId === row.id"
+            ></tr>
 
             <!-- Row shown when there is no matching data. -->
             <tr class="mat-row pending-empty" *matNoDataRow>
               <td class="mat-cell" colspan="5">No hay escaneos pendientes para este filtro.</td>
             </tr>
           </table>
-          <mat-paginator #paginatorP class="pending-paginator" [pageSizeOptions]="[10, 20, 30]" showFirstLastButtons
-            aria-label="Pagina de escaneos pendientes"></mat-paginator>
+          <mat-paginator
+            #paginatorP
+            class="pending-paginator"
+            [pageSizeOptions]="[10, 20, 30]"
+            showFirstLastButtons
+            aria-label="Pagina de escaneos pendientes"
+          ></mat-paginator>
         </ion-col>
       </ion-row>
     </mat-tab>
-    <mat-tab label="historial">
+    <mat-tab label="Historial">
       <ion-row>
         <ion-col sizeXs="12" sizeSm="12" sizeMd="3" sizeLg="3">
-          <mt-input (afterChange)="applyFilterHistory($event)" label="Filtro" placeholder="Filtro"></mt-input>
+          <mt-input
+            (afterChange)="applyFilterHistory($event)"
+            label="Filtro"
+            placeholder="Filtro"
+          ></mt-input>
         </ion-col>
       </ion-row>
 
@@ -207,49 +399,60 @@
           <table mat-table [dataSource]="dataHistory" class="mat-elevation-z8">
             <!-- Position Column -->
             <ng-container matColumnDef="sku" sticky>
-              <th mat-header-cell *matHeaderCellDef> Codigo barra </th>
-              <td mat-cell *matCellDef="let element"> {{element.sku}} </td>
+              <th mat-header-cell *matHeaderCellDef>Codigo barra</th>
+              <td mat-cell *matCellDef="let element">{{ element.sku }}</td>
             </ng-container>
 
             <!-- Weight Column -->
             <ng-container matColumnDef="cantidad">
-              <th mat-header-cell *matHeaderCellDef> Conteo </th>
-              <td mat-cell *matCellDef="let element"> {{element.cantidad}} </td>
+              <th mat-header-cell *matHeaderCellDef>Conteo</th>
+              <td mat-cell *matCellDef="let element">{{ element.cantidad }}</td>
             </ng-container>
 
             <!-- Symbol Column -->
             <ng-container matColumnDef="seccion">
-              <th mat-header-cell *matHeaderCellDef> Seccion </th>
-              <td mat-cell *matCellDef="let element"> {{element.seccion}} </td>
+              <th mat-header-cell *matHeaderCellDef>Seccion</th>
+              <td mat-cell *matCellDef="let element">{{ element.seccion }}</td>
             </ng-container>
 
             <!-- Symbol Column -->
             <ng-container matColumnDef="estado">
-              <th mat-header-cell *matHeaderCellDef> Estado </th>
+              <th mat-header-cell *matHeaderCellDef>Estado</th>
               <td mat-cell *matCellDef="let element">
-                @if(element.estado != 'Sincronizado'){
-                <h6 style="margin: 0;"><span class="badge bg-danger" style="font-weight: 100;">{{element.estado}}</span>
-                </h6>
-                }@else{
-                <h6 style="margin: 0;"><span class="badge bg-primary"
-                    style="font-weight: 100;">{{element.estado}}</span></h6>
+                @if (element.estado != 'Sincronizado') {
+                  <h6 style="margin: 0">
+                    <span class="badge bg-danger" style="font-weight: 100">{{
+                      element.estado
+                    }}</span>
+                  </h6>
+                } @else {
+                  <h6 style="margin: 0">
+                    <span class="badge bg-primary" style="font-weight: 100">{{
+                      element.estado
+                    }}</span>
+                  </h6>
                 }
-
               </td>
             </ng-container>
 
             <tr mat-header-row *matHeaderRowDef="displayedColumns2"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumns2;"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns2"></tr>
 
             <!-- Row shown when there is no matching data. -->
             <tr class="mat-row" *matNoDataRow>
-              <td class="mat-cell" colspan="4">No data matching the filter </td>
+              <td class="mat-cell" colspan="4">No hay registros que coincidan con la búsqueda.</td>
             </tr>
-
           </table>
-          <mat-paginator #paginatorH [pageSizeOptions]="[10, 20, 30]" showFirstLastButtons [length]="historyTotal"
-            [pageIndex]="historyPage" [pageSize]="historyPageSize" (page)="changeHistoryPage($event)"
-            aria-label="Select page of pending elements">
+          <mat-paginator
+            #paginatorH
+            [pageSizeOptions]="[10, 20, 30]"
+            showFirstLastButtons
+            [length]="historyTotal"
+            [pageIndex]="historyPage"
+            [pageSize]="historyPageSize"
+            (page)="changeHistoryPage($event)"
+            aria-label="Páginas del historial"
+          >
           </mat-paginator>
         </ion-col>
       </ion-row>
@@ -260,13 +463,22 @@
     <pocket-chat></pocket-chat>
   </div>
 
-  <div class="camera-scanner" [class.active]="isCameraScanning" role="dialog" aria-modal="true"
-    aria-label="Lector por camara">
+  <div
+    class="camera-scanner"
+    [class.active]="isCameraScanning"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Lector por camara"
+  >
     <div class="camera-scanner__panel">
       <video #cameraVideo autoplay muted playsinline></video>
       <div class="camera-scanner__frame"></div>
       <div class="camera-scanner__footer">
-        <span>{{ cameraScanTarget === 'section' ? 'Escanee el QR de la seccion' : 'Escanee el codigo del producto' }}</span>
+        <span>{{
+          cameraScanTarget === 'section'
+            ? 'Escanee el QR de la seccion'
+            : 'Escanee el codigo del producto'
+        }}</span>
         <button type="button" (click)="stopCameraScan()">
           <mat-icon aria-hidden="true">close</mat-icon>
           Cancelar

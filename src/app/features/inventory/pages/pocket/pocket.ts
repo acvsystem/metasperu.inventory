@@ -5,7 +5,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { PocketInventoryService, PocketSyncStatus } from '../../../../shared/services/pocket-inventory.service';
+import {
+  PocketInventoryService,
+  PocketSyncStatus,
+} from '../../../../shared/services/pocket-inventory.service';
 import { db } from '../../../../core/db/offline-db';
 import { IonContent, IonCol, IonRow } from '@ionic/angular/standalone';
 import { MtVerificationModal } from '@metasperu/component/mt-verification-modal/mt-verification-modal';
@@ -25,14 +28,44 @@ import { BrowserMultiFormatReader } from '@zxing/library';
   selector: 'pocket-scanner',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, MatIconModule, MatButtonModule, MatTooltipModule, IonContent, MatTabsModule, MtInput, MatPaginatorModule,
-    MtSelect, IonCol, IonRow, MatTableModule, MatSortModule, PocketChat
+    CommonModule,
+    FormsModule,
+    MatIconModule,
+    MatButtonModule,
+    MatTooltipModule,
+    IonContent,
+    MatTabsModule,
+    MtInput,
+    MatPaginatorModule,
+    MtSelect,
+    IonCol,
+    IonRow,
+    MatTableModule,
+    MatSortModule,
+    PocketChat,
   ],
   templateUrl: './pocket.html',
   styleUrl: './pocket.scss',
 })
 export default class Pocket implements AfterViewInit, OnDestroy {
   activePocketTab = 0;
+  get syncStateLabel(): string {
+    if (this.isSyncing)
+      return (
+        'Sincronizando · ' +
+        this.syncStatus.confirmed +
+        ' de ' +
+        this.syncStatus.total +
+        ' confirmados'
+      );
+    if (!this.isOnline()) return 'Sin conexión · guardando en el dispositivo';
+    if (this.syncStatus.phase === 'error')
+      return 'No se pudo confirmar el envío · revisa los pendientes';
+    return this.pendingCount()
+      ? this.pendingCount() + ' registros pendientes'
+      : 'Sin pendientes en este dispositivo';
+  }
+
   @ViewChild('newBarcodeInput') newBarcodeInput?: ElementRef<HTMLInputElement>;
   @ViewChild('nextQuantityInput') nextQuantityInput?: ElementRef<HTMLInputElement>;
   @ViewChild('cameraVideo') cameraVideo?: ElementRef<HTMLVideoElement>;
@@ -41,7 +74,8 @@ export default class Pocket implements AfterViewInit, OnDestroy {
     if (this.activePocketTab === 0) this.newBarcodeInput?.nativeElement.focus();
   }
 
-  operationMode: 'online' | 'manual' = localStorage.getItem('pocketOperationMode') === 'manual' ? 'manual' : 'online';
+  operationMode: 'online' | 'manual' =
+    localStorage.getItem('pocketOperationMode') === 'manual' ? 'manual' : 'online';
   isSyncing = false;
   editingId: number | null = null;
   editSku = '';
@@ -51,7 +85,14 @@ export default class Pocket implements AfterViewInit, OnDestroy {
   historyPageSize = 20;
   historyFilter = '';
   historyLoading = false;
-  syncStatus: PocketSyncStatus = { sessionCode: '', phase: 'idle', confirmed: 0, total: 0, message: '', lastSuccess: null };
+  syncStatus: PocketSyncStatus = {
+    sessionCode: '',
+    phase: 'idle',
+    confirmed: 0,
+    total: 0,
+    message: '',
+    lastSuccess: null,
+  };
   lastFeedback = 'Listo para escanear';
   isCameraScanning = false;
   cameraScanTarget: 'sku' | 'section' | null = null;
@@ -91,11 +132,19 @@ export default class Pocket implements AfterViewInit, OnDestroy {
     const quantity = Number(this.editQuantity);
     if (this.editingId === null || this.isSyncing || this.operationMode !== 'manual') return;
     if (!this.editSku.trim() || !Number.isSafeInteger(quantity) || quantity <= 0) {
-      this.onNotification({ error: 'error', message: 'Ingrese un SKU y una cantidad entera mayor que cero.' });
+      this.onNotification({
+        error: 'error',
+        message: 'Ingrese un SKU y una cantidad entera mayor que cero.',
+      });
       return;
     }
     try {
-      await this.pocketService.updatePending(this.editingId, this.sessionCode(), this.editSku.trim(), quantity);
+      await this.pocketService.updatePending(
+        this.editingId,
+        this.sessionCode(),
+        this.editSku.trim(),
+        quantity,
+      );
       this.editingId = null;
       await this.updatePendingCount();
       this.onDataTable(this.sessionCode());
@@ -105,7 +154,12 @@ export default class Pocket implements AfterViewInit, OnDestroy {
   }
 
   async deletePending(row: any) {
-    if (this.operationMode !== 'manual' || this.isSyncing || !window.confirm(`Eliminar el escaneo ${row.sku}?`)) return;
+    if (
+      this.operationMode !== 'manual' ||
+      this.isSyncing ||
+      !window.confirm(`Eliminar el escaneo ${row.sku}?`)
+    )
+      return;
     try {
       await this.pocketService.deletePending(row.id, this.sessionCode());
       if (this.editingId === row.id) this.editingId = null;
@@ -120,21 +174,35 @@ export default class Pocket implements AfterViewInit, OnDestroy {
     if (!this.sessionCode() || !this.isOnline()) return;
     this.historyRequest?.unsubscribe();
     this.historyLoading = true;
-    this.historyRequest = this.pocketService.getHistoryPage(this.sessionCode(), this.historyPage + 1, this.historyPageSize, this.historyFilter).subscribe({
-      next: result => {
-        this.dataHistory.data = result.items.map((item: any) => ({
-          sku: item.sku, cantidad: item.quantity,
-          seccion: item.section_name || this.arAsignatedSections.find(s => s.key === item.seccion_id)?.value || '',
-          estado: 'Sincronizado'
-        }));
-        this.historyTotal = result.total;
-        this.historyLoading = false;
-      },
-      error: () => {
-        this.historyLoading = false;
-        this.onNotification({ error: 'error', message: 'No se pudo cargar el historial del servidor.' });
-      }
-    });
+    this.historyRequest = this.pocketService
+      .getHistoryPage(
+        this.sessionCode(),
+        this.historyPage + 1,
+        this.historyPageSize,
+        this.historyFilter,
+      )
+      .subscribe({
+        next: (result) => {
+          this.dataHistory.data = result.items.map((item: any) => ({
+            sku: item.sku,
+            cantidad: item.quantity,
+            seccion:
+              item.section_name ||
+              this.arAsignatedSections.find((s) => s.key === item.seccion_id)?.value ||
+              '',
+            estado: 'Sincronizado',
+          }));
+          this.historyTotal = result.total;
+          this.historyLoading = false;
+        },
+        error: () => {
+          this.historyLoading = false;
+          this.onNotification({
+            error: 'error',
+            message: 'No se pudo cargar el historial del servidor.',
+          });
+        },
+      });
   }
 
   changeHistoryPage(event: any) {
@@ -156,15 +224,15 @@ export default class Pocket implements AfterViewInit, OnDestroy {
   arAsignatedSections: Array<any> = [{ key: 0, values: '' }];
   selectedSectionId: number = 0;
   registerConteo: Array<any> = [];
-  inFilter: string = "";
-  inCantidad: any = "";
-  optionSeccion: string = "";
+  inFilter: string = '';
+  inCantidad: any = '';
+  optionSeccion: string = '';
   OptionTypeScan: string = 'pistola';
   dataSource = new MatTableDataSource(this.registerConteo);
   displayedColumns: string[] = ['sku', 'cantidad', 'seccion', 'estado', 'acciones'];
   displayedColumns2: string[] = ['sku', 'cantidad', 'seccion', 'estado'];
-  oldSKU: string = "";
-  oldCantidad: string = "";
+  oldSKU: string = '';
+  oldCantidad: string = '';
   isckeckedSku: boolean = false;
   isPermision: boolean = false;
   countSkanSection: number = 0;
@@ -182,16 +250,16 @@ export default class Pocket implements AfterViewInit, OnDestroy {
     private dialog: MatDialog,
     private pocketService: PocketInventoryService,
     private store: StorageService,
-    private service: InventoryService
+    private service: InventoryService,
   ) {
     this.operationMode = this.pocketService.operationMode.value;
     this.pocketService.modeChangeAllowed = () => !this.isSyncing && this.editingId === null;
-    this.modeSubscription = this.pocketService.operationMode.subscribe(mode => {
+    this.modeSubscription = this.pocketService.operationMode.subscribe((mode) => {
       const changed = this.operationMode !== mode;
       this.operationMode = mode;
       if (changed && mode === 'online' && this.isOnline()) void this.sync();
     });
-    this.syncStatusSubscription = this.pocketService.syncStatus.subscribe(status => {
+    this.syncStatusSubscription = this.pocketService.syncStatus.subscribe((status) => {
       if (!status.sessionCode || status.sessionCode === this.sessionCode()) {
         this.syncStatus = status;
         if (status.message) this.lastFeedback = status.message;
@@ -217,8 +285,8 @@ export default class Pocket implements AfterViewInit, OnDestroy {
 
     let oldSku = localStorage.getItem('oldSku');
     let oldCantidad = localStorage.getItem('oldCantidad');
-    this.oldSKU = oldSku || "";
-    this.oldCantidad = oldCantidad || "";
+    this.oldSKU = oldSku || '';
+    this.oldCantidad = oldCantidad || '';
 
     this.updatePendingCount();
     window.addEventListener('online', this.onlineListener);
@@ -235,10 +303,10 @@ export default class Pocket implements AfterViewInit, OnDestroy {
   openVerification() {
     const dialogRef = this.dialog.open(MtVerificationModal, {
       width: '420px',
-      panelClass: 'custom-notification-panel'
+      panelClass: 'custom-notification-panel',
     });
 
-    dialogRef.afterClosed().subscribe(code => {
+    dialogRef.afterClosed().subscribe((code) => {
       if (code) {
         this.sessionCode.set(code);
         this.store.setStore('pocketCode', code);
@@ -271,14 +339,11 @@ export default class Pocket implements AfterViewInit, OnDestroy {
     // ========== VALIDACIÓN DE DOBLE ESCANEO ==========
     const now = Date.now();
 
-    if (
-      this.lastScannedCode === sku &&
-      (now - this.lastScanTime) < this.DOUBLE_SCAN_THRESHOLD
-    ) {
+    if (this.lastScannedCode === sku && now - this.lastScanTime < this.DOUBLE_SCAN_THRESHOLD) {
       this.playErrorSound();
       this.onNotification({
         error: 'error',
-        message: 'Se escaneó el mismo código 2 veces en milisegundos'
+        message: 'Se escaneó el mismo código 2 veces en milisegundos',
       });
 
       // Limpiar el input y devolver el foco
@@ -319,13 +384,17 @@ export default class Pocket implements AfterViewInit, OnDestroy {
     // 1. Guardar localmente
     try {
       await this.saveScanLocally(this.selectedSectionId, this.sessionCode(), sku, cantidad);
-      this.lastFeedback = this.operationMode === 'manual'
-        ? 'Escaneo guardado en pendientes'
-        : this.isOnline()
-          ? 'Escaneo guardado, enviando al servidor'
-          : 'Escaneo guardado sin conexion';
+      this.lastFeedback =
+        this.operationMode === 'manual'
+          ? 'Escaneo guardado en pendientes'
+          : this.isOnline()
+            ? 'Escaneo guardado, enviando al servidor'
+            : 'Escaneo guardado sin conexion';
     } catch {
-      this.onNotification({ error: 'error', message: 'No se pudo guardar el escaneo en el dispositivo. Intente nuevamente.' });
+      this.onNotification({
+        error: 'error',
+        message: 'No se pudo guardar el escaneo en el dispositivo. Intente nuevamente.',
+      });
       return;
     }
 
@@ -345,7 +414,7 @@ export default class Pocket implements AfterViewInit, OnDestroy {
       this.onDataTable(this.sessionCode());
     }
 
-    this.inCantidad = "";
+    this.inCantidad = '';
     this.onRefreshSectionCount();
   }
 
@@ -372,7 +441,8 @@ export default class Pocket implements AfterViewInit, OnDestroy {
     this.cameraScanTarget = target;
     this.cameraHandled = false;
     this.isCameraScanning = true;
-    this.lastFeedback = target === 'section' ? 'Apunte al QR de la seccion' : 'Apunte al codigo con la camara';
+    this.lastFeedback =
+      target === 'section' ? 'Apunte al QR de la seccion' : 'Apunte al codigo con la camara';
 
     try {
       await this.cameraReader.decodeFromVideoDevice(
@@ -387,12 +457,15 @@ export default class Pocket implements AfterViewInit, OnDestroy {
           this.cameraHandled = true;
           this.stopCameraScan();
           await this.processCameraCode(code, target);
-        }
+        },
       );
     } catch (error) {
       console.error('Error al abrir la camara', error);
       this.stopCameraScan();
-      this.onNotification({ error: 'error', message: 'No se pudo abrir la camara. Use el lector de la pocket o revise permisos.' });
+      this.onNotification({
+        error: 'error',
+        message: 'No se pudo abrir la camara. Use el lector de la pocket o revise permisos.',
+      });
     }
   }
 
@@ -434,12 +507,9 @@ export default class Pocket implements AfterViewInit, OnDestroy {
   private selectSectionFromCode(code: string) {
     const normalizedCode = this.normalizeScanValue(code);
     const section = this.arAsignatedSections.find((item) => {
-      return [
-        item?.value,
-        item?.values,
-        item?.key,
-        item?.id,
-      ].some((value) => this.normalizeScanValue(value) === normalizedCode);
+      return [item?.value, item?.values, item?.key, item?.id].some(
+        (value) => this.normalizeScanValue(value) === normalizedCode,
+      );
     });
 
     if (!section) {
@@ -455,7 +525,9 @@ export default class Pocket implements AfterViewInit, OnDestroy {
   }
 
   private normalizeScanValue(value: any): string {
-    return String(value ?? '').trim().toUpperCase();
+    return String(value ?? '')
+      .trim()
+      .toUpperCase();
   }
 
   async saveScanLocally(seccion_id: number, session_code: string, sku: any, cantidad: any) {
@@ -464,7 +536,8 @@ export default class Pocket implements AfterViewInit, OnDestroy {
   }
 
   async sync() {
-    if (this.isSyncing || !this.isOnline() || !this.sessionCode() || this.editingId !== null) return;
+    if (this.isSyncing || !this.isOnline() || !this.sessionCode() || this.editingId !== null)
+      return;
     this.isSyncing = true;
     try {
       // Each successful batch removes only its own IDs; new scans remain queued.
@@ -477,7 +550,10 @@ export default class Pocket implements AfterViewInit, OnDestroy {
       this.loadHistory();
       if (this.selectedSection) this.onRefreshSectionCount();
     } catch {
-      this.onNotification({ error: 'error', message: 'No se pudo sincronizar. Revise los pendientes.' });
+      this.onNotification({
+        error: 'error',
+        message: 'No se pudo sincronizar. Revise los pendientes.',
+      });
     } finally {
       this.isSyncing = false;
       this.onDataTable(this.sessionCode());
@@ -497,7 +573,11 @@ export default class Pocket implements AfterViewInit, OnDestroy {
           if (result?.length) {
             this.arAsignatedSections = [];
             result.map((section: any) => {
-              this.arAsignatedSections.push({ key: section.id, value: section.nombre_seccion, id: section.seccion_id_fk });
+              this.arAsignatedSections.push({
+                key: section.id,
+                value: section.nombre_seccion,
+                id: section.seccion_id_fk,
+              });
             });
 
             if (this.arAsignatedSections.length) {
@@ -509,7 +589,7 @@ export default class Pocket implements AfterViewInit, OnDestroy {
         error: (err) => {
           this.onNotification({ error: 'error', message: err?.message });
           resolve([]);
-        }
+        },
       });
     });
   }
@@ -518,7 +598,7 @@ export default class Pocket implements AfterViewInit, OnDestroy {
     const selectData = data || {};
     this.selectedSection = selectData;
     this.selectedSectionId = (selectData || {}).key || 0;
-    this.optionSeccion = selectData?.value || "";
+    this.optionSeccion = selectData?.value || '';
 
     this.countSkanSection = 0;
     this.onRefreshSectionCount();
@@ -543,16 +623,18 @@ export default class Pocket implements AfterViewInit, OnDestroy {
       error: (err) => {
         if (requestId !== this.sectionCountRequestId) return;
         this.onNotification({ error: 'error', message: err?.message });
-      }
+      },
     });
   }
 
   onNotification(result: any) {
-    let notificationList = [{
-      isSuccess: !result?.error?.length ? true : false,
-      isError: result?.error?.length ? true : false,
-      bodyNotification: result?.message
-    }];
+    let notificationList = [
+      {
+        isSuccess: !result?.error?.length ? true : false,
+        isError: result?.error?.length ? true : false,
+        bodyNotification: result?.message,
+      },
+    ];
 
     this.service.onNotification.emit(notificationList);
   }
@@ -560,30 +642,36 @@ export default class Pocket implements AfterViewInit, OnDestroy {
   applyFilter(data: any) {
     if (!data) return;
     const { id, value } = data;
-    this.inFilter = value ?? "";
+    this.inFilter = value ?? '';
     const filterValue = value;
     this.dataSource.filter = filterValue.trim().toLowerCase();
   }
 
   onChangeInput(data: any) {
     const { id, value } = data;
-    this.inCantidad = value ?? "";
+    this.inCantidad = value ?? '';
   }
 
   onDataTable(sessionCode: string) {
     this.pocketService.syncIndexedBD(sessionCode).then((bd: any[]) => {
-      const formattedData = bd.map(item => {
-        const seccionObj = this.arAsignatedSections.find(s => s.key === item.seccion_id);
+      const formattedData = bd
+        .map((item) => {
+          const seccionObj = this.arAsignatedSections.find((s) => s.key === item.seccion_id);
 
-        return {
-          id: item.id,
-          sku: item.sku,
-          conteo: item.quantity,
-          seccion: seccionObj ? seccionObj.value : 'DESCONOCIDO',
-          estado: item.upload_attempted ? 'por confirmar' : item.synced === 1 ? 'enviado' : 'pendiente',
-          locked: !!item.upload_attempted
-        };
-      }).reverse();
+          return {
+            id: item.id,
+            sku: item.sku,
+            conteo: item.quantity,
+            seccion: seccionObj ? seccionObj.value : 'DESCONOCIDO',
+            estado: item.upload_attempted
+              ? 'por confirmar'
+              : item.synced === 1
+                ? 'enviado'
+                : 'pendiente',
+            locked: !!item.upload_attempted,
+          };
+        })
+        .reverse();
 
       this.dataSource.data = formattedData;
       this.dataSource.paginator = this.paginatorP;
