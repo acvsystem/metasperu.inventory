@@ -1,4 +1,4 @@
-<mat-drawer-container class="example-container" [hasBackdrop]="true" style="height: 100%;">
+<mat-drawer-container class="example-container" [hasBackdrop]="true" style="height: 100%">
   <mat-drawer #drawer [mode]="'over'" position="end">
     <ion-row>
       <ion-col size="12" size-md="12">
@@ -8,273 +8,245 @@
   </mat-drawer>
 
   <mat-drawer-content>
-    <ion-header>
-      <ion-toolbar color="primary">
-        <ion-title>Monitoreo: {{ sessionCode }}</ion-title>
-
-        <ion-buttons slot="end">
-          <ion-chip [color]="socketService.isConnected() ? 'success' : 'danger'">
-            <ion-icon name="radio-outline"></ion-icon>
-            <ion-label>{{ socketService.isConnected() ? 'EN VIVO' : 'DESCONECTADO' }}</ion-label>
-          </ion-chip>
-
-          <ion-button (click)="confirmCloseSession()" color="light">
-            <ion-icon slot="icon-only" name="checkmark-done-circle"></ion-icon>
-          </ion-button>
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-header>
-
-    <ion-content class="ion-padding bg-light">
+    <ion-content class="dashboard-content"
+      ><header class="workspace-heading">
+        <div>
+          <a class="back-to-inventories" routerLink="/inventory/session">Inventarios</a>
+          <h1>Inventario {{ sessionCode }}</h1>
+          <p>
+            {{ storeDisplay || 'Tienda ' + serieStore }} ·
+            {{ sessionState === 'FINALIZADO' ? 'Finalizado' : 'Revisión y supervisión del conteo' }}
+          </p>
+        </div>
+        <div class="dashboard-heading-actions">
+          <span class="status-pill" [class.active]="socketService.isConnected()"
+            ><span class="connection-dot" aria-hidden="true"></span
+            >{{ socketService.isConnected() ? 'Eventos conectados' : 'Eventos sin conexión' }}</span
+          ><button class="action-secondary" type="button" (click)="confirmCloseSession()">
+            <mat-icon aria-hidden="true">task_alt</mat-icon>Finalizar inventario
+          </button>
+        </div>
+      </header>
       <mat-tab-group (selectedIndexChange)="onTabChange($event)">
-
         <!-- ===================== TAB 1: Inventario Pocket ===================== -->
-        <mat-tab label="Inventario Pocket">
-          <ion-grid>
-            <ion-row>
-              <!-- Total Stock -->
-              <ion-col size="12" size-md="3">
-                <ion-card class="stat-card">
-                  <ion-card-content>
-                    <div class="stat-info">
-                      <ion-icon name="cube-outline" color="primary"></ion-icon>
-                      <div>
-                        <div style="display: inline-flex; width: 100%;">
-                          <p style="margin-right: 19px;">Total Stock</p>|<p style="margin-left: 19px;">Filtrado</p>
-                        </div>
-                        <div style="display: inline-flex; justify-content: center; align-items: end;">
-                          <h2>{{ totalStock() }} | </h2>
-                          <p style="font-size: 20px; margin-left: 5px; color: green;">
-                            {{ stockFilter }}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </ion-card-content>
-                </ion-card>
-              </ion-col>
-
-              <!-- Total Conteo -->
-              <ion-col size="12" size-md="3">
-                <ion-card class="stat-card">
-                  <ion-card-content>
-                    <div class="stat-info">
-                      <ion-icon name="barcode-outline" color="tertiary"></ion-icon>
-                      <div>
-                        <div style="display: inline-flex; width: 100%;">
-                          <p style="margin-right: 19px;">Total Conteo</p>|<p style="margin-left: 19px;">Filtrado</p>
-                        </div>
-                        <div style="display: inline-flex; justify-content: center; align-items: end;">
-                          <h2>{{ totalConteo() | number }} | </h2>
-                          <p style="font-size: 20px; margin-left: 5px; color: green;">
-                            {{ conteoFilter }}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </ion-card-content>
-                </ion-card>
-              </ion-col>
-
-              <!-- Diferencias -->
-              <ion-col size="12" size-md="3">
-                <ion-card class="stat-card">
-                  <ion-card-content>
-                    <div class="stat-info">
-                      <ion-icon name="cube-outline" color="primary"></ion-icon>
-                      <div>
-                        <div style="display: inline-flex; width: 100%;">
-                          <p style="margin-right: 19px;">Diferencias</p>|<p style="margin-left: 19px;">Filtrado</p>
-                        </div>
-                        <div style="display: inline-flex; justify-content: center; align-items: end;">
-                          <h2>{{ totalDiferencia() }} | </h2>
-                          <p style="font-size: 20px; margin-left: 5px; color: green;">
-                            {{ diferenciaFilter }}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </ion-card-content>
-                </ion-card>
-              </ion-col>
-
-              <!-- SKUs Únicos -->
-              <ion-col size="12" size-md="3">
-                <ion-card class="stat-card">
-                  <ion-card-content>
-                    <div class="stat-info">
-                      <ion-icon name="barcode-outline" color="tertiary"></ion-icon>
-                      <div>
-                        <p>SKUs Únicos</p>
-                        <h2>{{ uniqueSkusCount() }}</h2>
-                      </div>
-                    </div>
-                  </ion-card-content>
-                </ion-card>
-              </ion-col>
-            </ion-row>
-          </ion-grid>
+        <mat-tab label="Conteos">
+          <section class="inventory-metrics" aria-label="Resumen del inventario">
+            <div class="inventory-metric">
+              <span>Stock esperado</span><strong>{{ totalStock() | number }}</strong
+              ><small>{{
+                hasConteoFilters ? 'Filtrado: ' + stockFilter : 'Unidades de stock base'
+              }}</small>
+            </div>
+            <div class="inventory-metric">
+              <span>Unidades contadas</span><strong>{{ totalConteo() | number }}</strong
+              ><small>{{
+                hasConteoFilters ? 'Filtrado: ' + conteoFilter : 'Conteos recibidos en el servidor'
+              }}</small>
+            </div>
+            <div class="inventory-metric metric-difference">
+              <span>{{
+                sessionState === 'FINALIZADO' ? 'Diferencia registrada' : 'Diferencia provisional'
+              }}</span
+              ><strong>{{ totalDiferencia() | number }}</strong
+              ><small>{{
+                hasConteoFilters ? 'Filtrado: ' + diferenciaFilter : 'Conteo menos stock esperado'
+              }}</small>
+            </div>
+            <div class="inventory-metric">
+              <span>SKU únicos contados</span><strong>{{ uniqueSkusCount() | number }}</strong
+              ><small>Productos distintos con conteo</small>
+            </div>
+          </section>
 
           <div class="table-container ion-margin-top">
-            <ion-list-header>
-              <ion-label>Detalle de Conteo por Producto</ion-label>
-
-              <input type="file" #fileInput style="display: none"
-                (change)="importExcelConteo($event); $event.target.value = ''" accept=".xlsx, .xls">
-              <button mat-raised-button class="btn-excel-upload" (click)="fileInput.click()">
-                <mat-icon>upload</mat-icon>
-                <span>Importar Inventario</span>
-              </button>
-
-              <ion-row>
-                <ion-col sizeXs="12" sizeSm="12" sizeMd="12" sizeLg="12">
-                  <mt-select [data]="cboSections" (selectdOption)="onChangeSelect($event)"
-                    label="Seleccione una seccion" title="Seciones"></mt-select>
-                </ion-col>
-              </ion-row>
-
-              <button (click)="deleteSectionConteo()" [disabled]="!selectedSectionId" matTooltip="Eliminar Zona"
-                type="button" class="btn btn-primary btn-sm" style="margin-right: 10px;">
-                Eliminar Subzona
-              </button>
-              <button (click)="descargarQrPdf()" [disabled]="!arAsignatedSections.length" matTooltip="Generar QR PDF"
-                type="button" class="btn btn-primary btn-sm" style="margin-right: 10px;">
-                 QR
-              </button>
-              <!-- Botón Sincronizar (con badge de pendientes) -->
-              <button (click)="sincronizar()" matTooltip="Sincronizar" type="button"
-                class="btn btn-primary btn-sm toolbar-icon-btn" style="margin-right: 10px; position: relative;">
-                <ion-icon name="refresh-outline"></ion-icon>
-
-                @if (pendingCount() > 0) {
-                <span style="
-                    position: absolute;
-                    top: -6px;
-                    right: -6px;
-                    background: #f44336;
-                    color: white;
-                    border-radius: 50%;
-                    width: 18px;
-                    height: 18px;
-                    font-size: 11px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-weight: bold;
-                  ">
-                  {{ pendingCount() }}
-                </span>
-                }
-              </button>
-
-              <!-- Botón Estadísticas -->
-              <button (click)="loadPocketStatistics(); drawer.toggle()" matTooltip="Estadisticas" type="button"
-                class="btn btn-primary btn-sm toolbar-icon-btn" style="margin-right: 10px;">
-                <i class="fa fa-bar-chart" aria-hidden="true"></i>
-              </button>
-
-              <button (click)="openPocketPerformance()" matTooltip="Rendimiento por Pocket" type="button"
-                class="btn btn-primary btn-sm toolbar-icon-btn" style="margin-right: 10px;">
-                <mat-icon>speed</mat-icon>
-              </button>
-
-              @if(isAdministrator) {
-              <button (click)="openSocketMonitor()" matTooltip="Monitor Socket en vivo" type="button"
-                class="btn btn-primary btn-sm toolbar-icon-btn" style="margin-right: 10px;">
-                <mat-icon>desktop_windows</mat-icon>
-              </button>
-              }
-
-              <pocket-chat></pocket-chat>
-
-              <!-- Botón Exportar Excel -->
-              <button mat-raised-button class="btn-excel" (click)="exportarExcel()">
-                <mat-icon>file_download</mat-icon>
-                <span>Exportar Excel</span>
-                <span class="record-count">{{ dataSource.data.length | number }} items</span>
-              </button>
-            </ion-list-header>
+            <div class="count-toolbar">
+              <div class="count-toolbar-title">
+                <h2>Conteos recibidos</h2>
+                <span>{{ conteoTotalRows | number }} registros</span>
+              </div>
+              <div class="count-toolbar-actions">
+                <input
+                  type="file"
+                  #fileInput
+                  hidden
+                  (change)="importExcelConteo($event); $event.target.value = ''"
+                  accept=".xlsx,.xls"
+                /><button class="action-secondary" type="button" (click)="fileInput.click()">
+                  <mat-icon aria-hidden="true">upload</mat-icon>Importar conteos</button
+                ><button class="action-primary" type="button" (click)="exportarExcel()">
+                  <mat-icon aria-hidden="true">download</mat-icon>Exportar conteos</button
+                ><button
+                  class="action-secondary"
+                  type="button"
+                  [matMenuTriggerFor]="inventoryTools"
+                >
+                  <mat-icon aria-hidden="true">more_horiz</mat-icon>Herramientas</button
+                ><mat-menu #inventoryTools="matMenu"
+                  ><button mat-menu-item (click)="sincronizar()">
+                    <mat-icon>refresh</mat-icon
+                    ><span
+                      >Actualizar conteos
+                      @if (pendingCount() > 0) {
+                        ({{ pendingCount() }} avisos)
+                      }
+                    </span></button
+                  ><button mat-menu-item (click)="loadPocketStatistics(); drawer.toggle()">
+                    <mat-icon>bar_chart</mat-icon><span>Estadísticas</span></button
+                  ><button mat-menu-item (click)="openPocketPerformance()">
+                    <mat-icon>speed</mat-icon><span>Rendimiento por Pocket</span></button
+                  ><button
+                    mat-menu-item
+                    (click)="descargarQrPdf()"
+                    [disabled]="!arAsignatedSections.length"
+                  >
+                    <mat-icon>qr_code</mat-icon><span>Descargar QR de secciones</span>
+                  </button>
+                  @if (isAdministrator) {
+                    <button mat-menu-item (click)="openSocketMonitor()">
+                      <mat-icon>desktop_windows</mat-icon><span>Monitor técnico de eventos</span>
+                    </button>
+                  }</mat-menu
+                ><pocket-chat></pocket-chat>
+              </div>
+            </div>
+            <div class="section-toolbar">
+              <mt-select
+                [data]="cboSections"
+                (selectdOption)="onChangeSelect($event)"
+                label="Subzona para correcciones"
+                title="Subzonas"
+              ></mt-select
+              ><button
+                type="button"
+                class="section-delete"
+                [disabled]="!selectedSectionId"
+                (click)="confirmDeleteSectionConteo()"
+              >
+                <mat-icon aria-hidden="true">delete_outline</mat-icon>Eliminar conteos de subzona</button
+              ><span class="muted-note"
+                >Los filtros de cada columna se aplican sobre los conteos.</span
+              >
+            </div>
 
             <ion-row>
               <ion-col sizeXs="12" sizeSm="12" sizeMd="12" sizeLg="12">
-                <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
-
-                  @for (col of dataColumns; track col) {
-                  @if (col.matColumnDef == 'sku') {
-                  <ng-container matColumnDef="{{col.matColumnDef}}" sticky>
-                    <th mat-header-cell *matHeaderCellDef>
-                      <div class="head-table">
-                        {{ col.titleColumn }}
-                        <div class="filter-content" slot="end">
-                          <div class="btn-filter" [matMenuTriggerFor]="filterMenu">
-                            @if (col.filterActive) {
-                            <div matBadge="1" matBadgeSize="small" style="width: 2px;"></div>
-                            }
-                            <i class="fa fa-filter" aria-hidden="true"></i>
-                          </div>
-                        </div>
-                      </div>
-                      <mat-menu #filterMenu="matMenu">
-                        <mt-input id="filterTienda" (click)="$event.stopPropagation()"
-                          (keydown)="$event.stopPropagation()" label="Filtro {{col.titleColumn}}"
-                          placeholder="Nombre {{col.titleColumn}}" type="text"
-                          (keyup)="applyFilterTable($event, col.matColumnDef)">
-                        </mt-input>
-                      </mat-menu>
-                    </th>
-                    <td mat-cell *matCellDef="let element">{{ element[col.propertyValue] }}</td>
-                  </ng-container>
-                  } @else {
-                  <ng-container matColumnDef="{{col.matColumnDef}}">
-                    <th mat-header-cell *matHeaderCellDef>
-                      @if (col.matColumnDef != 'accion') {
-                      <div class="head-table">
-                        {{ col.titleColumn }}
-                        <div class="filter-content" slot="end">
-                          <div class="btn-filter" [matMenuTriggerFor]="filterMenu">
-                            @if (col.filterActive) {
-                            <div matBadge="1" matBadgeSize="small" style="width: 2px;"></div>
-                            }
-                            <i class="fa fa-filter" aria-hidden="true"></i>
-                          </div>
-                        </div>
-                      </div>
-                      <mat-menu #filterMenu="matMenu">
-                        <mt-input id="filterTienda" (click)="$event.stopPropagation()"
-                          (keydown)="$event.stopPropagation()" label="Filtro {{col.titleColumn}}"
-                          placeholder="Nombre {{col.titleColumn}}" type="text"
-                          (keyup)="applyFilterTable($event, col.matColumnDef)">
-                        </mt-input>
-                      </mat-menu>
+                <div class="inventory-table-scroll">
+                  <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+                    @for (col of dataColumns; track col) {
+                      @if (col.matColumnDef == 'sku') {
+                        <ng-container matColumnDef="{{ col.matColumnDef }}" sticky>
+                          <th mat-header-cell *matHeaderCellDef>
+                            <div class="head-table">
+                              {{ col.titleColumn }}
+                              <div class="filter-content" slot="end">
+                                <button
+                                  type="button"
+                                  [attr.aria-label]="'Filtrar por ' + col.titleColumn"
+                                  class="btn-filter"
+                                  [matMenuTriggerFor]="filterMenu"
+                                >
+                                  @if (col.filterActive) {
+                                    <div matBadge="1" matBadgeSize="small" style="width: 2px"></div>
+                                  }
+                                  <i class="fa fa-filter" aria-hidden="true"></i>
+                                </button>
+                              </div>
+                            </div>
+                            <mat-menu #filterMenu="matMenu">
+                              <mt-input
+                                id="filterTienda"
+                                (click)="$event.stopPropagation()"
+                                (keydown)="$event.stopPropagation()"
+                                label="Filtro {{ col.titleColumn }}"
+                                placeholder="Nombre {{ col.titleColumn }}"
+                                type="text"
+                                (keyup)="applyFilterTable($event, col.matColumnDef)"
+                              >
+                              </mt-input>
+                            </mat-menu>
+                          </th>
+                          <td mat-cell *matCellDef="let element">
+                            {{ element[col.propertyValue] }}
+                          </td>
+                        </ng-container>
                       } @else {
-                      {{ col.titleColumn }}
+                        <ng-container matColumnDef="{{ col.matColumnDef }}">
+                          <th mat-header-cell *matHeaderCellDef>
+                            @if (col.matColumnDef != 'accion') {
+                              <div class="head-table">
+                                {{ col.titleColumn }}
+                                <div class="filter-content" slot="end">
+                                  <button
+                                    type="button"
+                                    [attr.aria-label]="'Filtrar por ' + col.titleColumn"
+                                    class="btn-filter"
+                                    [matMenuTriggerFor]="filterMenu"
+                                  >
+                                    @if (col.filterActive) {
+                                      <div
+                                        matBadge="1"
+                                        matBadgeSize="small"
+                                        style="width: 2px"
+                                      ></div>
+                                    }
+                                    <i class="fa fa-filter" aria-hidden="true"></i>
+                                  </button>
+                                </div>
+                              </div>
+                              <mat-menu #filterMenu="matMenu">
+                                <mt-input
+                                  id="filterTienda"
+                                  (click)="$event.stopPropagation()"
+                                  (keydown)="$event.stopPropagation()"
+                                  label="Filtro {{ col.titleColumn }}"
+                                  placeholder="Nombre {{ col.titleColumn }}"
+                                  type="text"
+                                  (keyup)="applyFilterTable($event, col.matColumnDef)"
+                                >
+                                </mt-input>
+                              </mat-menu>
+                            } @else {
+                              {{ col.titleColumn }}
+                            }
+                          </th>
+                          <td mat-cell *matCellDef="let element">
+                            @if (col.matColumnDef == 'accion') {
+                              <button
+                                matTooltip="Editar conteo"
+                                aria-label="Editar conteo"
+                                type="button"
+                                (click)="editarConteo(element)"
+                                class="btn btn-primary btn-sm"
+                              >
+                                <i class="fa fa-pencil-square-o" aria-hidden="true"></i>
+                              </button>
+                            } @else {
+                              {{ element[col.propertyValue] }}
+                            }
+                          </td>
+                        </ng-container>
                       }
-                    </th>
-                    <td mat-cell *matCellDef="let element">
-                      @if (col.matColumnDef == 'accion') {
-                      <button matTooltip="Editar Conteo" type="button" (click)="editarConteo(element)"
-                        class="btn btn-primary btn-sm">
-                        <i class="fa fa-pencil-square-o" aria-hidden="true"></i>
-                      </button>
-                      } @else {
-                      {{ element[col.propertyValue] }}
-                      }
-                    </td>
-                  </ng-container>
-                  }
-                  }
+                    }
 
-                  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-                  <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
 
-                  <tr class="mat-row" *matNoDataRow>
-                    <td class="mat-cell" colspan="6">No data matching the filter</td>
-                  </tr>
-                </table>
+                    <tr class="mat-row" *matNoDataRow>
+                      <td class="mat-cell" colspan="6">
+                        No hay registros que coincidan con estos filtros.
+                      </td>
+                    </tr>
+                  </table>
+                </div>
 
-                <mat-paginator [length]="conteoTotalRows" [pageSize]="conteoPageSize"
-                  [pageSizeOptions]="conteoPageSizeOptions" (page)="onConteoPageChange($event)" showFirstLastButtons
-                  aria-label="Select page of periodic elements">
+                <mat-paginator
+                  [length]="conteoTotalRows"
+                  [pageSize]="conteoPageSize"
+                  [pageSizeOptions]="conteoPageSizeOptions"
+                  (page)="onConteoPageChange($event)"
+                  showFirstLastButtons
+                  aria-label="Select page of periodic elements"
+                >
                 </mat-paginator>
               </ion-col>
             </ion-row>
@@ -282,20 +254,33 @@
         </mat-tab>
 
         <!-- ===================== TAB 2: Cruce inventario ===================== -->
-        <mat-tab label="Cruce inventario">
+        <mat-tab label="Stock y diferencias">
           <ng-template matTabContent>
             @if (arAsignatedSections && pocketScan && dataInventario) {
-            <mat-paginator [length]="inventoryTotalRows" [pageSize]="inventoryPageSize"
-              [pageSizeOptions]="inventoryPageSizeOptions" (page)="onInventoryPageChange($event)" showFirstLastButtons
-              aria-label="Paginación inventario tienda">
-            </mat-paginator>
-            <view-2-inventario (onAllDataProcess)="onAllDataProcess($event)" (onChangeInventario)="loadInventaryPage()"
-              (inventoryFilterChange)="onInventoryFilterChange($event)" [sessionCode]="sessionCode"
-              [serieStore]="serieStore" [inventorySummary]="inventorySummary"
-              [inventoryFilteredSummary]="inventoryFilteredSummary" [inventoryFilterOptions]="inventoryFilterOptions"
-              [inAsignatedSections]="arAsignatedSections" [pocketScan]="[]" [onDataView]="dataInventario"
-              [onDataConteo]="dataExportar">
-            </view-2-inventario>
+              <mat-paginator
+                [length]="inventoryTotalRows"
+                [pageSize]="inventoryPageSize"
+                [pageSizeOptions]="inventoryPageSizeOptions"
+                (page)="onInventoryPageChange($event)"
+                showFirstLastButtons
+                aria-label="Paginación inventario tienda"
+              >
+              </mat-paginator>
+              <view-2-inventario
+                (onAllDataProcess)="onAllDataProcess($event)"
+                (onChangeInventario)="loadInventaryPage()"
+                (inventoryFilterChange)="onInventoryFilterChange($event)"
+                [sessionCode]="sessionCode"
+                [serieStore]="serieStore"
+                [inventorySummary]="inventorySummary"
+                [inventoryFilteredSummary]="inventoryFilteredSummary"
+                [inventoryFilterOptions]="inventoryFilterOptions"
+                [inAsignatedSections]="arAsignatedSections"
+                [pocketScan]="[]"
+                [onDataView]="dataInventario"
+                [onDataConteo]="dataExportar"
+              >
+              </view-2-inventario>
             }
           </ng-template>
         </mat-tab>
@@ -303,12 +288,15 @@
         <!-- ===================== TAB 3: Productos sin exhibir ===================== -->
         <mat-tab label="Productos sin exhibir">
           <ng-template matTabContent>
-            <view-3-inventario [sessionCode]="sessionCode" [onDataView]="allDataProcess"></view-3-inventario>
+            <view-3-inventario
+              [sessionCode]="sessionCode"
+              [onDataView]="allDataProcess"
+            ></view-3-inventario>
           </ng-template>
         </mat-tab>
 
         <!-- ===================== TAB 4: Revision ===================== -->
-        <mat-tab label="Revision">
+        <mat-tab label="Revisión de subzonas">
           <ng-template matTabContent>
             <div class="table-container ion-margin-top revision-tab">
               <ion-list-header>
@@ -317,82 +305,137 @@
                   <span class="revision-count">{{ revisionTotalRows | number }} pendientes</span>
                 </ion-label>
 
-                <button (click)="loadRevisionSections(1, revisionPageSize)" matTooltip="Actualizar revision" type="button"
-                  class="btn btn-primary btn-sm toolbar-icon-btn">
+                <button
+                  (click)="loadRevisionSections(1, revisionPageSize)"
+                  matTooltip="Actualizar revision"
+                  type="button"
+                  class="btn btn-primary btn-sm toolbar-icon-btn"
+                >
                   <ion-icon name="refresh-outline"></ion-icon>
                 </button>
               </ion-list-header>
 
               @if (isRevisionLoading()) {
-              <div class="revision-loading">Cargando revision...</div>
+                <div class="revision-loading">Cargando revision...</div>
               }
 
               <div class="revision-range-filter">
                 <span>Rango de subzona</span>
-                <input type="text" maxlength="4" placeholder="Letra" [value]="revisionRangeValues.letter"
-                  (input)="updateRevisionRangeFilter($event, 'letter')" (keyup.enter)="applyRevisionRangeFilter()">
-                <input type="number" min="1" placeholder="Desde" [value]="revisionRangeValues.start"
-                  (input)="updateRevisionRangeFilter($event, 'start')" (keyup.enter)="applyRevisionRangeFilter()">
-                <input type="number" min="1" placeholder="Hasta" [value]="revisionRangeValues.end"
-                  (input)="updateRevisionRangeFilter($event, 'end')" (keyup.enter)="applyRevisionRangeFilter()">
-                <button type="button" class="btn btn-primary btn-sm" (click)="applyRevisionRangeFilter()">
+                <input
+                  type="text"
+                  maxlength="4"
+                  placeholder="Letra"
+                  [value]="revisionRangeValues.letter"
+                  (input)="updateRevisionRangeFilter($event, 'letter')"
+                  (keyup.enter)="applyRevisionRangeFilter()"
+                />
+                <input
+                  type="number"
+                  min="1"
+                  placeholder="Desde"
+                  [value]="revisionRangeValues.start"
+                  (input)="updateRevisionRangeFilter($event, 'start')"
+                  (keyup.enter)="applyRevisionRangeFilter()"
+                />
+                <input
+                  type="number"
+                  min="1"
+                  placeholder="Hasta"
+                  [value]="revisionRangeValues.end"
+                  (input)="updateRevisionRangeFilter($event, 'end')"
+                  (keyup.enter)="applyRevisionRangeFilter()"
+                />
+                <button
+                  type="button"
+                  class="btn btn-primary btn-sm"
+                  (click)="applyRevisionRangeFilter()"
+                >
                   Filtrar
                 </button>
-                <button type="button" class="btn btn-light btn-sm" (click)="clearRevisionRangeFilter()">
+                <button
+                  type="button"
+                  class="btn btn-light btn-sm"
+                  (click)="clearRevisionRangeFilter()"
+                >
                   Limpiar
                 </button>
               </div>
 
               <ion-row>
                 <ion-col sizeXs="12" sizeSm="12" sizeMd="12" sizeLg="12">
-                  <table mat-table [dataSource]="revisionDataSource" class="mat-elevation-z8">
-
-                    @for (col of revisionDataColumns; track col) {
-                    <ng-container matColumnDef="{{col.matColumnDef}}">
-                      <th mat-header-cell *matHeaderCellDef>
-                        <div class="head-table">
-                          {{ col.titleColumn }}
-                          @if (col.matColumnDef !== 'escaneos' && col.matColumnDef !== 'unidades') {
-                          <div class="filter-content" slot="end">
-                            <div class="btn-filter" [matMenuTriggerFor]="revisionFilterMenu">
-                              @if (col.filterActive) {
-                              <div matBadge="1" matBadgeSize="small" style="width: 2px;"></div>
+                  <div class="inventory-table-scroll">
+                    <table mat-table [dataSource]="revisionDataSource" class="mat-elevation-z8">
+                      @for (col of revisionDataColumns; track col) {
+                        <ng-container matColumnDef="{{ col.matColumnDef }}">
+                          <th mat-header-cell *matHeaderCellDef>
+                            <div class="head-table">
+                              {{ col.titleColumn }}
+                              @if (
+                                col.matColumnDef !== 'escaneos' && col.matColumnDef !== 'unidades'
+                              ) {
+                                <div class="filter-content" slot="end">
+                                  <button
+                                    type="button"
+                                    [attr.aria-label]="'Filtrar por ' + col.titleColumn"
+                                    class="btn-filter"
+                                    [matMenuTriggerFor]="revisionFilterMenu"
+                                  >
+                                    @if (col.filterActive) {
+                                      <div
+                                        matBadge="1"
+                                        matBadgeSize="small"
+                                        style="width: 2px"
+                                      ></div>
+                                    }
+                                    <i class="fa fa-filter" aria-hidden="true"></i>
+                                  </button>
+                                </div>
                               }
-                              <i class="fa fa-filter" aria-hidden="true"></i>
                             </div>
-                          </div>
-                          }
-                        </div>
-                        <mat-menu #revisionFilterMenu="matMenu">
-                          <mt-input id="revisionFilter" (click)="$event.stopPropagation()"
-                            (keydown)="$event.stopPropagation()" label="Filtro {{col.titleColumn}}"
-                            placeholder="Nombre {{col.titleColumn}}" type="text"
-                            (keyup)="applyRevisionFilterTable($event, col.matColumnDef)">
-                          </mt-input>
-                        </mat-menu>
-                      </th>
-                      <td mat-cell *matCellDef="let element">{{ element[col.propertyValue] }}</td>
-                    </ng-container>
-                    }
+                            <mat-menu #revisionFilterMenu="matMenu">
+                              <mt-input
+                                id="revisionFilter"
+                                (click)="$event.stopPropagation()"
+                                (keydown)="$event.stopPropagation()"
+                                label="Filtro {{ col.titleColumn }}"
+                                placeholder="Nombre {{ col.titleColumn }}"
+                                type="text"
+                                (keyup)="applyRevisionFilterTable($event, col.matColumnDef)"
+                              >
+                              </mt-input>
+                            </mat-menu>
+                          </th>
+                          <td mat-cell *matCellDef="let element">
+                            {{ element[col.propertyValue] }}
+                          </td>
+                        </ng-container>
+                      }
 
-                    <tr mat-header-row *matHeaderRowDef="revisionDisplayedColumns"></tr>
-                    <tr mat-row *matRowDef="let row; columns: revisionDisplayedColumns;"></tr>
+                      <tr mat-header-row *matHeaderRowDef="revisionDisplayedColumns"></tr>
+                      <tr mat-row *matRowDef="let row; columns: revisionDisplayedColumns"></tr>
 
-                    <tr class="mat-row" *matNoDataRow>
-                      <td class="mat-cell" colspan="5">Todas las subzonas asignadas tienen escaneo.</td>
-                    </tr>
-                  </table>
+                      <tr class="mat-row" *matNoDataRow>
+                        <td class="mat-cell" colspan="5">
+                          Todas las subzonas asignadas tienen escaneo.
+                        </td>
+                      </tr>
+                    </table>
+                  </div>
 
-                  <mat-paginator [length]="revisionTotalRows" [pageSize]="revisionPageSize"
-                    [pageSizeOptions]="revisionPageSizeOptions" (page)="onRevisionPageChange($event)"
-                    showFirstLastButtons aria-label="Paginacion revision de subzonas">
+                  <mat-paginator
+                    [length]="revisionTotalRows"
+                    [pageSize]="revisionPageSize"
+                    [pageSizeOptions]="revisionPageSizeOptions"
+                    (page)="onRevisionPageChange($event)"
+                    showFirstLastButtons
+                    aria-label="Paginacion revision de subzonas"
+                  >
                   </mat-paginator>
                 </ion-col>
               </ion-row>
             </div>
           </ng-template>
         </mat-tab>
-
       </mat-tab-group>
     </ion-content>
   </mat-drawer-content>

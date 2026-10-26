@@ -1,60 +1,76 @@
-<ion-row>
-    <ion-col size="12">
-        <div class="custom-item " (click)="openStoreModal()">
-            <div class="selector-content" style="padding-left: 10px">
-                <span class="selector-label" style="font-weight: 300;color: #1e1e1e;">{{ label }}</span><br>
-                <span class="selector-value" style="color: black;">
-                    {{ selectedText || 'Seleccione items'}}
-                </span>
-            </div>
-        </div>
-    </ion-col>
-</ion-row>
+<ion-row
+  ><ion-col size="12"
+    ><button
+      type="button"
+      class="custom-item"
+      (click)="openStoreModal()"
+      [attr.aria-label]="label"
+      aria-haspopup="dialog"
+      [attr.aria-expanded]="isModalOpen"
+    >
+      <span class="selector-content"
+        ><span class="selector-label">{{ label }}</span
+        ><span class="selector-value">{{ selectedText || 'Seleccionar' }}</span></span
+      ><span class="selector-chevron" aria-hidden="true">⌄</span>
+    </button></ion-col
+  ></ion-row
+>
 
-<ion-modal [isOpen]="isModalOpen" class="custom-dialog-modal mt-select" (didDismiss)="isModalOpen = false">
-    <ng-template>
-        <div class="dialog-container">
-            <div class="dialog-header">
-                <h2>{{ label }}</h2>
-                <ion-searchbar placeholder="Filtrar..." (ionInput)="handleFilter($event)" mode="md"
-                    class="custom-searchbar">
-                </ion-searchbar>
-            </div>
+<ion-modal
+  [isOpen]="isModalOpen"
+  class="custom-dialog-modal mt-select"
+  (didDismiss)="isModalOpen = false"
+>
+  <ng-template>
+    <div class="dialog-container">
+      <div class="dialog-header">
+        <h2>{{ label }}</h2>
+        <ion-searchbar
+          placeholder="Filtrar..."
+          (ionInput)="handleFilter($event)"
+          mode="md"
+          class="custom-searchbar"
+        >
+        </ion-searchbar>
+      </div>
 
-            <div class="dialog-body">
-                <ion-list lines="none">
-                    @if(isMultiselect){
-                    <ion-item class="selectable-item select-all-item" (click)="toggleSelectAll()">
-                        <ion-checkbox slot="start" [checked]="isAllSelected" [indeterminate]="isIndeterminate"
-                            mode="md">
-                        </ion-checkbox>
-                        <ion-label><strong>SELECCIONAR TODOS</strong></ion-label>
-                    </ion-item>
-                    }
+      <div class="dialog-body">
+        <ion-list lines="none">
+          @if (isMultiselect) {
+            <ion-item class="selectable-item select-all-item" (click)="toggleSelectAll()">
+              <ion-checkbox
+                slot="start"
+                [checked]="isAllSelected"
+                [indeterminate]="isIndeterminate"
+                mode="md"
+              >
+              </ion-checkbox>
+              <ion-label><strong>SELECCIONAR TODOS</strong></ion-label>
+            </ion-item>
+          }
 
-                    <div class="separator"></div>
-                    @for (item of filteredData; track item.value) {
-                        
-                    @if(isMultiselect){
-                    <ion-item (click)="toggleItem(item)" class="selectable-item">
-                        <ion-checkbox slot="start" [checked]="item.selected" mode="md"></ion-checkbox>
-                        <ion-label>{{ item.value }}</ion-label>
-                    </ion-item>
-                    }@else{
-                    <ion-item (click)="selectItem(item)" class="selectable-item notMultiselect">
-                        <ion-label>{{ item.value }}</ion-label>
-                    </ion-item>
-                    }
-                    } @empty {
-                    <div class="no-results">No se encontraron resultados</div>
-                    }
-                </ion-list>
-            </div>
+          <div class="separator"></div>
+          @for (item of filteredData; track item.value) {
+            @if (isMultiselect) {
+              <ion-item (click)="toggleItem(item)" class="selectable-item">
+                <ion-checkbox slot="start" [checked]="item.selected" mode="md"></ion-checkbox>
+                <ion-label>{{ item.value }}</ion-label>
+              </ion-item>
+            } @else {
+              <ion-item button (click)="selectItem(item)" class="selectable-item notMultiselect">
+                <ion-label>{{ item.value }}</ion-label>
+              </ion-item>
+            }
+          } @empty {
+            <div class="no-results">No se encontraron resultados</div>
+          }
+        </ion-list>
+      </div>
 
-            <div class="dialog-footer">
-                <ion-button fill="clear" color="medium" (click)="isModalOpen = false">CANCELAR</ion-button>
-                <ion-button fill="clear" color="primary" (click)="confirmSelection()">ACEPTAR</ion-button>
-            </div>
-        </div>
-    </ng-template>
+      <div class="dialog-footer">
+        <ion-button fill="clear" color="medium" (click)="isModalOpen = false">CANCELAR</ion-button>
+        <ion-button fill="clear" color="primary" (click)="confirmSelection()">ACEPTAR</ion-button>
+      </div>
+    </div>
+  </ng-template>
 </ion-modal>
