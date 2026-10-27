@@ -507,3 +507,7 @@
   color: #ee4967;
   background: #ffedf0;
 }
+
+.inventory-pagination-end {
+  padding-bottom: 64px; // Keep the fixed chat launcher clear of the last-page control.
+}

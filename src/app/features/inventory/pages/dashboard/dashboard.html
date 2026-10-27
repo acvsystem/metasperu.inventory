@@ -277,6 +277,7 @@
             @if (arAsignatedSections && pocketScan && dataInventario) {
               <mat-paginator
                 [length]="inventoryTotalRows"
+                [disabled]="isLoading2()"
                 [pageIndex]="inventoryPage - 1"
                 [pageSize]="inventoryPageSize"
                 [pageSizeOptions]="inventoryPageSizeOptions"
@@ -300,6 +301,18 @@
                 [onDataConteo]="dataExportar"
               >
               </view-2-inventario>
+              <mat-paginator
+                [length]="inventoryTotalRows"
+                [disabled]="isLoading2()"
+                [pageIndex]="inventoryPage - 1"
+                [pageSize]="inventoryPageSize"
+                [pageSizeOptions]="inventoryPageSizeOptions"
+                (page)="onInventoryPageChange($event)"
+                showFirstLastButtons
+                aria-label="Paginación inventario tienda al final"
+                  class="inventory-pagination-end"
+              >
+              </mat-paginator>
             }
           </ng-template>
         </mat-tab>

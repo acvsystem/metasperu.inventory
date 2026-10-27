@@ -277,17 +277,16 @@ export default class DashboardComponent implements OnInit, OnDestroy {
       hourglassOutline,
     });
 
-    // Solo reaccionamos al inventario de tienda (stock)
+    // Invalidate a page on updates instead of replacing pagination with a partial socket array.
     effect(() => {
-      const inventarioSocket = this.socketService.syncInventarioStore();
-      if (Array.isArray(inventarioSocket) && inventarioSocket.length) {
-        this.setCachedInventory(inventarioSocket);
-        this.dataInventario = inventarioSocket;
-        this.isDatabase = true;
-        this.isLoading2.set(false);
-        this.onLoadInventarioHeader();
-      } else if (inventarioSocket?.refresh) {
-        this.loadInventary();
+      const inventory = this.socketService.syncInventarioStore();
+      if ((Array.isArray(inventory) && inventory.length) || inventory?.refresh) {
+        if (
+          this.sessionCode &&
+          (!inventory?.sessionCode || inventory.sessionCode === this.sessionCode)
+        ) {
+          this.loadInventaryPage(1, this.inventoryPageSize);
+        }
       }
     });
   }
@@ -535,7 +534,7 @@ export default class DashboardComponent implements OnInit, OnDestroy {
             this.inventoryTotalRows = res.summary.total_rows || 0;
             this.inventorySummary = res.summary;
             this.inventoryFilteredSummary = null;
-            this.inventoryFilterOptions = res.filterOptions || null;
+            this.inventoryFilterOptions = res.filterOptions || this.inventoryFilterOptions;
             this.totalStock.set(toNumber(res.summary.total_stock));
             this.totalConteo.set(toNumber(res.summary.total_conteo));
             this.totalDiferencia.set(toNumber(res.summary.total_diferencia));
@@ -572,6 +571,8 @@ export default class DashboardComponent implements OnInit, OnDestroy {
     pageSize = this.inventoryPageSize,
     onComplete?: () => void,
   ) {
+    const previousPage = this.inventoryPage;
+    const previousPageSize = this.inventoryPageSize;
     this.isLoading2.set(true);
     this.inventoryPage = page;
     this.inventoryPageSize = pageSize;
@@ -593,8 +594,12 @@ export default class DashboardComponent implements OnInit, OnDestroy {
             localStorage.removeItem('offline_inventory');
             this.dataInventario = res.inventario;
             this.isDatabase = true;
-            this.inventoryTotalRows =
-              res.pagination?.totalRows ?? res.summary?.total_rows ?? res.inventario.length;
+            this.inventoryTotalRows = Number(
+              res.pagination?.totalRows ??
+                res.summary?.total_rows ??
+                this.inventorySummary?.total_rows ??
+                0,
+            );
 
             if (res.summary) {
               const hasActiveFilters = this.hasActiveFilters(this.inventoryFilterValues);
@@ -622,6 +627,8 @@ export default class DashboardComponent implements OnInit, OnDestroy {
 
           this.isLoading2.set(false);
           this.presentToast('No se pudo cargar la página de inventario.');
+          this.inventoryPage = previousPage;
+          this.inventoryPageSize = previousPageSize;
           if (onComplete) {
             onComplete();
           }
@@ -1133,11 +1140,12 @@ export default class DashboardComponent implements OnInit, OnDestroy {
 
       this.onNotification(response);
       setTimeout(() => {
-        this.loadInventary();
+        this.loadInventaryPage(1, this.inventoryPageSize);
       }, 1000);
       // Aquí puedes mostrar un mensaje de éxito
     } catch (error) {
       console.error('Error al importar:', error);
+      this.presentToast('No se pudo importar el inventario. Verifica si la sesión ya tiene stock registrado.');
     }
   }
 

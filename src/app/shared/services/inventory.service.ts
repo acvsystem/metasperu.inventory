@@ -2,6 +2,20 @@ import { EventEmitter, Injectable, Output, inject, signal } from '@angular/core'
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Observable, catchError, tap, throwError } from 'rxjs';
 
+export interface InventoryPageResponse {
+  success: boolean;
+  codigo_sesion?: string;
+  inventario?: Record<string, any>[];
+  summary?: {
+    total_rows: number;
+    total_stock: number;
+    total_conteo: number;
+    total_diferencia: number;
+  };
+  pagination?: { page: number; pageSize: number; totalRows: number; totalPages: number };
+  filterOptions?: Record<string, any>;
+}
+
 // Definición de interfaces para mejores sugerencias de código (IntelliSense)
 export interface ScanData {
     sku: string;
@@ -196,7 +210,7 @@ export class InventoryService {
         return this.http.get<any[]>(`${this.API_URL}/active-sessions`);
     }
 
-    getStoreInventory(params: any): Observable<Store[]> {
+    getStoreInventory(params: any): Observable<InventoryPageResponse> {
         // Convertimos el objeto en parámetros de URL automáticamente
         let httpParams = new HttpParams();
 
@@ -217,7 +231,7 @@ export class InventoryService {
         }
 
         // La URL quedará como: .../request/store?sessionCode=XXX&tiendaId=YYY
-        return this.http.get<Store[]>(`${this.API_URL}/request/store`, { params: httpParams });
+        return this.http.get<InventoryPageResponse>(`${this.API_URL}/request/store`, { params: httpParams });
     }
 
     exportStoreInventoryCsv(params: any): Observable<Blob> {
