@@ -302,6 +302,8 @@ export default class Pocket implements AfterViewInit, OnDestroy {
     const dialogRef = this.dialog.open(MtVerificationModal, {
       width: '420px',
       panelClass: 'custom-notification-panel',
+      enterAnimationDuration: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 180,
+      exitAnimationDuration: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 120,
     });
 
     dialogRef.afterClosed().subscribe((code) => {

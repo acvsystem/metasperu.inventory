@@ -1,74 +1,77 @@
-import { Component, ElementRef, QueryList, ViewChildren, Inject } from '@angular/core';
+import { Component, ElementRef, QueryList, ViewChildren } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'mt-verification-modal',
   standalone: true,
-  imports: [CommonModule, MatDialogModule, MatButtonModule, MatIconModule],
+  imports: [CommonModule, MatDialogModule, MatButtonModule],
   templateUrl: './mt-verification-modal.html',
   styleUrls: ['./mt-verification-modal.scss']
 })
 export class MtVerificationModal {
-  @ViewChildren('inputBox') inputs!: QueryList<ElementRef>;
+  @ViewChildren('inputBox') inputs!: QueryList<ElementRef<HTMLInputElement>>;
   code: string[] = ['', '', '', '', '', ''];
   isComplete = false;
 
   constructor(public dialogRef: MatDialogRef<MtVerificationModal>) { }
 
-  onInput(event: any, index: number) {
-    const val = event.target.value;
-    if (val && index < 5) {
-      this.inputs.toArray()[index + 1].nativeElement.focus();
+  get filledCount() { return this.code.filter(Boolean).length; }
+
+  onInput(event: Event, index: number) {
+    const input = event.target as HTMLInputElement;
+    const inserted = (event as InputEvent).data;
+    const singleCharacter = (event as InputEvent).inputType === 'insertText' && inserted?.length === 1;
+    const text = (singleCharacter ? inserted : input.value).toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (text.length > 1) {
+      this.fillCode(text, text.length >= 6 ? 0 : index);
+      input.value = this.code[index];
     }
-    this.checkCompletion();
+    else {
+      this.code[index] = text;
+      input.value = text;
+      this.checkCompletion();
+      if (text && index < 5) this.focusAt(index + 1);
+    }
   }
 
   onKeyDown(event: KeyboardEvent, index: number) {
-    // Casteamos el target a HTMLInputElement
-    const target = event.currentTarget as HTMLInputElement;
-
-    if (event.key === 'Backspace' && !target.value && index > 0) {
-      this.inputs.toArray()[index - 1].nativeElement.focus();
+    if (event.key === 'Backspace' && !this.code[index] && index > 0) {
+      event.preventDefault();
+      this.code[index - 1] = '';
+      this.checkCompletion();
+      this.focusAt(index - 1);
+    } else if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+      event.preventDefault();
+      this.focusAt(Math.max(0, Math.min(5, index + (event.key === 'ArrowLeft' ? -1 : 1))));
     }
   }
 
-  onPaste(event: ClipboardEvent) {
+  onPaste(event: ClipboardEvent, index = 0) {
     event.preventDefault();
-
-    const data = event.clipboardData?.getData('text') || '';
-    const digits = data.split('');
-    const inputElements = this.inputs.toArray();
-
-    digits.forEach((char, index) => {
-      if (inputElements[index]) {
-        inputElements[index].nativeElement.value = char;
-      }
-    });
-
-    const lastIndex = digits.length - 1;
-    if (lastIndex >= 0) {
-      inputElements[Math.min(lastIndex + 1, 5)].nativeElement.focus();
-    }
-
-    this.checkIfComplete();
+    const text = (event.clipboardData?.getData('text') || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (text) this.fillCode(text, text.length >= 6 ? 0 : index);
   }
 
-  checkIfComplete() {
-    const code = this.inputs.toArray().map(el => el.nativeElement.value).join('');
-    this.isComplete = code.length === 6;
+  private fillCode(text: string, start: number) {
+    for (let i = start; i < 6; i++) this.code[i] = text[i - start] || '';
+    this.checkCompletion();
+    this.focusAt(Math.min(5, start + text.length));
+  }
+
+  private focusAt(index: number) {
+    const input = this.inputs?.get(index)?.nativeElement;
+    input?.focus();
+    input?.select();
   }
 
   checkCompletion() {
-    const fullCode = this.inputs?.toArray().map(i => i.nativeElement.value).join('');
-    this.isComplete = fullCode.length === 6;
+    this.isComplete = this.code.every(character => /^[A-Z0-9]$/.test(character));
   }
 
   onVerify() {
-    const finalCode = this.inputs.toArray().map(i => i.nativeElement.value).join('');
-    this.dialogRef.close(finalCode);
+    if (this.isComplete) this.dialogRef.close(this.code.join(''));
   }
 
   onCancel() { this.dialogRef.close(); }

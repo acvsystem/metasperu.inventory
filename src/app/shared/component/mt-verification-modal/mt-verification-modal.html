@@ -1,22 +1,30 @@
-<div class="verification-container">
-    <div class="icon-circle">
-        <i class="fa fa-shield" aria-hidden="true"></i>
-    </div>
-
-    <h2 mat-dialog-title>Código de Sesion</h2>
-    <p class="subtitle">Ingresa el código de 6 dígitos.</p>
-
-    <div class="code-inputs">
-        @for (slot of [0,1,2,3,4,5]; track slot) {
-        <input #inputBox type="text" maxlength="1" pattern="\d*" (input)="onInput($event, slot)"
-            (keydown)="onKeyDown($event, slot)" (paste)="onPaste($event)">
-        }
-    </div>
-
-    <mat-dialog-actions>
-        <button mat-stroked-button (click)="onCancel()">Cancelar</button>
-        <button mat-flat-button color="primary" [disabled]="!isComplete" (click)="onVerify()">
-            Conectar
-        </button>
-    </mat-dialog-actions>
-</div>
+<form class="verification-container" [class.is-complete]="isComplete" (submit)="$event.preventDefault(); onVerify()">
+  <div class="icon-circle" aria-hidden="true">
+    <svg viewBox="0 0 32 32" fill="none" focusable="false">
+      <path d="M16 3 26 7v8c0 6-4 10-10 14C10 25 6 21 6 15V7L16 3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+      <path class="icon-idle" d="M12 12h3v3h-3zm6 0h3v3h-3zm-6 6h3v3h-3zm6 0h3v3h-3z" fill="currentColor" />
+      <path class="icon-ready" d="m11 16 4 4 7-8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+  </div>
+  <span class="eyebrow">ACCESO AL INVENTARIO</span>
+  <h2 mat-dialog-title>Código de sesión</h2>
+  <p class="subtitle" id="session-code-help">Ingresa los 6 caracteres de la sesión.<br />También puedes pegar el código completo.</p>
+  <div class="code-inputs" role="group" aria-label="Código de sesión" aria-describedby="session-code-help">
+    @for (slot of [0,1,2,3,4,5]; track slot) {
+      <input #inputBox type="text" maxlength="6" inputmode="text" autocapitalize="characters" spellcheck="false"
+        [attr.autocomplete]="slot === 0 ? 'one-time-code' : 'off'" [attr.aria-label]="'Carácter ' + (slot + 1) + ' del código'"
+        [value]="code[slot]" [class.filled]="!!code[slot]"
+        (input)="onInput($event, slot)" (keydown)="onKeyDown($event, slot)" (paste)="onPaste($event, slot)" />
+    }
+  </div>
+  <div class="code-progress" aria-hidden="true">
+    @for (slot of [0,1,2,3,4,5]; track slot) { <span [class.filled]="!!code[slot]"></span> }
+  </div>
+  <p class="entry-status" role="status" aria-live="polite">{{ isComplete ? 'Código completo. Listo para conectar.' : filledCount + ' de 6 caracteres' }}</p>
+  <div class="dialog-actions">
+    <button type="button" mat-stroked-button (click)="onCancel()">Cancelar</button>
+    <button type="submit" mat-flat-button [disabled]="!isComplete" class="connect-button">
+      Conectar <svg class="connect-arrow" aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+    </button>
+  </div>
+</form>
