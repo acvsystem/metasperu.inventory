@@ -108,9 +108,9 @@
                   ><button
                     mat-menu-item
                     (click)="descargarQrPdf()"
-                    [disabled]="!arAsignatedSections.length"
+                    [disabled]="!arAsignatedSections.length || qrExport().status === 'working'"
                   >
-                    <mat-icon>qr_code</mat-icon><span>Descargar QR de secciones</span>
+                    <mat-icon>qr_code</mat-icon><span>{{ qrExport().status === 'working' ? 'Procesando PDF…' : 'Descargar QR de secciones' }}</span>
                   </button>
                   @if (isAdministrator) {
                     <button mat-menu-item (click)="openSocketMonitor()">
@@ -484,3 +484,23 @@
 
 <!-- ===================== LOADER (CORREGIDO) ===================== -->
 <mt-loader *ngIf="isLoading2()" [title]="titleLoader"></mt-loader>
+
+@if (qrExport().status !== 'idle') {
+  <aside class="qr-export-status" aria-label="Descarga de etiquetas PDF" [attr.aria-busy]="qrExport().status === 'working'">
+    <div role="status" aria-live="polite">
+      <strong>{{ qrExport().status === 'working' ? 'Procesando PDF…' : qrExport().status === 'ready' ? 'Tu PDF está listo' : qrExport().status === 'error' ? 'No se pudo descargar' : 'Generación cancelada' }}</strong>
+      <p>{{ qrExport().message }}</p>
+    </div>
+    @if (qrExport().status === 'working') {
+      <progress aria-label="Progreso de las etiquetas" [attr.value]="qrExport().total ? qrExport().done : null" [max]="qrExport().total || 1"></progress>
+      @if (qrExport().total) { <small>{{ qrExport().done | number }} de {{ qrExport().total | number }} etiquetas</small> }
+      <button type="button" class="action-secondary" (click)="cancelQrExport()">Cancelar</button>
+    } @else {
+      <div class="qr-export-actions">
+        @if (qrExport().status === 'ready') { <a class="action-primary" [href]="qrDownloadUrl" [download]="qrFileName">Descargar PDF</a> }
+        @else { <button type="button" class="action-primary" (click)="descargarQrPdf()">Reintentar</button> }
+        <button type="button" class="action-secondary" (click)="dismissQrExport()">Cerrar</button>
+      </div>
+    }
+  </aside>
+}

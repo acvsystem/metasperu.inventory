@@ -50,11 +50,10 @@ import { MatBadgeModule } from '@angular/material/badge';
 import { View3Inventario } from './component/view-3-inventario/view-3-inventario';
 import { MtLoader } from '@metasperu/component/mt-loader/mt-loader';
 import { MtSelect } from '@metasperu/component/mt-select/mt-select';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, timeout } from 'rxjs';
 import { PocketPerformance } from './component/pocket-performance/pocket-performance';
 import { SocketMonitor } from './component/socket-monitor/socket-monitor';
-import jsPDF from 'jspdf';
-import { drawInventoryLabel } from '../../../../shared/utils/inventory-label';
+import { toInventoryLabels } from '../../../../shared/utils/inventory-label-data';
 
 export interface tableColumns {
   matColumnDef: string;
@@ -63,13 +62,6 @@ export interface tableColumns {
   filterActive?: boolean;
   id?: number;
 }
-
-type CodigoQr = {
-  id: number;
-  codigo_sesion: string;
-  seccion_id_fk: number;
-  nombre_seccion: string;
-};
 
 const toNumber = (value: any) => {
   const numericValue = typeof value === 'string' ? value.replace(',', '.').trim() : value;
@@ -129,6 +121,13 @@ export default class DashboardComponent implements OnInit, OnDestroy {
   private alertCtrl = inject(AlertController);
   private toastCtrl = inject(ToastController);
   public dialog = inject(MatDialog);
+
+  readonly qrExport = signal<{ status: 'idle' | 'working' | 'ready' | 'error' | 'cancelled'; done: number; total: number; message: string }>({ status: 'idle', done: 0, total: 0, message: '' });
+  qrDownloadUrl = '';
+  qrFileName = 'codigos-qr.pdf';
+  private qrWorker?: Worker;
+  private qrLogoAbort?: AbortController;
+  private qrExportRun = 0;
 
   // ====================== ESTADO ======================
   isDatabase = false;
@@ -365,6 +364,8 @@ export default class DashboardComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.cancelQrExport();
+    this.clearQrDownload();
     if (this.autoSyncInterval) {
       clearInterval(this.autoSyncInterval);
     }
@@ -1240,116 +1241,101 @@ export default class DashboardComponent implements OnInit, OnDestroy {
   }
 
   async descargarQrPdf() {
-    const codigos: CodigoQr[] = this.arAsignatedSections;
-    if (!codigos || codigos.length === 0) {
-      console.warn('No hay codigos para generar QR');
-      return;
-    }
-
-    if (!this.zonasSub.length) {
-      try {
-        this.zonasSub = await firstValueFrom(this.invService.getZonaVista());
-      } catch {
-        this.zonasSub = [];
+    if (this.qrExport().status === 'working') return;
+    this.clearQrDownload();
+    const run = ++this.qrExportRun;
+    this.qrExport.set({ status: 'working', done: 0, total: 0, message: 'Preparando las etiquetas…' });
+    try {
+      if (typeof Worker === 'undefined') throw new Error('Este navegador no permite generar el PDF en segundo plano. Usa una versión actual de Chrome, Edge o Safari.');
+      if (!this.arAsignatedSections.length) throw new Error('No hay secciones para descargar.');
+      if (!this.zonasSub.length) {
+        try { this.zonasSub = await firstValueFrom(this.invService.getZonaVista().pipe(timeout(10000))); }
+        catch { this.zonasSub = []; }
       }
+      if (run !== this.qrExportRun) return;
+      const labels = toInventoryLabels(this.arAsignatedSections, this.zonasSub);
+      if (!labels.length) throw new Error('No hay secciones válidas para descargar.');
+      this.qrExport.update(state => ({ ...state, total: labels.length }));
+      this.qrLogoAbort = new AbortController();
+      const logo = await this.cargarLogoPdf(this.qrLogoAbort);
+      if (run !== this.qrExportRun) return;
+      const worker = new Worker(new URL('../../../../shared/utils/inventory-label.worker', import.meta.url), { type: 'module' });
+      this.qrWorker = worker;
+      worker.onerror = (event) => {
+        event.preventDefault();
+        if (run === this.qrExportRun) this.failQrExport('No se pudo iniciar la generación. Recarga la página y reintenta.');
+      };
+      worker.onmessageerror = () => {
+        if (run === this.qrExportRun) this.failQrExport('No se pudo recibir el archivo PDF. Reintenta.');
+      };
+      worker.onmessage = ({ data }) => {
+        if (run !== this.qrExportRun) return;
+        if (data.type === 'progress') {
+          const done = Math.min(labels.length, Number(data.done));
+          this.qrExport.update(state => ({ ...state, done, message: done === labels.length ? 'Comprimiendo y preparando el archivo…' : 'Generando las etiquetas…' }));
+        } else if (data.type === 'ready') {
+          try {
+            if (!(data.buffer instanceof ArrayBuffer) || !data.buffer.byteLength) throw new Error();
+            const blob = new Blob([data.buffer], { type: 'application/pdf' });
+            this.qrDownloadUrl = URL.createObjectURL(blob);
+            this.qrFileName = 'codigos-qr-' + (this.sessionCode.replace(/[^a-zA-Z0-9_-]/g, '') || 'inventario') + '.pdf';
+            this.qrExport.set({ status: 'ready', done: labels.length, total: labels.length, message: 'PDF listo. Si la descarga no comienza, usa el botón Descargar PDF.' });
+            const link = document.createElement('a');
+            link.href = this.qrDownloadUrl;
+            link.download = this.qrFileName;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            worker.terminate();
+            this.qrWorker = undefined;
+          } catch { this.failQrExport('No se pudo preparar la descarga. Reintenta con menos ventanas abiertas.'); }
+        } else if (data.type === 'error') this.failQrExport('No se pudo generar el PDF. Reintenta la descarga.');
+      };
+      worker.postMessage({ labels, logo });
+    } catch (error) {
+      if (run === this.qrExportRun) this.failQrExport(error instanceof Error ? error.message : 'No se pudo generar el PDF. Reintenta.');
     }
-
-    const logoMetas = await this.cargarImagenBase64('assets/metasicon.png');
-
-    const pdf = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'a4',
-    });
-
-    const labelW = 55;
-    const labelH = 72;
-    const marginX = 10;
-    const marginY = 10;
-    const gapX = 5;
-    const gapY = 5;
-
-    let x = marginX;
-    let y = marginY;
-
-    for (const [index, item] of codigos.entries()) {
-      await this.dibujarEtiquetaQr(pdf, item, x, y, labelW, labelH, logoMetas);
-
-      x += labelW + gapX;
-
-      if (x + labelW > 200) {
-        x = marginX;
-        y += labelH + gapY;
-      }
-
-      if (y + labelH > 287 && index < codigos.length - 1) {
-        pdf.addPage();
-        x = marginX;
-        y = marginY;
-      }
-    }
-
-    pdf.save('codigos-qr.pdf');
   }
 
-  private obtenerValorQr(item: any): string {
-    if (typeof item === 'string') {
-      return item.trim();
-    }
-
-    return String(item?.nombre_seccion ?? item?.codigo_sesion ?? item?.id ?? '').trim();
+  cancelQrExport() {
+    ++this.qrExportRun;
+    this.qrLogoAbort?.abort();
+    this.qrWorker?.terminate();
+    this.qrWorker = undefined;
+    if (this.qrExport().status === 'working') this.qrExport.update(state => ({ ...state, status: 'cancelled', message: 'Generación cancelada. Puedes volver a intentarlo.' }));
   }
 
-  private obtenerTituloZonaQr(item: any): string {
-    const seccionId = Number(item?.seccion_id_fk ?? item?.seccion_id);
-    const nombreSeccion = sectionColumnKey(item?.nombre_seccion || '');
-
-    const zona = (this.zonasSub || []).find((z: any) => {
-      const zonaSeccionId = Number(z?.seccion_id ?? z?.seccion_id_fk);
-      const zonaNombreSeccion = sectionColumnKey(z?.nombre_seccion || '');
-
-      return (
-        (seccionId && zonaSeccionId === seccionId) ||
-        (nombreSeccion && zonaNombreSeccion === nombreSeccion)
-      );
-    });
-
-    return String(zona?.nombre_zona || item?.nombre_zona || 'PISO DE VENTAS')
-      .trim()
-      .toUpperCase();
+  dismissQrExport() {
+    this.cancelQrExport();
+    this.clearQrDownload();
+    this.qrExport.set({ status: 'idle', done: 0, total: 0, message: '' });
   }
 
-  private async cargarImagenBase64(path: string): Promise<string> {
-    const response = await fetch(path);
-    const blob = await response.blob();
-
-    return await new Promise((resolve, reject) => {
-      const reader = new FileReader();
-
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = reject;
-
-      reader.readAsDataURL(blob);
-    });
+  private failQrExport(message: string) {
+    this.qrWorker?.terminate();
+    this.qrWorker = undefined;
+    this.qrExport.update(state => ({ ...state, status: 'error', message }));
   }
 
-  private async dibujarEtiquetaQr(
-    pdf: jsPDF,
-    item: any,
-    x: number,
-    y: number,
-    w: number,
-    h: number,
-    logoMetas: string,
-  ) {
-    const valorQr = this.obtenerValorQr(item);
-    const tituloZona = this.obtenerTituloZonaQr(item);
+  private clearQrDownload() {
+    if (this.qrDownloadUrl) URL.revokeObjectURL(this.qrDownloadUrl);
+    this.qrDownloadUrl = '';
+  }
 
-    if (!valorQr) {
-      console.warn('Item sin texto para QR:', item);
-      return;
-    }
-
-    await drawInventoryLabel(pdf, valorQr, tituloZona, x, y, w, h, logoMetas);
+  private async cargarLogoPdf(controller: AbortController): Promise<string> {
+    const timer = setTimeout(() => controller.abort(), 10000);
+    try {
+      const response = await fetch('assets/metasicon.png', { signal: controller.signal });
+      if (!response.ok) throw new Error();
+      const blob = await response.blob();
+      if (!blob.type.startsWith('image/')) throw new Error();
+      return await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    } catch { throw new Error('No se pudo cargar el logo de las etiquetas. Revisa tu conexión y reintenta.'); }
+    finally { clearTimeout(timer); }
   }
 }
