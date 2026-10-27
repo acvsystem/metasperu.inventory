@@ -81,7 +81,7 @@
     <ion-content><router-outlet></router-outlet></ion-content>
   </div>
 </ion-split-pane>
-<ion-popover trigger="profile-popover-trigger" triggerAction="click" [dismissOnSelect]="false"
+<ion-popover #accountPopover trigger="profile-popover-trigger" triggerAction="click" [dismissOnSelect]="false"
   ><ng-template
     ><ion-list class="account-menu"
       ><div class="account-heading">

@@ -1,6 +1,6 @@
 import { ThemeService } from '../../../../shared/services/theme.service';
 import { PocketChat } from '../../../../shared/component/pocket-chat/pocket-chat';
-import { Component, inject, signal, OnDestroy, OnInit } from '@angular/core';
+import { Component, inject, signal, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { MatPaginatorIntl } from '@angular/material/paginator';
 import { inventoryPaginator } from '../../../../shared/component/inventory-paginator';
 import { CommonModule } from '@angular/common';
@@ -68,6 +68,7 @@ import { InventoryService } from '@metasperu/services/inventory.service';
   styleUrl: './main.scss',
 })
 export default class MainComponent implements OnInit, OnDestroy {
+  @ViewChild('accountPopover') accountPopover?: IonPopover;
   readonly theme = inject(ThemeService);
   readonly pocketSettings = inject(PocketInventoryService);
   readonly isOnline = signal(navigator.onLine);
@@ -135,6 +136,7 @@ export default class MainComponent implements OnInit, OnDestroy {
     );
   }
   ngOnDestroy() {
+    void this.accountPopover?.dismiss();
     this.subscriptions.unsubscribe();
     window.removeEventListener('online', this.setOnline);
     window.removeEventListener('offline', this.setOffline);
@@ -184,8 +186,9 @@ export default class MainComponent implements OnInit, OnDestroy {
   redireccionarPorRol(role: string) {
     this.onNavigatorRoute(role === 'pocket' ? 'inventory/pocket' : 'inventory/session');
   }
-  logout() {
-    this.authService.logout();
+  async logout() {
+    await this.accountPopover?.dismiss();
+    await this.authService.logout();
   }
   async onNavigatorRoute(route: string) {
     if (route === 'inventory/dashboard' && !this.activeCode) return;
