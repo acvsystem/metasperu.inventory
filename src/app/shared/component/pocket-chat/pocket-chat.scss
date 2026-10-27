@@ -100,6 +100,7 @@ button:disabled {
 }
 
 .chat-header {
+  position: relative;
   height: 54px;
   display: flex;
   align-items: center;
@@ -110,6 +111,7 @@ button:disabled {
   padding: 8px 10px;
   border-bottom: 1px solid #e5e7eb;
 }
+
 
 .chat-title {
   min-width: 0;
@@ -455,3 +457,17 @@ textarea {
   background: #fff0f1;
   color: #b4233a;
 }
+
+.chat-drag-handle { display: none; }
+.chat-panel { transition: transform 180ms ease; }
+.chat-panel.is-dragging { transition: none; }
+@media (max-width: 600px) {
+  .chat-header { touch-action: none; padding-top: 16px; min-height: 64px; }
+  .chat-panel.minimized { height: 64px; }
+  .chat-drag-handle {
+    display: block; position: absolute; top: 6px; left: calc(50% - 18px);
+    width: 36px; height: 4px; border-radius: 4px; background: var(--inv-muted);
+    opacity: .45;
+  }
+}
+@media (prefers-reduced-motion: reduce) { .chat-panel { transition: none; } }

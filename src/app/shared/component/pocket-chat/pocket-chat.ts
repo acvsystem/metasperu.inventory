@@ -48,6 +48,8 @@ export class PocketChat implements OnInit, OnDestroy {
   selectedId: number | null = null;
   opened = false;
   minimized = false;
+  dragOffset = 0;
+  private drag?: { id: number; x: number; y: number };
   sending = false;
   loading = false;
   viewportHeight = window.visualViewport?.height ?? window.innerHeight;
@@ -144,10 +146,31 @@ export class PocketChat implements OnInit, OnDestroy {
   }
   toggleMinimize() {
     this.minimized = !this.minimized;
+    if (this.minimized) this.messageInput?.nativeElement.blur();
     if (!this.minimized) {
       this.attention = false;
       if (this.selected && this.rows.length) void this.markRead(this.rows[this.rows.length - 1].id);
     }
+  }
+  startDrag(event: PointerEvent) {
+    if (!this.opened || this.minimized || !window.matchMedia('(max-width: 600px)').matches ||
+      event.pointerType === 'mouse' ||
+      (event.target as Element).closest('button, input, select, textarea, a')) return;
+    this.drag = { id: event.pointerId, x: event.clientX, y: event.clientY };
+    (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+  }
+  moveDrag(event: PointerEvent) {
+    if (this.drag?.id !== event.pointerId) return;
+    const dy = event.clientY - this.drag.y;
+    this.dragOffset = dy > Math.abs(event.clientX - this.drag.x) * 1.3 ? Math.min(dy, 180) : 0;
+  }
+  finishDrag(event: PointerEvent, cancelled = false) {
+    if (this.drag?.id !== event.pointerId) return;
+    const dy = event.clientY - this.drag.y;
+    if (!cancelled && dy >= 64 && dy > Math.abs(event.clientX - this.drag.x) * 1.3 && !this.minimized)
+      this.toggleMinimize();
+    this.drag = undefined;
+    this.dragOffset = 0;
   }
   chooseById(id: number | null) {
     if (id === null || id === undefined) {

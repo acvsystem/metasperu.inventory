@@ -13,6 +13,8 @@
     [style.--chat-viewport-top]="viewportTop + 'px'"
     class="chat-panel"
     [class.minimized]="minimized"
+    [class.is-dragging]="dragOffset > 0"
+    [style.transform]="dragOffset ? 'translateY(' + dragOffset + 'px)' : null"
     [class.has-attention]="attention || activeUnread"
     role="dialog"
     aria-label="Mensajes"
@@ -20,7 +22,13 @@
     [cdkTrapFocusAutoCapture]="!minimized"
     (keydown.escape)="close()"
   >
-    <header class="chat-header">
+    <header class="chat-header"
+      (pointerdown)="startDrag($event)"
+      (pointermove)="moveDrag($event)"
+      (pointerup)="finishDrag($event)"
+      (pointercancel)="finishDrag($event, true)"
+      (lostpointercapture)="finishDrag($event, true)">
+      <span class="chat-drag-handle" aria-hidden="true"></span>
       <div class="chat-title">
         <mat-icon>forum</mat-icon>
         <div>

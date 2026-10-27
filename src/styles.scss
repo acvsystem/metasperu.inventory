@@ -349,3 +349,20 @@ body>ion-alert {
 html[data-theme='dark'] { @include mat.theme((color:(theme-type:dark,primary:mat.$azure-palette,tertiary:mat.$blue-palette),typography:'DM Sans',density:0)); }
 
 @include meta.load-css('./styles/themes');
+
+// Compact welcome notification; inherits the active light/dark theme.
+ion-toast.inventory-welcome-toast {
+  --background: var(--inv-surface, #fff);
+  --color: var(--inv-ink, #172b4d);
+  --button-color: var(--inv-link, #173e76);
+  --border-color: var(--inv-line, #dce3ed);
+  --border-width: 1px;
+  --border-style: solid;
+  --border-radius: 12px;
+  --box-shadow: 0 8px 28px rgba(18, 40, 72, .16);
+  --width: min(390px, calc(100vw - 24px));
+}
+ion-toast.inventory-welcome-toast::part(header) { font-size: 14px; font-weight: 700; }
+ion-toast.inventory-welcome-toast::part(message) { font-size: 12px; line-height: 1.5; color: var(--inv-muted, #637086); }
+ion-toast.inventory-welcome-toast::part(icon) { color: var(--inv-success, #16877c); font-size: 27px; }
+ion-toast.inventory-welcome-toast::part(button) { font-size: 12px; color: var(--inv-link, #173e76); }

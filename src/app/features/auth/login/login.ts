@@ -6,7 +6,7 @@ import { IonicModule, ToastController } from '@ionic/angular';
 import { AuthService } from '../../../core/auth/auth.service';
 import { FormsModule } from '@angular/forms';
 import { addIcons } from 'ionicons'; // Para registrar iconos
-import { eyeOutline, eyeOffOutline } from 'ionicons/icons';
+import { eyeOutline, eyeOffOutline, checkmarkCircleOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'mt-login',
@@ -33,7 +33,7 @@ export default class LoginPage {
 
   constructor() {
     // 3. REGISTRAR LOS ICONOS QUE USASTE
-    addIcons({ eyeOutline, eyeOffOutline });
+    addIcons({ eyeOutline, eyeOffOutline, checkmarkCircleOutline });
   }
 
   togglePassword() {
@@ -48,13 +48,26 @@ export default class LoginPage {
     this.authService.login(this.loginForm.getRawValue()).subscribe({
       next: () => {
         this.isLoading.set(false);
-        this.presentToast('Bienvenido al sistema', 'success');
+        void this.presentWelcome();
       },
       error: (err) => {
         this.isLoading.set(false);
         this.presentToast('Usuario o contraseña incorrectos', 'danger');
       },
     });
+  }
+
+  private async presentWelcome() {
+    const toast = await this.toastCtrl.create({
+      header: '¡Bienvenido a METAS Perú!',
+      message: 'Tu sesión está lista. Continuemos con tus inventarios.',
+      icon: 'checkmark-circle-outline',
+      cssClass: 'inventory-welcome-toast',
+      position: 'top',
+      duration: 3500,
+      buttons: [{ text: 'Cerrar', role: 'cancel' }],
+    });
+    await toast.present();
   }
 
   async presentToast(message: string, color: 'success' | 'danger') {

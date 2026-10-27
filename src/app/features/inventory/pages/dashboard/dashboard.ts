@@ -54,7 +54,7 @@ import { firstValueFrom } from 'rxjs';
 import { PocketPerformance } from './component/pocket-performance/pocket-performance';
 import { SocketMonitor } from './component/socket-monitor/socket-monitor';
 import jsPDF from 'jspdf';
-import QRCode from 'qrcode';
+import { drawInventoryLabel } from '../../../../shared/utils/inventory-label';
 
 export interface tableColumns {
   matColumnDef: string;
@@ -1272,7 +1272,7 @@ export default class DashboardComponent implements OnInit, OnDestroy {
     let x = marginX;
     let y = marginY;
 
-    for (const item of codigos) {
+    for (const [index, item] of codigos.entries()) {
       await this.dibujarEtiquetaQr(pdf, item, x, y, labelW, labelH, logoMetas);
 
       x += labelW + gapX;
@@ -1282,7 +1282,7 @@ export default class DashboardComponent implements OnInit, OnDestroy {
         y += labelH + gapY;
       }
 
-      if (y + labelH > 287) {
+      if (y + labelH > 287 && index < codigos.length - 1) {
         pdf.addPage();
         x = marginX;
         y = marginY;
@@ -1350,61 +1350,6 @@ export default class DashboardComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const morado = '#0b569c';
-
-    pdf.setDrawColor(morado);
-    pdf.setLineWidth(0.5);
-    pdf.rect(x, y, w, h);
-
-    pdf.setFont('helvetica', 'bold');
-    pdf.setTextColor(morado);
-    pdf.setFontSize(11);
-    pdf.text(tituloZona, x + w / 2, y + 9, { align: 'center', maxWidth: w - 4 });
-
-    pdf.line(x, y + 13, x + w, y + 13);
-
-    pdf.setFontSize(6);
-    pdf.text('Sub- Zona #', x + 13, y + 20);
-
-    pdf.setFillColor('#fff200');
-    pdf.setDrawColor(morado);
-    pdf.rect(x + 35, y + 13, 12, 8, 'FD');
-
-    pdf.setTextColor('#000000');
-    pdf.setFontSize(6);
-    pdf.text(valorQr, x + 41, y + 18.5, {
-      align: 'center',
-      maxWidth: 11,
-    });
-
-    const qrDataUrl = await QRCode.toDataURL(valorQr, {
-      margin: 0,
-      width: 120,
-    });
-
-    pdf.addImage(qrDataUrl, 'PNG', x + 47.5, y + 13.5, 7, 7);
-
-    pdf.setDrawColor(morado);
-    pdf.line(x, y + 22, x + w, y + 22);
-    pdf.line(x, y + 30, x + w, y + 30);
-    pdf.line(x, y + 39, x + w, y + 39);
-    pdf.line(x, y + 48, x + w, y + 48);
-    pdf.line(x, y + 57, x + w, y + 57);
-
-    pdf.setFont('helvetica', 'bold');
-    pdf.setTextColor(morado);
-    pdf.setFontSize(6);
-
-    pdf.text('Conteo:', x + 2, y + 27);
-    pdf.text('Reconteo:', x + 2, y + 36);
-    pdf.text('Contado por:', x + 2, y + 45);
-    pdf.text('Recontado por:', x + 2, y + 54);
-
-    pdf.addImage(logoMetas, 'PNG', x + 10, y + 61, 6, 6);
-
-    pdf.setFont('helvetica', 'bold');
-    pdf.setTextColor('#777777');
-    pdf.setFontSize(6);
-    pdf.text('METAS PERU', x + 18, y + 65);
+    await drawInventoryLabel(pdf, valorQr, tituloZona, x, y, w, h, logoMetas);
   }
 }
