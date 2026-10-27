@@ -1,10 +1,8 @@
 {
-  "version": "1.1.0",
-  "title": "Actualizaciones sin borrar tus conteos",
+  "version": "1.1.1",
+  "title": "Menú de administración alineado",
   "changes": [
-    "Aviso de nueva versión y acceso permanente desde la barra superior.",
-    "Nuevo módulo de actualizaciones con las novedades de cada versión.",
-    "Actualización con un botón, conservando los conteos pendientes y la sesión Pocket.",
-    "Protección de los borradores de Pocket y de las operaciones de guardado y envío."
+    "Actualizaciones se integra en el mismo bloque del menú que Configuración, con los mismos márgenes, ancho y alineación.",
+    "La opción conserva el indicador de selección y cierra el menú al abrirse en móvil."
   ]
 }

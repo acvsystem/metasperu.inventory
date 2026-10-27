@@ -32,10 +32,13 @@
             </button></ion-menu-toggle
           >
         }
+        <ion-menu-toggle [autoHide]="false">
+          <button type="button" class="navigation-item" [class.selected]="isRouteActive('inventory/updates')"
+            [attr.aria-current]="isRouteActive('inventory/updates') ? 'page' : null" (click)="openUpdates()">
+            <ion-icon name="cloud-download-outline" aria-hidden="true"></ion-icon><span>Actualizaciones</span>
+          </button>
+        </ion-menu-toggle>
       </nav>
-      <button type="button" class="navigation-item" [class.selected]="isRouteActive('inventory/updates')" (click)="openUpdates()">
-        <ion-icon name="cloud-download-outline" aria-hidden="true"></ion-icon><span>Actualizaciones</span>
-      </button>
       <div class="sidebar-note">
         <span class="sidebar-dot" [class.offline]="!isOnline()" role="img"
           [attr.aria-label]="isOnline() ? 'Con conexión' : 'Sin conexión'"
