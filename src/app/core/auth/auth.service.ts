@@ -1,3 +1,4 @@
+import { serviceConfig } from '../config/service-config';
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
@@ -17,7 +18,7 @@ export class AuthService {
   private router = inject(Router);
   private invService = inject(InventoryService);
   private sockets = inject(InventorySocketService);
-  private readonly API_URL = 'https://api.metasperu.net.pe/s2/auth';
+  private readonly API_URL = serviceConfig.authApiUrl;
   #user = signal<User | null>(null);
   user = this.#user.asReadonly();
   isAuthenticated = computed(() => !!this.#user());

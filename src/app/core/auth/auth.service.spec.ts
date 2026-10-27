@@ -1,3 +1,4 @@
+import { serviceConfig } from '../config/service-config';
 import { TestBed } from '@angular/core/testing';
 import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
@@ -32,7 +33,7 @@ describe('protected browser sessions', () => {
     localStorage.setItem('auth_token', 'obsolete-test-token');
     const auth = TestBed.inject(AuthService);
     auth.login({ username: 'test', password: 'test' }).subscribe();
-    const request = http.expectOne('https://api.metasperu.net.pe/s2/auth/login');
+    const request = http.expectOne(serviceConfig.authApiUrl + '/login');
     expect(request.request.withCredentials).toBeTrue();
     expect(request.request.headers.has('Authorization')).toBeFalse();
     request.flush({ user: { id: 7, username: 'test', role: 'pocket' } });
@@ -51,8 +52,8 @@ describe('protected browser sessions', () => {
   it('redirects an expired API session without deleting pending offline work', () => {
     const auth = TestBed.inject(AuthService);
     const expired = spyOn(auth, 'expireSession').and.callThrough();
-    TestBed.inject(HttpClient).get('https://api.metasperu.net.pe/s3/inventory/sessions').subscribe({ error: () => {} });
-    http.expectOne('https://api.metasperu.net.pe/s3/inventory/sessions').flush({}, { status: 401, statusText: 'Unauthorized' });
+    TestBed.inject(HttpClient).get(serviceConfig.inventoryApiUrl + '/sessions').subscribe({ error: () => {} });
+    http.expectOne(serviceConfig.inventoryApiUrl + '/sessions').flush({}, { status: 401, statusText: 'Unauthorized' });
     expect(expired).toHaveBeenCalled();
     expect(TestBed.inject(Router).navigate).toHaveBeenCalledWith(['/login'], jasmine.any(Object));
   });
@@ -60,14 +61,14 @@ describe('protected browser sessions', () => {
     const auth = TestBed.inject(AuthService);
     auth.checkSession().subscribe((valid) => expect(valid).toBeTrue());
     http
-      .expectOne('https://api.metasperu.net.pe/s2/auth/check-session')
+      .expectOne(serviceConfig.authApiUrl + '/check-session')
       .flush({ id: 7, username: 'test', role: 'auditor' });
     expect(auth.user()?.role).toBe('auditor');
     localStorage.setItem('role', 'administrador');
     expect(auth.canAdminister()).toBeFalse();
     auth.checkSession().subscribe((valid) => expect(valid).toBeFalse());
     http
-      .expectOne('https://api.metasperu.net.pe/s2/auth/check-session')
+      .expectOne(serviceConfig.authApiUrl + '/check-session')
       .flush({}, { status: 401, statusText: 'Unauthorized' });
     expect(auth.isAuthenticated()).toBeFalse();
     expect(sockets.disconnect).toHaveBeenCalled();

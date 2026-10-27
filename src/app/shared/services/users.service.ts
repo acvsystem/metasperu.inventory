@@ -1,3 +1,4 @@
+import { serviceConfig } from '../../core/config/service-config';
 import { EventEmitter, Injectable, Output, inject, signal } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Observable, catchError, tap, throwError } from 'rxjs';
@@ -19,7 +20,7 @@ export class UserService {
     private http = inject(HttpClient);
 
     // Cambia esta URL según tu entorno de desarrollo/producción
-    private readonly API_URL = 'https://api.metasperu.net.pe/s3/inventory';
+    private readonly API_URL = serviceConfig.inventoryApiUrl;
 
     getUsers(): Observable<any[]> {
         return this.http.get<any[]>(`${this.API_URL}/api/v1/user`);

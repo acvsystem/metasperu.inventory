@@ -1,3 +1,4 @@
+import { serviceConfig } from '../../core/config/service-config';
 import { Injectable, signal, OnDestroy } from '@angular/core';
 import { io, Socket } from 'socket.io-client';
 import { Subject } from 'rxjs';
@@ -23,8 +24,8 @@ export class InventorySocketService implements OnDestroy {
   private pendingSessionCode: string | null = null;
 
   constructor() {
-    const socketUrl = 'https://api.metasperu.net.pe';
-    const socketPath = '/s3/socket/';
+    const socketUrl = serviceConfig.socketUrl;
+    const socketPath = serviceConfig.socketPath;
 
     this.socket = io(socketUrl, {
       path: socketPath,

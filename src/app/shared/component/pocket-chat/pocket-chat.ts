@@ -1,3 +1,4 @@
+import { serviceConfig } from '../../../core/config/service-config';
 import { Component, ElementRef, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { A11yModule } from '@angular/cdk/a11y';
 import { CommonModule } from '@angular/common';
@@ -31,7 +32,7 @@ export class PocketChat implements OnInit, OnDestroy {
   @ViewChild('messageInput') messageInput?: ElementRef<HTMLTextAreaElement>;
   private http = inject(HttpClient);
   private socket = inject(InventorySocketService);
-  private url = 'https://api.metasperu.net.pe/s3/inventory/chat';
+  private url = serviceConfig.inventoryApiUrl + '/chat';
   private timer?: ReturnType<typeof setInterval>;
   private socketSub?: Subscription;
   private readSub?: Subscription;

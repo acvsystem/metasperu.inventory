@@ -1,5 +1,14 @@
 # MetasperuInventory
 
+## Elegir APIs locales o servidor
+
+En `src/app/core/config/service-config.ts`, cambia `isLocalService`:
+
+- `true`: autenticación en `http://localhost:3000/s2/auth`, inventario y chat en `http://localhost:3001/s3/inventory`, sockets en el puerto 3001 con ruta `/socket.io/`.
+- `false`: todos los servicios usan `https://api.metasperu.net.pe`; los sockets conservan la ruta `/s3/socket/` del servidor.
+
+Si abres el frontend en `127.0.0.1`, las APIs locales también usan ese nombre para conservar las cookies de sesión. Debes levantar ambos servicios locales. Reinicia `npm start` o recompila después del cambio; antes de generar una versión para el servidor, establece `isLocalService = false`.
+
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.3.2.
 
 ## Development server

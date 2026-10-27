@@ -1,3 +1,4 @@
+import { serviceConfig } from '../../core/config/service-config';
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import {
@@ -12,7 +13,7 @@ import { db } from '../../core/db/offline-db';
 describe('Pocket pending synchronization', () => {
   let service: PocketInventoryService;
   let http: HttpTestingController;
-  const endpoint = 'https://api.metasperu.net.pe/s3/inventory/sync-bulk';
+  const endpoint = serviceConfig.inventoryApiUrl + '/sync-bulk';
   beforeEach(async () => {
     TestBed.configureTestingModule({
       providers: [

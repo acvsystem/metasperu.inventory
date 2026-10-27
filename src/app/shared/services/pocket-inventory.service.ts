@@ -1,3 +1,4 @@
+import { serviceConfig } from '../../core/config/service-config';
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { db, ScanEntry } from '../../core/db/offline-db'; // La DB que definimos antes
@@ -39,8 +40,8 @@ export class PocketInventoryService {
     this.operationMode.next(mode);
   }
   private http = inject(HttpClient);
-  private apiUrl = 'https://api.metasperu.net.pe/s3/inventory';
-  private readonly API_URL = 'https://api.metasperu.net.pe/s3/inventory';
+  private apiUrl = serviceConfig.inventoryApiUrl;
+  private readonly API_URL = serviceConfig.inventoryApiUrl;
   private invService = inject(InventoryService);
   private syncing = new Set<string>();
 
