@@ -57,6 +57,13 @@ describe('protected browser sessions', () => {
     expect(expired).toHaveBeenCalled();
     expect(TestBed.inject(Router).navigate).toHaveBeenCalledWith(['/login'], jasmine.any(Object));
   });
+  it('does not redirect again when pending unauthorized responses arrive on the login page', () => {
+    const router = TestBed.inject(Router);
+    spyOnProperty(router, 'url', 'get').and.returnValue('/login?returnUrl=%2Finventory%2Fsession');
+    TestBed.inject(AuthService).expireSession();
+    expect(router.navigate).not.toHaveBeenCalled();
+    expect(sockets.disconnect).toHaveBeenCalled();
+  });
   it('restores the trusted current role and clears authentication on an expired session', () => {
     const auth = TestBed.inject(AuthService);
     auth.checkSession().subscribe((valid) => expect(valid).toBeTrue());

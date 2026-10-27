@@ -97,6 +97,7 @@ export class AuthService {
     this.currentUser.set(null);
     localStorage.removeItem('role');
     this.sockets.disconnect();
+    if (this.router.url.split(/[?#]/)[0] === '/login') return;
     this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
   }
 }
