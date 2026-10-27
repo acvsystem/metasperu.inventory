@@ -235,7 +235,7 @@ html[data-theme='dark'] {
     color: var(--inv-muted);
   }
   .inventory-ui .chat-panel article.mine small {
-    color: #ffffffd9;
+    color: var(--inv-surface);
   }
   .inventory-ui .chat-panel :is(.history-btn, .chat-actions button) {
     color: var(--inv-link);

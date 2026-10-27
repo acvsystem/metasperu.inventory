@@ -1,145 +1,52 @@
-<button class="chat-trigger" (click)="open()" aria-label="Abrir mensajes" title="Mensajes">
-  <mat-icon>chat</mat-icon>
-  @if (unread) {
-    <span class="badge">{{ unread }}</span>
-  }
+<button type="button" class="chat-trigger" (click)="open()" aria-label="Abrir mensajes" title="Mensajes">
+  <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M20 15a3 3 0 0 1-3 3H9l-6 3V6a3 3 0 0 1 3-3h11a3 3 0 0 1 3 3Z" /><path d="M7 8h9M7 12h6" /></svg>
+  @if (unread) { <span class="badge">{{ unread }}</span> }
 </button>
-@if (notice && !opened) {
-  <button class="chat-notice" role="status" (click)="open()">{{ notice }}</button>
-}
+@if (notice && !opened) { <button class="chat-notice" role="status" (click)="open()">{{ notice }}</button> }
 @if (opened) {
-  <section
-    [style.--chat-viewport-height]="viewportHeight + 'px'"
-    [style.--chat-viewport-top]="viewportTop + 'px'"
-    class="chat-panel"
-    [class.minimized]="minimized"
-    [class.is-dragging]="dragOffset !== 0"
-    [style.transform]="dragOffset ? 'translateY(' + dragOffset + 'px)' : null"
-    [class.has-attention]="attention || activeUnread"
-    role="dialog"
-    aria-label="Mensajes"
-    [cdkTrapFocus]="!minimized"
-    [cdkTrapFocusAutoCapture]="!minimized"
-    (keydown.escape)="close()"
-  >
-    <header class="chat-header"
-      (pointerdown)="startDrag($event)"
-      (pointermove)="moveDrag($event)"
-      (pointerup)="finishDrag($event)"
-      (pointercancel)="finishDrag($event, true)"
-      (lostpointercapture)="finishDrag($event, true)">
+  <section class="chat-panel" [style.--chat-viewport-height]="viewportHeight + 'px'" [style.--chat-viewport-top]="viewportTop + 'px'"
+    [class.minimized]="minimized" [class.is-dragging]="dragOffset !== 0" [style.transform]="dragOffset ? 'translateY(' + dragOffset + 'px)' : null"
+    [class.has-attention]="attention || activeUnread" role="dialog" aria-label="Mensajes" [cdkTrapFocus]="!minimized" [cdkTrapFocusAutoCapture]="!minimized" (keydown.escape)="close()">
+    <header class="chat-header" (pointerdown)="startDrag($event)" (pointermove)="moveDrag($event)" (pointerup)="finishDrag($event)" (pointercancel)="finishDrag($event, true)" (lostpointercapture)="finishDrag($event, true)">
       <span class="chat-drag-handle" aria-hidden="true"></span>
-      <div class="chat-title">
-        <mat-icon>forum</mat-icon>
-        <div>
-          <strong
-            >{{ selected?.username || 'Mensajes' }}
-            @if (activeUnread) {
-              <span class="inline-badge">{{ activeUnread }}</span>
-            }
-          </strong>
-          <small>{{
-            activeUnread
-              ? 'Nuevo mensaje'
-              : selected
-                ? loading
-                  ? 'Cargando...'
-                  : 'Chat activo'
-                : 'Seleccione destinatario'
-          }}</small>
-        </div>
-      </div>
+      @if (selected && !minimized) {
+        <button class="back-button" type="button" aria-label="Volver a destinatarios" (click)="chooseById(null)" [disabled]="sending"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m14 6-6 6 6 6" /></svg></button>
+      }
+      <span class="chat-avatar" aria-hidden="true">{{ selected ? selected.username.slice(0, 1).toUpperCase() : 'M' }}</span>
+      <div class="chat-title"><strong>{{ selected?.username || 'Mensajes' }} @if (activeUnread) { <span class="badge inline-badge">{{ activeUnread }}</span> }</strong><small>{{ activeUnread ? 'Mensajes sin leer' : selected ? (loading ? 'Cargando mensajes…' : 'Equipo de inventario') : 'Conversa con tu equipo' }}</small></div>
       <div class="chat-actions">
-        <button
-          type="button"
-          (click)="toggleMinimize()"
-          [attr.aria-label]="minimized ? 'Restaurar chat' : 'Minimizar chat'"
-        >
-          <mat-icon>{{ minimized ? 'open_in_full' : 'remove' }}</mat-icon>
-        </button>
-        <button type="button" (click)="close()" aria-label="Cerrar chat">
-          <mat-icon>close</mat-icon>
-        </button>
+        <button type="button" (click)="toggleMinimize()" [attr.aria-label]="minimized ? 'Restaurar chat' : 'Minimizar chat'"><svg aria-hidden="true" viewBox="0 0 24 24">@if (minimized) { <path d="m6 14 6-6 6 6" /> } @else { <path d="M5 12h14" /> }</svg></button>
+        <button type="button" (click)="close()" aria-label="Cerrar chat"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6" /></svg></button>
       </div>
     </header>
-
     @if (!minimized) {
-      <div class="recipient-picker">
-        <mat-icon>person_search</mat-icon>
-        <input aria-label="Buscar destinatario" placeholder="Buscar usuario" [(ngModel)]="search" />
-        <select
-          aria-label="Destinatario"
-          [(ngModel)]="selectedId"
-          (ngModelChange)="chooseById($event)"
-          [disabled]="sending"
-        >
-          <option [ngValue]="null">Seleccione destinatario</option>
+      @if (!selected) {
+        <div class="recipient-picker"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="10" cy="10" r="6" /><path d="m15 15 5 5" /></svg><input aria-label="Buscar destinatario" placeholder="Buscar en tu equipo" [(ngModel)]="search" /></div>
+        <div class="contact-list" aria-label="Destinatarios">
+          <p class="list-caption">Equipo de inventario <span>{{ filtered.length }}</span></p>
           @for (c of filtered; track c.id) {
-            <option [ngValue]="c.id">
-              {{ c.username }}{{ c.unread ? ' (' + c.unread + ')' : '' }}
-            </option>
-          }
-        </select>
-      </div>
-
-      @if (selected) {
-        <div class="messages" #messageList aria-live="polite">
-          @if (rows.length === 50) {
-            <button
-              class="history-btn"
-              type="button"
-              (click)="load(rows[0].id)"
-              [disabled]="loading"
-            >
-              Anteriores
+            <button class="contact-row" type="button" (click)="chooseById(c.id)" [attr.aria-label]="'Conversar con ' + c.username">
+              <span class="contact-avatar" aria-hidden="true">{{ c.username.slice(0, 1).toUpperCase() }}</span>
+              <span class="contact-copy"><strong>{{ c.username }}</strong><small>{{ c.unread ? 'Tienes mensajes por leer' : 'Abrir conversación' }}</small></span>
+              @if (c.unread) { <span class="badge">{{ c.unread }}</span> } @else { <svg class="contact-chevron" aria-hidden="true" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6" /></svg> }
             </button>
-          }
-          @if (older) {
-            <button class="history-btn" type="button" (click)="load()">Ver recientes</button>
-          }
+          } @empty { <div class="empty-state"><p>{{ search ? 'No encontramos ese usuario.' : 'Aún no hay destinatarios disponibles.' }}</p><small>{{ search ? 'Prueba con otro nombre.' : 'Los usuarios de tu equipo aparecerán aquí.' }}</small></div> }
+        </div>
+      } @else {
+        <div class="messages" #messageList role="log" aria-label="Conversación" aria-live="polite">
+          @if (rows.length === 50) { <button class="history-btn" type="button" (click)="load(rows[0].id)" [disabled]="loading">Ver anteriores</button> }
+          @if (older) { <button class="history-btn" type="button" (click)="load()">Ver recientes</button> }
           @for (m of rows; track m.id) {
-            <article [class.mine]="m.mine">
-              <div>{{ m.body }}</div>
-              <small
-                >{{ m.created_at | date: 'dd/MM HH:mm'
-                }}{{ m.mine ? (m.read_at ? ' · Leido' : ' · Enviado') : '' }}</small
-              >
-            </article>
+            <article [class.mine]="m.mine"><div>{{ m.body }}</div><small>{{ m.created_at | date: 'dd/MM HH:mm' }}{{ m.mine ? (m.read_at ? ' · Leído' : ' · Enviado') : '' }}</small></article>
           }
-          @if (!rows.length) {
-            <p class="empty">{{ loading ? 'Cargando...' : 'Aun no hay mensajes' }}</p>
-          }
+          @if (!rows.length) { <div class="empty-state"><span class="empty-symbol" aria-hidden="true">{{ selected.username.slice(0, 1).toUpperCase() }}</span><p>{{ loading ? 'Cargando mensajes…' : 'Conversa con ' + selected.username }}</p><small>{{ loading ? 'Un momento, por favor.' : 'Coordina secciones, conteos y consultas de tu inventario.' }}</small></div> }
         </div>
         <form (ngSubmit)="send()">
-          <textarea
-            #messageInput
-            aria-label="Mensaje"
-            placeholder="Escribe un mensaje…"
-            [(ngModel)]="draft"
-            name="message"
-            maxlength="2000"
-            [readOnly]="sending"
-            rows="1"
-            (keydown.enter)="submitOnEnter($event)"
-          ></textarea>
-          <button
-            type="submit"
-            [disabled]="sending || !draft.trim()"
-            aria-label="Enviar"
-            title="Enviar"
-          >
-            <mat-icon>send</mat-icon>
-          </button>
+          <textarea #messageInput aria-label="Mensaje" placeholder="Escribe un mensaje…" [(ngModel)]="draft" name="message" maxlength="2000" [readOnly]="sending" rows="2" (keydown.enter)="submitOnEnter($event)"></textarea>
+          <button type="submit" [disabled]="sending || !draft.trim()" [attr.aria-label]="sending ? 'Enviando mensaje' : 'Enviar'" title="Enviar"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m21 3-7 18-4-8-8-4 19-6ZM10 13 21 3" /></svg></button>
         </form>
-      } @else {
-        <div class="empty-state">
-          <mat-icon>mark_unread_chat_alt</mat-icon>
-          <p>Selecciona un usuario para iniciar el chat.</p>
-        </div>
       }
-      @if (error) {
-        <div class="chat-error" role="status">{{ error }}</div>
-      }
+      @if (error) { <div class="chat-error" role="status">{{ error }}</div> }
     }
   </section>
 }
