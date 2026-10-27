@@ -2,13 +2,13 @@
     <div class="header-actions">
         <h3>Mantenimiento Zonas y Subzonas</h3>
         <div class="header-right">
-            @if(isZonas){
+            @if(isZonas && auth.canAdminister()){
             <button (click)="agregarZona()" type="button" class="btn btn-primary btn-sm" style="margin-right: 10px;">
                 Agregar Zona
             </button>
             }
 
-            @if(isSubzonas){
+            @if(isSubzonas && auth.canAdminister()){
             <button (click)="agregarSubzona()" type="button" class="btn btn-primary btn-sm" style="margin-right: 10px;">
                 Agregar SubZona
             </button>

@@ -15,4 +15,6 @@ La vista local de diseño sigue usando datos ficticios y no prueba el proxy/cook
 
 Se dejaron de versionar cert.pem/key.pem sin borrar sus archivos locales. No se rotó el material antiguo ni se purgó el historial.
 
+QA independiente posterior encontró dos regresiones y comprobó sus correcciones: la consulta de conteos de sección vuelve a permitir Pocket/auditor con validación en servidor; el auditor ya no ve importaciones, eliminaciones ni mutaciones de configuración reservadas al administrador. Se verificaron ambos roles con la caché local de rol adulterada, conservando tablas y reportes. El chat y selector se comprobaron en anchos 1440, 768, 390 y 320 y viewport de 360 px de alto. Estos controles locales no sustituyen carga de producción ni un teclado virtual físico.
+
 Dependencias: auditoría inicial 54 avisos y final 18 (1 crítico, 12 altos, 4 moderados y 1 bajo). No se considera resuelto: la actualización completa del framework y Excel requiere resolver peers/política de paquetes y volver a ejecutar QA. No se modificaron umbrales de build ni se suprimieron avisos.

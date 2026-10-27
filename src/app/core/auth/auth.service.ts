@@ -21,6 +21,7 @@ export class AuthService {
   #user = signal<User | null>(null);
   user = this.#user.asReadonly();
   isAuthenticated = computed(() => !!this.#user());
+  canAdminister = computed(() => this.#user()?.role === 'administrador');
   currentUser = signal<string | null>(null);
   private acceptUser(user: User) {
     if (!user || !['administrador', 'auditor', 'pocket'].includes(user.role))

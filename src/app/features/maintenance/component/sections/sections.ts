@@ -1,4 +1,5 @@
-import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
+import { AuthService } from '../../../../core/auth/auth.service';
+import { AfterViewInit, inject, Component, OnInit, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
@@ -18,17 +19,18 @@ import { ModalAsignarSubzonasSesion } from '../modal-asignar-subzonas-sesion/mod
   styleUrl: './sections.scss',
 })
 export class Sections implements AfterViewInit {
+  readonly auth = inject(AuthService);
   @ViewChild('paginatorVista') paginatorVista!: MatPaginator;
   @ViewChild('paginatorZonas') paginatorZonas!: MatPaginator;
   @ViewChild('paginatorSubzonas') paginatorSubzonas!: MatPaginator;
 
-  displayedColumns: string[] = ['id', 'zona', 'subzona', 'acciones'];
+  get displayedColumns(): string[] { return ['id', 'zona', 'subzona', ...(this.auth.canAdminister() ? ['acciones'] : [])]; }
   dataSource = new MatTableDataSource<any>([]);
 
-  displayedColumnsZonas: string[] = ['id', 'zona', 'acciones'];
+  get displayedColumnsZonas(): string[] { return ['id', 'zona', ...(this.auth.canAdminister() ? ['acciones'] : [])]; }
   dataSourceZonas = new MatTableDataSource<any>([]);
 
-  displayedColumnsSubzonas: string[] = ['id', 'subzona', 'acciones'];
+  get displayedColumnsSubzonas(): string[] { return ['id', 'subzona', ...(this.auth.canAdminister() ? ['acciones'] : [])]; }
   dataSourceSubzonas = new MatTableDataSource<any>([]);
 
   dataZonas: any[] = [];

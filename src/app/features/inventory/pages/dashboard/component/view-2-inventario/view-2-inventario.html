@@ -70,7 +70,8 @@
               >
                 <i class="fa fa-bar-chart" aria-hidden="true"></i>
               </button>
-              <input
+              @if (auth.canAdminister()) {
+<input
                 type="file"
                 #fileInput
                 style="display: none"
@@ -81,6 +82,7 @@
                 <mat-icon>upload</mat-icon>
                 <span>Importar Inventario</span>
               </button>
+}
 
               <button
                 mat-raised-button

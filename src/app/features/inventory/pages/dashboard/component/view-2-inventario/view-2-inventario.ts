@@ -1,4 +1,5 @@
-import {
+import { AuthService } from '../../../../../../core/auth/auth.service';
+import { inject,
   Component,
   Input,
   SimpleChanges,
@@ -96,6 +97,7 @@ export interface tableColumns {
   styleUrl: './view-2-inventario.scss',
 })
 export class View2Inventario implements OnInit, OnChanges, AfterViewInit {
+  readonly auth = inject(AuthService);
   @Input() sessionCode = '';
   @Input() serieStore = '';
   @Input() inventorySummary: any = null;

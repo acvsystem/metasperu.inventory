@@ -63,6 +63,8 @@ describe('protected browser sessions', () => {
       .expectOne('https://api.metasperu.net.pe/s2/auth/check-session')
       .flush({ id: 7, username: 'test', role: 'auditor' });
     expect(auth.user()?.role).toBe('auditor');
+    localStorage.setItem('role', 'administrador');
+    expect(auth.canAdminister()).toBeFalse();
     auth.checkSession().subscribe((valid) => expect(valid).toBeFalse());
     http
       .expectOne('https://api.metasperu.net.pe/s2/auth/check-session')

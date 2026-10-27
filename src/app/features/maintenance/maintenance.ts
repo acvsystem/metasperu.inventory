@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { AuthService } from '../../core/auth/auth.service';
+import { Component, inject } from '@angular/core';
 import { Sections } from './component/sections/sections';
 import { Users } from './component/users/users';
 import { Store } from './component/store/store';
@@ -14,9 +15,6 @@ import {
   styleUrl: './maintenance.scss',
 })
 export default class Maintenance {
-  roleUser: any = "";
-  ngOnInit() {
-    const userRole = localStorage.getItem('role');
-    this.roleUser = userRole;
-  }
+  readonly auth = inject(AuthService);
+  get roleUser() { return this.auth.user()?.role || ''; }
 }

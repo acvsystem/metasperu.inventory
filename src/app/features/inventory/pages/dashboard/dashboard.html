@@ -74,7 +74,8 @@
                 <span>{{ conteoTotalRows | number }} registros</span>
               </div>
               <div class="count-toolbar-actions">
-                <input
+                @if (auth.canAdminister()) {
+<input
                   type="file"
                   #fileInput
                   hidden
@@ -82,7 +83,8 @@
                   accept=".xlsx,.xls"
                 /><button class="action-secondary" type="button" (click)="fileInput.click()">
                   <mat-icon aria-hidden="true">upload</mat-icon>Importar conteos</button
-                ><button class="action-primary" type="button" (click)="exportarExcel()">
+                >
+}<button class="action-primary" type="button" (click)="exportarExcel()">
                   <mat-icon aria-hidden="true">download</mat-icon>Exportar conteos</button
                 ><button
                   class="action-secondary"
@@ -119,7 +121,8 @@
               </div>
             </div>
             <div class="section-toolbar">
-              <mt-select
+              @if (auth.canAdminister()) {
+<mt-select
                 [data]="cboSections"
                 (selectdOption)="onChangeSelect($event)"
                 label="Subzona para correcciones"
@@ -132,7 +135,8 @@
                 (click)="confirmDeleteSectionConteo()"
               >
                 <mat-icon aria-hidden="true">delete_outline</mat-icon>Eliminar conteos de subzona</button
-              ><span class="muted-note"
+              >
+}<span class="muted-note"
                 >Los filtros de cada columna se aplican sobre los conteos.</span
               >
             </div>

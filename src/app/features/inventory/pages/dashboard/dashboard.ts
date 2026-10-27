@@ -1,3 +1,4 @@
+import { AuthService } from '../../../../core/auth/auth.service';
 import {
   Component,
   OnInit,
@@ -177,7 +178,8 @@ export default class DashboardComponent implements OnInit, OnDestroy {
   inventoryFilterOptions: any = null;
   inventoryFilterValues: any = {};
   pocketStatistics: any = null;
-  isAdministrator = localStorage.getItem('role') === 'administrador';
+  readonly auth = inject(AuthService);
+  get isAdministrator() { return this.auth.canAdminister(); }
   dataColumns: tableColumns[] = [
     { matColumnDef: 'sku', titleColumn: 'Sku', propertyValue: 'sku', filterActive: false, id: 0 },
     {
