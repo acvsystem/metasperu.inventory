@@ -279,17 +279,6 @@
         <mat-tab label="Stock y diferencias">
           <ng-template matTabContent>
             @if (arAsignatedSections && pocketScan && dataInventario) {
-              <mat-paginator
-                [length]="inventoryTotalRows"
-                [disabled]="isLoading2()"
-                [pageIndex]="inventoryPage - 1"
-                [pageSize]="inventoryPageSize"
-                [pageSizeOptions]="inventoryPageSizeOptions"
-                (page)="onInventoryPageChange($event)"
-                showFirstLastButtons
-                aria-label="Paginación inventario tienda"
-              >
-              </mat-paginator>
               <view-2-inventario
                 (onAllDataProcess)="onAllDataProcess($event)"
                 (onChangeInventario)="loadInventaryPage()"
