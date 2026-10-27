@@ -1,6 +1,10 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
-import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import {
+  HttpTestingController,
+  provideHttpClientTesting,
+  TestRequest,
+} from '@angular/common/http/testing';
 import { PocketInventoryService } from './pocket-inventory.service';
 import { InventoryService } from './inventory.service';
 import { db } from '../../core/db/offline-db';
@@ -8,63 +12,81 @@ import { db } from '../../core/db/offline-db';
 describe('Pocket pending synchronization', () => {
   let service: PocketInventoryService;
   let http: HttpTestingController;
-  let rows: any[];
   const endpoint = 'https://api.metasperu.net.pe/s3/inventory/sync-bulk';
-
-  beforeEach(() => {
-    TestBed.configureTestingModule({ providers: [
-      provideHttpClient(), provideHttpClientTesting(),
-      { provide: InventoryService, useValue: { onNotification: { emit: jasmine.createSpy() } } }
-    ] });
+  beforeEach(async () => {
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: InventoryService, useValue: { onNotification: { emit: jasmine.createSpy() } } },
+      ],
+    });
     service = TestBed.inject(PocketInventoryService);
     http = TestBed.inject(HttpTestingController);
-    rows = [{ id: 1, session_code: 'TEST', sku: '00123', quantity: 2, synced: 0 }];
-    spyOn(db.scans, 'where').and.callFake(((filter: any) => ({
-      toArray: async () => rows.filter(row => Object.keys(filter).every(key => row[key] === filter[key])).map(row => ({ ...row }))
-    })) as any);
-    spyOn(db.scans, 'bulkDelete').and.callFake(((ids: any[]) => {
-      rows = rows.filter(row => !ids.includes(row.id));
-      return Promise.resolve();
-    }) as any);
+    await db.scans.clear();
+    await service.saveScanLocally(1, 'TEST', '00123', 2);
   });
-
-  afterEach(() => http.verify());
-
-  it('removes only acknowledged records, retaining scans added during the upload', async () => {
+  afterEach(async () => {
+    http.verify();
+    await db.scans.clear();
+    localStorage.removeItem('pocketLastSync:TEST');
+  });
+  async function request(): Promise<TestRequest> {
+    for (let attempt = 0; attempt < 200; attempt++) {
+      const matches = http.match(endpoint);
+      if (matches.length) {
+        expect(matches.length).toBe(1);
+        return matches[0];
+      }
+      await new Promise((resolve) => setTimeout(resolve, 5));
+    }
+    throw Error('No upload request after IndexedDB transaction');
+  }
+  function acknowledge(req: TestRequest) {
+    req.flush({ acknowledged: req.request.body.scans.map((scan: any) => scan.client_scan_id) });
+  }
+  it('removes acknowledged records while retaining scans added during upload', async () => {
     const result = service.syncWithBackend('TEST');
-    await Promise.resolve();
-    const request = http.expectOne(endpoint);
-    expect(rows.length).toBe(1);
-    rows.push({ id: 2, session_code: 'TEST', synced: 0 });
-    request.flush({ message: 'Sincronizacion exitosa' });
+    const req = await request();
+    await service.saveScanLocally(1, 'TEST', 'NEW', 1);
+    acknowledge(req);
     expect(await result).toBeTrue();
-    expect(rows.map(row => row.id)).toEqual([2]);
+    expect((await db.scans.toArray()).map((row) => row.sku)).toEqual(['NEW']);
   });
-
-  it('keeps pending records after an unsuccessful upload and permits retry', async () => {
+  it('retains failed uploads and retries the same client identifiers', async () => {
     const result = service.syncWithBackend('TEST');
-    await Promise.resolve();
-    http.expectOne(endpoint).flush({ error: 'Error' }, { status: 500, statusText: 'Error' });
+    const req = await request();
+    const id = req.request.body.scans[0].client_scan_id;
+    req.flush({ error: 'Error' }, { status: 500, statusText: 'Error' });
     expect(await result).toBeFalse();
-    expect(rows.length).toBe(1);
+    expect(await db.scans.count()).toBe(1);
     const retry = service.syncWithBackend('TEST');
-    await Promise.resolve();
-    http.expectOne(endpoint).flush({});
+    const again = await request();
+    expect(again.request.body.scans[0].client_scan_id).toBe(id);
+    acknowledge(again);
     expect(await retry).toBeTrue();
+    expect(await db.scans.count()).toBe(0);
   });
-
-  it('prevents overlapping uploads and editing or deleting an in-flight record', async () => {
+  it('prevents overlapping uploads and changes to in-flight records', async () => {
+    const id = (await db.scans.toArray())[0].id!;
     const result = service.syncWithBackend('TEST');
     expect(await service.syncWithBackend('TEST')).toBeFalse();
-    await expectAsync(service.updatePending(1, 'TEST', '999', 3)).toBeRejected();
-    await expectAsync(service.deletePending(1, 'TEST')).toBeRejected();
-    http.expectOne(endpoint).flush({});
-    await result;
+    await expectAsync(service.updatePending(id, 'TEST', '999', 3)).toBeRejected();
+    await expectAsync(service.deletePending(id, 'TEST')).toBeRejected();
+    acknowledge(await request());
+    expect(await result).toBeTrue();
   });
-
-  it('never uploads pending records from another session', async () => {
+  it('never uploads records from another session', async () => {
     expect(await service.syncWithBackend('OTHER')).toBeTrue();
     http.expectNone(endpoint);
-    expect(rows.length).toBe(1);
+    expect(await db.scans.count()).toBe(1);
+  });
+  it('keeps unacknowledged records after a partial confirmation', async () => {
+    await service.saveScanLocally(1, 'TEST', 'SECOND', 1);
+    const result = service.syncWithBackend('TEST');
+    const req = await request();
+    req.flush({ acknowledged: [req.request.body.scans[0].client_scan_id] });
+    expect(await result).toBeFalse();
+    expect((await db.scans.toArray()).map((row) => row.sku)).toEqual(['SECOND']);
   });
 });

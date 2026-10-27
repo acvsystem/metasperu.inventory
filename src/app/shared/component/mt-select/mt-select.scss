@@ -13,12 +13,12 @@
   gap: 8px;
   border: 1px solid #d1d5db;
   border-radius: 4px;
-  background: white;
+  background: var(--inv-surface);
   text-align: left;
   cursor: pointer;
 }
 .custom-item:focus-visible {
-  outline: 2px solid var(--inv-blue, #6155f5);
+  outline: 2px solid var(--inv-blue, #173e76);
   outline-offset: 2px;
 }
 .selector-content {
@@ -29,19 +29,19 @@
 .selector-label {
   font-size: 11px;
   line-height: 13px;
-  color: #6b7280;
+  color: var(--inv-muted);
 }
 .selector-value {
   font-size: 13px;
   line-height: 17px;
-  color: #18181b;
+  color: var(--inv-ink);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .selector-chevron {
   font-size: 16px;
-  color: #6b7280;
+  color: var(--inv-muted);
 }
 .custom-dialog-modal {
   --width: min(400px, calc(100vw - 24px));
@@ -54,8 +54,8 @@
   flex-direction: column;
   max-height: calc(100dvh - 24px);
   overflow: hidden;
-  background: white;
-  color: #18181b;
+  background: var(--inv-surface);
+  color: var(--inv-ink);
 }
 .dialog-header {
   flex: 0 0 auto;
@@ -80,13 +80,13 @@
   overscroll-behavior: contain;
 }
 .dialog-body ion-list {
-  background: white;
+  background: var(--inv-surface);
 }
 .selectable-item {
-  --background: white;
+  --background: var(--inv-surface);
   --min-height: 44px;
   --padding-start: 8px;
-  color: #18181b;
+  color: var(--inv-ink);
 }
 .selectable-item ion-checkbox {
   width: 100%;
@@ -109,5 +109,5 @@
 .no-results {
   padding: 24px 12px;
   text-align: center;
-  color: #6b7280;
+  color: var(--inv-muted);
 }

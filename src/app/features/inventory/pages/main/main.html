@@ -54,6 +54,17 @@
           }
         </div>
         <ion-buttons slot="end"
+          ><button
+            type="button"
+            class="theme-toggle"
+            (click)="theme.toggle()"
+            [attr.aria-label]="
+              theme.mode() === 'dark' ? 'Activar tema claro' : 'Activar tema oscuro'
+            "
+            [attr.aria-pressed]="theme.mode() === 'dark'"
+            [title]="theme.mode() === 'dark' ? 'Tema claro' : 'Tema oscuro'"
+          >
+            <span aria-hidden="true">{{ theme.mode() === 'dark' ? '☀' : '☾' }}</span></button
           ><span class="toolbar-connection" [class.offline]="!isOnline()"
             ><ion-icon
               [name]="isOnline() ? 'wifi-outline' : 'cloud-offline-outline'"

@@ -165,7 +165,11 @@
                               <mt-input
                                 id="filterTienda"
                                 (click)="$event.stopPropagation()"
-                                (keydown)="$event.stopPropagation()"
+                                (keydown)="
+                                  $any($event).key === 'Escape'
+                                    ? filterMenu.closed.emit('keydown')
+                                    : $event.stopPropagation()
+                                "
                                 label="Filtro {{ col.titleColumn }}"
                                 placeholder="Nombre {{ col.titleColumn }}"
                                 type="text"
@@ -206,7 +210,11 @@
                                 <mt-input
                                   id="filterTienda"
                                   (click)="$event.stopPropagation()"
-                                  (keydown)="$event.stopPropagation()"
+                                  (keydown)="
+                                    $any($event).key === 'Escape'
+                                      ? filterMenu.closed.emit('keydown')
+                                      : $event.stopPropagation()
+                                  "
                                   label="Filtro {{ col.titleColumn }}"
                                   placeholder="Nombre {{ col.titleColumn }}"
                                   type="text"
@@ -250,6 +258,7 @@
 
                 <mat-paginator
                   [length]="conteoTotalRows"
+                  [pageIndex]="conteoPage - 1"
                   [pageSize]="conteoPageSize"
                   [pageSizeOptions]="conteoPageSizeOptions"
                   (page)="onConteoPageChange($event)"
@@ -268,6 +277,7 @@
             @if (arAsignatedSections && pocketScan && dataInventario) {
               <mat-paginator
                 [length]="inventoryTotalRows"
+                [pageIndex]="inventoryPage - 1"
                 [pageSize]="inventoryPageSize"
                 [pageSizeOptions]="inventoryPageSizeOptions"
                 (page)="onInventoryPageChange($event)"
@@ -405,7 +415,11 @@
                               <mt-input
                                 id="revisionFilter"
                                 (click)="$event.stopPropagation()"
-                                (keydown)="$event.stopPropagation()"
+                                (keydown)="
+                                  $any($event).key === 'Escape'
+                                    ? revisionFilterMenu.closed.emit('keydown')
+                                    : $event.stopPropagation()
+                                "
                                 label="Filtro {{ col.titleColumn }}"
                                 placeholder="Nombre {{ col.titleColumn }}"
                                 type="text"
@@ -433,6 +447,7 @@
 
                   <mat-paginator
                     [length]="revisionTotalRows"
+                    [pageIndex]="revisionPage - 1"
                     [pageSize]="revisionPageSize"
                     [pageSizeOptions]="revisionPageSizeOptions"
                     (page)="onRevisionPageChange($event)"

@@ -10,7 +10,7 @@
 }
 
 .modal-container {
-  background: #ffffff;
+  background: var(--inv-surface);
   border-radius: 12px;
   width: 100%;
   max-width: 720px;
@@ -40,11 +40,13 @@
     border: none;
     font-size: 1.75rem;
     line-height: 1;
-    color: #6b7280;
+    color: var(--inv-muted);
     cursor: pointer;
     padding: 0.25rem;
     border-radius: 6px;
-    transition: background-color 0.15s, color 0.15s;
+    transition:
+      background-color 0.15s,
+      color 0.15s;
 
     &:hover {
       background-color: #f3f4f6;
@@ -86,7 +88,7 @@
   th {
     background-color: #f9fafb;
     font-weight: 600;
-    color: #374151;
+    color: var(--inv-ink);
     white-space: nowrap;
   }
 
@@ -112,7 +114,7 @@
 .empty-state {
   text-align: center;
   padding: 2.5rem 1rem;
-  color: #6b7280;
+  color: var(--inv-muted);
 
   p {
     margin: 0;
@@ -139,7 +141,9 @@
   font-weight: 500;
   border: none;
   cursor: pointer;
-  transition: background-color 0.15s, transform 0.1s;
+  transition:
+    background-color 0.15s,
+    transform 0.1s;
 
   &:active {
     transform: scale(0.98);
@@ -156,7 +160,7 @@
 
   &.btn-secondary {
     background-color: #f3f4f6;
-    color: #374151;
+    color: var(--inv-ink);
 
     &:hover {
       background-color: #e5e7eb;

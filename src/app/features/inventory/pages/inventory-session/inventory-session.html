@@ -95,7 +95,11 @@
                     <mt-input
                       id="filterTienda"
                       (click)="$event.stopPropagation()"
-                      (keydown)="$event.stopPropagation()"
+                      (keydown)="
+                        $any($event).key === 'Escape'
+                          ? filterMenu.closed.emit('keydown')
+                          : $event.stopPropagation()
+                      "
                       label="Filtro {{ col.titleColumn }}"
                       placeholder="Nombre {{ col.titleColumn }}"
                       type="text"
@@ -129,7 +133,11 @@
                       <mt-input
                         id="filterTienda"
                         (click)="$event.stopPropagation()"
-                        (keydown)="$event.stopPropagation()"
+                        (keydown)="
+                          $any($event).key === 'Escape'
+                            ? filterMenu.closed.emit('keydown')
+                            : $event.stopPropagation()
+                        "
                         label="Filtro {{ col.titleColumn }}"
                         placeholder="Nombre {{ col.titleColumn }}"
                         type="text"

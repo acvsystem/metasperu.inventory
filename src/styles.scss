@@ -4,6 +4,7 @@
 // Learn more about theming and how to use it for your application's
 // custom components at https://material.angular.dev/guide/theming
 @use '@angular/material' as mat;
+@use 'sass:meta';
 @use './styles/inventory-design';
 
 html {
@@ -82,7 +83,7 @@ body {
   .mat-mdc-dialog-container .mdc-dialog__surface {
     border-radius: 20px !important;
     /* Aquí controlas qué tan redondo es */
-    background-color: white !important;
+    background-color: var(--inv-surface) !important;
     padding: 0 !important;
     overflow: hidden !important;
     /* Asegura que el contenido no se salga de las esquinas */
@@ -344,3 +345,7 @@ body>ion-alert {
 .camera-scanner__frame { position: absolute; inset: 22%; border: 3px solid #22c55e; border-radius: 10px; box-shadow: 0 0 0 999px rgba(0, 0, 0, .18); pointer-events: none; }
 .camera-scanner__footer { position: absolute; inset: auto 0 0; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px; background: rgba(0, 0, 0, .72); color: #fff; font-size: 13px; font-weight: 600; }
 .camera-scanner__footer button { display: inline-flex; align-items: center; gap: 6px; min-height: 38px; padding: 7px 12px; border: 0; border-radius: 6px; background: #fff; color: #111827; font-weight: 700; }
+
+html[data-theme='dark'] { @include mat.theme((color:(theme-type:dark,primary:mat.$azure-palette,tertiary:mat.$blue-palette),typography:'DM Sans',density:0)); }
+
+@include meta.load-css('./styles/themes');

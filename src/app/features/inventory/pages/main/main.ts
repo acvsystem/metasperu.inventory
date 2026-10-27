@@ -1,3 +1,4 @@
+import { ThemeService } from '../../../../shared/services/theme.service';
 import { PocketChat } from '../../../../shared/component/pocket-chat/pocket-chat';
 import { Component, inject, signal, OnDestroy, OnInit } from '@angular/core';
 import { MatPaginatorIntl } from '@angular/material/paginator';
@@ -69,6 +70,7 @@ import { InventoryService } from '@metasperu/services/inventory.service';
   styleUrl: './main.scss',
 })
 export default class MainComponent implements OnInit, OnDestroy {
+  readonly theme = inject(ThemeService);
   readonly pocketSettings = inject(PocketInventoryService);
   readonly isOnline = signal(navigator.onLine);
   private authService = inject(AuthService);

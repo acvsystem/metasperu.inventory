@@ -295,7 +295,7 @@
 .inventory-metric {
   position: relative;
   padding: 20px;
-  background: white;
+  background: var(--inv-surface);
   border: 1px solid var(--inv-line);
   border-radius: 12px;
   min-width: 0;
@@ -326,7 +326,7 @@
   color: var(--inv-muted);
 }
 .metric-difference {
-  background: white;
+  background: var(--inv-surface);
 }
 .count-toolbar {
   display: flex;
@@ -334,7 +334,7 @@
   gap: 16px;
   align-items: center;
   padding: 20px;
-  background: white;
+  background: var(--inv-surface);
   border: 1px solid var(--inv-line);
   border-bottom: 0;
   border-radius: 10px 10px 0 0;
@@ -421,7 +421,7 @@
 }
 .table-container > ion-list-header {
   padding: 16px !important;
-  background: white;
+  background: var(--inv-surface);
   gap: 12px;
   flex-wrap: wrap;
 }
@@ -492,8 +492,8 @@
   font-size: 21px;
 }
 .metric-purple {
-  color: #6155f5;
-  background: #f1eeff;
+  color: #173e76;
+  background: #eaf0f8;
 }
 .metric-teal {
   color: #1aab9b;

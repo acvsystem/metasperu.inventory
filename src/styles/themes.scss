@@ -1,0 +1,348 @@
+.theme-toggle {
+  display: inline-grid;
+  place-items: center;
+  min-width: 38px;
+  min-height: 38px;
+  margin-right: 16px;
+  border: 1px solid var(--inv-line);
+  border-radius: 6px;
+  background: var(--inv-surface);
+  color: var(--inv-ink);
+  cursor: pointer;
+  font-size: 23px;
+  line-height: 1;
+}
+.theme-toggle:focus-visible {
+  outline: 2px solid var(--inv-link);
+  outline-offset: 3px;
+}
+.login-theme-toggle {
+  position: absolute;
+  top: 18px;
+  right: 8px;
+  z-index: 2;
+}
+.password-toggle {
+  border: 0;
+  background: transparent;
+  color: var(--inv-muted);
+  min-width: 40px;
+  min-height: 40px;
+  display: grid;
+  place-items: center;
+}
+:root {
+  --ion-background-color: var(--inv-bg);
+  --ion-text-color: var(--inv-ink);
+  --ion-color-primary: #173e76;
+  --ion-color-primary-rgb: 23, 62, 118;
+}
+html[data-theme='dark'] {
+  color-scheme: dark;
+  --inv-bg: #0e1726;
+  --inv-surface: #182437;
+  --inv-subtle: #1e2d43;
+  --inv-ink: #e6edf7;
+  --inv-muted: #a6b5c9;
+  --inv-line: #34445c;
+  --inv-blue: #173e76;
+  --inv-blue-soft: #233c60;
+  --inv-link: #99c3ff;
+  --inv-success: #75d5b5;
+  --inv-warning: #f1c773;
+  --ion-background-color: var(--inv-bg);
+  --ion-text-color: var(--inv-ink);
+  --ion-toolbar-background: var(--inv-surface);
+  --ion-item-background: var(--inv-surface);
+  --ion-border-color: var(--inv-line);
+  --ion-color-step-50: #182437;
+  --ion-color-step-100: #1e2d43;
+  --ion-color-step-150: #263751;
+  --ion-color-step-200: #34445c;
+  .inventory-ui
+    :is(
+      .navigation-caption,
+      .sidebar-note strong,
+      .sidebar-note div > span,
+      .workspace-session,
+      .workspace-brand
+    ) {
+    color: var(--inv-muted);
+  }
+  .inventory-ui .toolbar-connection {
+    color: var(--inv-success);
+  }
+  .inventory-ui .toolbar-connection.offline {
+    color: var(--inv-warning);
+  }
+  .inventory-ui .profile-initial {
+    background: var(--inv-blue-soft);
+    color: var(--inv-link);
+  }
+  .btn-light {
+    background: var(--inv-subtle);
+    color: var(--inv-ink);
+    border-color: var(--inv-line);
+  }
+  body,
+  ion-app {
+    background: var(--inv-bg);
+    color: var(--inv-ink);
+  }
+  .inventory-ui {
+    --mat-sys-primary: var(--inv-link);
+  }
+  .inventory-ui
+    :is(
+      .workspace-heading,
+      .inventory-panel,
+      .inventory-metric,
+      .count-toolbar,
+      .section-toolbar,
+      .mat-mdc-table,
+      .mat-mdc-paginator,
+      .mantenimiento-container,
+      .pn-stat,
+      .pn-last,
+      .pending-summary > div,
+      .pending-table .mat-mdc-row,
+      .dialog-container,
+      .dialog-header,
+      .dialog-footer,
+      .dialog-body,
+      .selectable-item,
+      .login-card,
+      .chat-panel,
+      .chat-header,
+      .recipient-picker,
+      .chat-panel form
+    ) {
+    background: var(--inv-surface) !important;
+    border-color: var(--inv-line) !important;
+    color: var(--inv-ink);
+  }
+  .inventory-ui
+    :is(
+      .mat-mdc-header-row,
+      .status-pill,
+      .navigation-item.selected,
+      .navigation-item:hover,
+      .pn-segments,
+      .chat-panel .messages,
+      .pn-field,
+      .compact-field,
+      .custom-item,
+      .chat-panel .empty-state
+    ) {
+    background: var(--inv-subtle) !important;
+    color: var(--inv-ink);
+  }
+  .inventory-ui .mat-mdc-row:hover {
+    background: var(--inv-subtle);
+  }
+  .inventory-ui
+    :is(
+      .navigation-item,
+      .brand-lockup strong,
+      .workspace-context strong,
+      .profile-button,
+      .account-heading strong,
+      .pn-field input,
+      .selector-value
+    ) {
+    color: var(--inv-ink);
+  }
+  .inventory-ui
+    :is(
+      .back-to-inventories,
+      .pn-active-section,
+      .profile-initial,
+      .section-delete:disabled,
+      .mat-mdc-cell .btn,
+      .session-filter-state button,
+      .pn-segments input:checked + span,
+      .pn-pending
+    ) {
+    color: var(--inv-link);
+  }
+  .inventory-ui .pn-segments input:checked + span {
+    background: var(--inv-surface);
+  }
+  .inventory-ui
+    :is(
+      .inventory-table-scroll,
+      .mat-mdc-cell,
+      .mat-mdc-header-cell,
+      .session-list-header,
+      .panel-heading,
+      .pn-settings,
+      .pn-last,
+      .pending-table .mat-mdc-cell
+    ) {
+    border-color: var(--inv-line);
+  }
+  .inventory-ui :is(input:not([type='radio']):not([type='checkbox']), select, textarea) {
+    background: var(--inv-surface);
+    color: var(--inv-ink);
+    border-color: var(--inv-line);
+  }
+  .inventory-ui :is(input, textarea)::placeholder {
+    color: var(--inv-muted);
+    opacity: 1;
+  }
+  .inventory-ui :is(.compact-field, .custom-item, .pn-field, .session-search) {
+    border-color: var(--inv-line);
+  }
+  .inventory-ui .pn-sync-state {
+    background: #183d36;
+    color: #9de7c9;
+    border-color: #315e51;
+  }
+  .inventory-ui
+    :is(.pn-sync-state.has-pending, .pn-sync-state.offline, .pending-waiting, .pn-mode.manual) {
+    background: #3b321d !important;
+    color: #f2d492 !important;
+    border-color: #685631;
+  }
+  .inventory-ui .status-pill.active {
+    background: #183d36;
+    color: #9de7c9;
+    border-color: #315e51;
+  }
+  .inventory-ui .pn-register:disabled,
+  .inventory-ui .pn-sync:disabled {
+    background: var(--inv-subtle) !important;
+    color: var(--inv-muted) !important;
+  }
+  .inventory-ui .metric-purple {
+    background: #263f61;
+    color: #a0caff;
+  }
+  .inventory-ui .metric-teal {
+    background: #163e3d;
+    color: #80decd;
+  }
+  .inventory-ui .metric-amber {
+    background: #3d3420;
+    color: #f0d17d;
+  }
+  .inventory-ui .metric-rose {
+    background: #432a3a;
+    color: #ffb1c4;
+  }
+  .inventory-ui .chat-panel {
+    box-shadow: 0 16px 45px #0006;
+  }
+  .inventory-ui .chat-panel article:not(.mine) {
+    background: #263c5b;
+    color: var(--inv-ink);
+  }
+  .inventory-ui .chat-panel article small {
+    color: var(--inv-muted);
+  }
+  .inventory-ui .chat-panel article.mine small {
+    color: #ffffffd9;
+  }
+  .inventory-ui .chat-panel :is(.history-btn, .chat-actions button) {
+    color: var(--inv-link);
+  }
+  .inventory-ui .chat-panel .chat-error {
+    background: #4d2830;
+    color: #ffc4ca;
+  }
+  .inventory-ui .chat-panel.has-attention.minimized .chat-header {
+    background: #233c60 !important;
+  }
+  .inventory-ui .chat-panel .chat-title small {
+    color: var(--inv-muted);
+  }
+  .inventory-ui .chat-panel .chat-title > mat-icon,
+  .inventory-ui .chat-panel.has-attention .chat-title small {
+    color: var(--inv-link);
+  }
+  .mat-mdc-dialog-surface,
+  .custom-notification-panel .mat-mdc-dialog-container .mdc-dialog__surface {
+    background: var(--inv-surface) !important;
+    color: var(--inv-ink);
+  }
+  :is(mat-dialog-container, ion-modal)
+    :is(h1, h2, h3, label, p, td, th, .subtitle, .empty-state, .modal-title) {
+    color: var(--inv-ink) !important;
+  }
+  :is(mat-dialog-container, ion-modal)
+    :is(
+      input,
+      select,
+      textarea,
+      .custom-item,
+      .compact-field,
+      .dialog-container,
+      .dialog-body,
+      .dialog-header,
+      .dialog-footer,
+      .modal-container,
+      .verification-container,
+      .modal-main-container,
+      .dialog-layout,
+      .panel,
+      .summary-card,
+      .metric,
+      .monitor-card
+    ) {
+    background: var(--inv-surface) !important;
+    color: var(--inv-ink) !important;
+    border-color: var(--inv-line) !important;
+  }
+  :is(mat-dialog-container, ion-modal)
+    :is(.loading, .empty, .stat-card, .summary-box, .toolbar, .filters) {
+    background: var(--inv-subtle) !important;
+    color: var(--inv-muted) !important;
+  }
+  ion-modal {
+    --background: var(--inv-surface);
+    --ion-item-background: var(--inv-surface);
+    --ion-text-color: var(--inv-ink);
+  }
+  ion-popover {
+    --background: var(--inv-surface);
+    --ion-item-background: var(--inv-surface);
+    --ion-text-color: var(--inv-ink);
+  }
+  ion-alert {
+    --background: var(--inv-surface);
+    --ion-text-color: var(--inv-ink);
+  }
+  .login-bg {
+    --background: var(--inv-bg);
+  }
+  .login-card,
+  .image-col {
+    background: var(--inv-surface) !important;
+  }
+  .login-card :is(.title, .custom-label, h3) {
+    color: var(--inv-ink) !important;
+  }
+  .login-card .custom-input {
+    background: var(--inv-subtle);
+  }
+  .login-card input {
+    color: var(--inv-ink);
+  }
+  .login-card input::placeholder {
+    color: var(--inv-muted);
+  }
+}
+@media (max-width: 600px) {
+  .theme-toggle {
+    min-width: 36px;
+    min-height: 36px;
+    margin-right: 8px;
+    font-size: 20px;
+  }
+}
+
+html[data-theme='dark'] .inventory-ui .card {
+  background: var(--inv-surface);
+  color: var(--inv-ink);
+  border-color: var(--inv-line);
+}

@@ -6,13 +6,15 @@
   src: url('../assets/fonts/dm-sans/dm-sans-variable.ttf') format('truetype');
 }
 :root {
+  --inv-subtle: #f4f6f9;
+  --inv-link: #173e76;
   --inv-bg: #f8f9fb;
   --inv-surface: #fff;
   --inv-ink: #18181b;
   --inv-muted: #6b7280;
   --inv-line: #e5e7eb;
-  --inv-blue: #6155f5;
-  --inv-blue-soft: #f0edff;
+  --inv-blue: #173e76;
+  --inv-blue-soft: #eaf0f8;
   --inv-success: #0d887e;
   --inv-warning: #a76a04;
 }
@@ -44,7 +46,7 @@
   --ion-font-family: 'DM Sans', sans-serif;
   color: var(--inv-ink);
   --ion-color-primary: var(--inv-blue);
-  --ion-color-primary-rgb: 97, 85, 245;
+  --ion-color-primary-rgb: 23, 62, 118;
   --ion-background-color: var(--inv-bg);
   --mat-sys-primary: var(--inv-blue);
   font-variant-numeric: tabular-nums;
@@ -58,7 +60,7 @@
   align-items: center;
   gap: 16px;
   margin: 0 0 20px;
-  background: white;
+  background: var(--inv-surface);
   border: 1px solid var(--inv-line);
   border-radius: 12px;
   padding: 16px 20px;
@@ -124,11 +126,11 @@
 }
 .inventory-ui .action-secondary {
   border: 1px solid var(--inv-line);
-  background: white;
+  background: var(--inv-surface);
   color: var(--inv-ink);
 }
 .inventory-ui .action-primary:hover:not(:disabled) {
-  background: #5144da;
+  background: #123260;
 }
 .inventory-ui button:disabled {
   cursor: default;
@@ -165,7 +167,7 @@
 }
 .inventory-ui .mat-mdc-table {
   width: 100%;
-  background: white;
+  background: var(--inv-surface);
   color: var(--inv-ink);
 }
 .inventory-ui .mat-mdc-header-row {
@@ -202,7 +204,7 @@
   font-variant-numeric: tabular-nums;
 }
 .inventory-ui .mat-mdc-paginator {
-  background: white;
+  background: var(--inv-surface);
   border-top: 1px solid var(--inv-line);
   color: var(--inv-muted);
 }
@@ -376,8 +378,8 @@
 }
 
 .inventory-ui .btn-primary {
-  background: #6155f5;
-  border-color: #6155f5;
+  background: #173e76;
+  border-color: #173e76;
   color: white;
 }
 .inventory-ui .inventory-panel .panel-heading {
@@ -391,7 +393,7 @@
   font-family: 'DM Sans', sans-serif;
 }
 .inventory-ui .mantenimiento-container {
-  background: white;
+  background: var(--inv-surface);
   border: 1px solid #e5e7eb;
   border-radius: 12px;
   margin-top: 20px;
@@ -402,7 +404,7 @@
 }
 .mat-mdc-dialog-surface {
   --mat-dialog-container-shape: 12px;
-  background: white !important;
+  background: var(--inv-surface) !important;
   font-family: 'DM Sans', sans-serif;
 }
 .mat-mdc-dialog-container .mat-mdc-dialog-title {
@@ -411,6 +413,6 @@
   font-weight: 600;
 }
 .mat-mdc-dialog-container .btn-primary {
-  background: #6155f5;
-  border-color: #6155f5;
+  background: #173e76;
+  border-color: #173e76;
 }

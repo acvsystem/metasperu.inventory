@@ -9,15 +9,15 @@ ion-split-pane {
   --side-max-width: 280px;
 }
 ion-menu {
-  --background: white;
+  --background: var(--inv-surface);
   border-right: 1px solid #e5e7eb;
 }
 ion-menu ion-content {
-  --background: white;
+  --background: var(--inv-surface);
 }
 ion-menu ion-toolbar {
   --min-height: 70px;
-  --background: white;
+  --background: var(--inv-surface);
 }
 .brand-lockup {
   display: flex;
@@ -37,12 +37,12 @@ ion-menu ion-toolbar {
   font-size: 19px;
   font-weight: 700;
   letter-spacing: 0.4px;
-  color: #18181b;
+  color: var(--inv-ink);
 }
 .brand-lockup span {
   display: block;
   font-size: 10px;
-  color: #6b7280;
+  color: var(--inv-muted);
   margin-top: 1px;
 }
 .navigation-caption {
@@ -70,7 +70,7 @@ nav {
   border: 0;
   border-radius: 5px;
   background: transparent;
-  color: #27272a;
+  color: var(--inv-ink);
   text-align: left;
   font: inherit;
   font-size: 14px;
@@ -83,12 +83,12 @@ nav {
 }
 .navigation-item.selected {
   background: #f4f4f5;
-  color: #18181b;
+  color: var(--inv-ink);
   font-weight: 500;
 }
 .navigation-item:hover:not(:disabled) {
-  background: #f5f3ff;
-  color: #6155f5;
+  background: #edf2f8;
+  color: #173e76;
 }
 .navigation-item:disabled {
   opacity: 0.45;
@@ -117,7 +117,7 @@ nav {
   line-height: 1.7;
 }
 .workspace-toolbar {
-  --background: white;
+  --background: var(--inv-surface);
   --min-height: 70px;
   --padding-start: 20px;
   --padding-end: 20px;
@@ -134,7 +134,7 @@ nav {
   font-size: 13px;
   line-height: 1.5;
   font-weight: 500;
-  color: #52525b;
+  color: var(--inv-muted);
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
@@ -166,7 +166,7 @@ nav {
   color: #a86c05;
 }
 .profile-button {
-  --color: #52525b;
+  --color: var(--inv-muted);
   text-transform: none;
   font-size: 12px;
   --padding-start: 6px;
@@ -178,8 +178,8 @@ nav {
   width: 36px;
   height: 36px;
   border-radius: 6px;
-  background: #eeecff;
-  color: #6155f5;
+  background: #eaf0f8;
+  color: #173e76;
   font-size: 14px;
   font-weight: 600;
   margin-right: 10px;
@@ -213,7 +213,7 @@ nav {
 .profile-pocket-mode input {
   width: 18px;
   height: 18px;
-  accent-color: #6155f5;
+  accent-color: #173e76;
 }
 .account-heading strong,
 .account-heading span {

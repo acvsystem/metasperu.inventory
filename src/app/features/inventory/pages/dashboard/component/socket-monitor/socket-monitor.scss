@@ -26,8 +26,13 @@ h3 {
   font-weight: 650;
 }
 
-h2 { font-size: 22px; }
-h3 { font-size: 15px; margin-bottom: 12px; }
+h2 {
+  font-size: 22px;
+}
+h3 {
+  font-size: 15px;
+  margin-bottom: 12px;
+}
 
 .empty {
   padding: 28px;
@@ -47,8 +52,8 @@ h3 { font-size: 15px; margin-bottom: 12px; }
 .panel {
   border: 1px solid #e1e7ef;
   border-radius: 8px;
-  background: #fff;
-  box-shadow: 0 6px 18px rgba(15, 23, 42, .06);
+  background: var(--inv-surface);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
 }
 
 .cards article {
@@ -70,7 +75,7 @@ h3 { font-size: 15px; margin-bottom: 12px; }
 
 .monitor-grid {
   display: grid;
-  grid-template-columns: 1.2fr .8fr;
+  grid-template-columns: 1.2fr 0.8fr;
   gap: 14px;
 }
 
@@ -81,7 +86,7 @@ h3 { font-size: 15px; margin-bottom: 12px; }
 
 .bar-row {
   display: grid;
-  grid-template-columns: minmax(110px, .8fr) minmax(0, 1fr) 44px;
+  grid-template-columns: minmax(110px, 0.8fr) minmax(0, 1fr) 44px;
   gap: 10px;
   align-items: center;
   min-height: 28px;

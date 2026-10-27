@@ -7,83 +7,84 @@ import { db, ScanEntry } from '../../core/db/offline-db';
 
 // Definimos la interfaz del usuario para tipado fuerte
 export interface User {
-    id: string;
-    usuario: string;
-    rol: string;
-    nombre: string;
+  id: string;
+  usuario: string;
+  rol: string;
+  nombre: string;
 }
 
 @Injectable({
-    providedIn: 'root'
+  providedIn: 'root',
 })
 export class AuthService {
-    private http = inject(HttpClient);
-    private router = inject(Router);
-    private readonly API_URL = 'https://api.metasperu.net.pe/s2/auth'; // Ajusta a tu URL
-    private invService = inject(InventoryService);
-    // 1. Estado reactivo con Signals
-    #user = signal<User | null>(null);
+  private http = inject(HttpClient);
+  private router = inject(Router);
+  private readonly API_URL = 'https://api.metasperu.net.pe/s2/auth'; // Ajusta a tu URL
+  private invService = inject(InventoryService);
+  // 1. Estado reactivo con Signals
+  #user = signal<User | null>(null);
 
-    // 2. Selectores públicos (solo lectura)
-    user = this.#user.asReadonly();
-    isAuthenticated = computed(() => !!this.#user());
-    currentUser = signal<any | null>(null);
-    /**
-     * Intenta recuperar la sesión al cargar la PWA (evita logout al refrescar)
-     */
-    checkSession(): Observable<boolean> {
-        return this.http.get<User>(`${this.API_URL}/check-session`).pipe(
-            tap(user => this.#user.set(user)), // Guardamos el usuario en el Signal
-            map(() => true),                   // <--- Transformamos el flujo a boolean (ÉXITO)
-            catchError((err) => {
-                this.#user.set(null);
-                return of(false);                // <--- En caso de error, devolvemos false
-            })
-        );
-    }
+  // 2. Selectores públicos (solo lectura)
+  user = this.#user.asReadonly();
+  isAuthenticated = computed(() => !!this.#user());
+  currentUser = signal<any | null>(null);
+  /**
+   * Intenta recuperar la sesión al cargar la PWA (evita logout al refrescar)
+   */
+  checkSession(): Observable<boolean> {
+    return this.http.get<User>(`${this.API_URL}/check-session`).pipe(
+      tap((user) => this.#user.set(user)), // Guardamos el usuario en el Signal
+      map(() => true), // <--- Transformamos el flujo a boolean (ÉXITO)
+      catchError((err) => {
+        this.#user.set(null);
+        return of(false); // <--- En caso de error, devolvemos false
+      }),
+    );
+  }
 
-    login(credentials: any): Observable<any> {
-        // 1. Eliminamos withCredentials porque ya no usaremos cookies para la sesión
-        return this.http.post<any>(`${this.API_URL}/login`, credentials).pipe(
-            tap(response => {
-                // 2. Guardamos el token en localStorage para que el Interceptor lo use
-                if (response.token) {
-                    localStorage.setItem('auth_token', response.token);
-                    localStorage.setItem('role', response.user.role);
-                    this.invService.onMenu.emit(response.user.role);
-                    var userRole = response.user.role;
-                    this.currentUser.set(response.user.username);
-                }
-
-                // 3. Actualizamos el estado del usuario y navegamos
-                // Nota: Ajusta 'response.user' según cómo devuelva los datos tu API
-                this.#user.set(response.user || response);
-                if (userRole == 'administrador' || userRole == 'auditor') {
-                    this.router.navigate(['/inventory/session']);
-
-                } else if (userRole == 'pocket') {
-                    this.router.navigate(['/inventory/pocket']);
-                }
-            })
-        );
-    }
-
-
-    async logout() {
-
-        const pendientes = await db.scans.where('synced').equals(0).count();
-
-        if (pendientes > 0) {
-            const confirmar = confirm(`Tienes ${pendientes} escaneos sin subir al servidor. Si cierras sesión se perderán. ¿Cerrar de todos modos?`);
-            if (!confirmar) return;
+  login(credentials: any): Observable<any> {
+    // 1. Eliminamos withCredentials porque ya no usaremos cookies para la sesión
+    return this.http.post<any>(`${this.API_URL}/login`, credentials).pipe(
+      tap((response) => {
+        // 2. Guardamos el token en localStorage para que el Interceptor lo use
+        if (response.token) {
+          localStorage.setItem('auth_token', response.token);
+          localStorage.setItem('role', response.user.role);
+          this.invService.onMenu.emit(response.user.role);
+          var userRole = response.user.role;
+          this.currentUser.set(response.user.username);
         }
 
-        await db.scans.clear();
-        localStorage.clear();
-        localStorage.removeItem('auth_token'); // Limpiar el token
-        localStorage.removeItem('codeSession');
-        localStorage.removeItem('pocketCode');
-        this.#user.set(null);                  // Limpiar el estado
-        this.router.navigate(['/login']);      // Redirigir
+        // 3. Actualizamos el estado del usuario y navegamos
+        // Nota: Ajusta 'response.user' según cómo devuelva los datos tu API
+        this.#user.set(response.user || response);
+        if (userRole == 'administrador' || userRole == 'auditor') {
+          this.router.navigate(['/inventory/session']);
+        } else if (userRole == 'pocket') {
+          this.router.navigate(['/inventory/pocket']);
+        }
+      }),
+    );
+  }
+
+  async logout() {
+    const pendientes = await db.scans.where('synced').equals(0).count();
+
+    if (pendientes > 0) {
+      const confirmar = confirm(
+        `Tienes ${pendientes} escaneos sin subir al servidor. Si cierras sesión se perderán. ¿Cerrar de todos modos?`,
+      );
+      if (!confirmar) return;
     }
+
+    await db.scans.clear();
+    const theme = localStorage.getItem('metas-inventory-theme');
+    localStorage.clear();
+    if (theme) localStorage.setItem('metas-inventory-theme', theme);
+    localStorage.removeItem('auth_token'); // Limpiar el token
+    localStorage.removeItem('codeSession');
+    localStorage.removeItem('pocketCode');
+    this.#user.set(null); // Limpiar el estado
+    this.router.navigate(['/login']); // Redirigir
+  }
 }

@@ -25,6 +25,19 @@
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
       rel="stylesheet"
     />
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem('metas-inventory-theme');
+          document.documentElement.dataset.theme =
+            t === 'dark' || t === 'light'
+              ? t
+              : matchMedia('(prefers-color-scheme: dark)').matches
+                ? 'dark'
+                : 'light';
+        } catch (e) {}
+      })();
+    </script>
   </head>
 
   <body>

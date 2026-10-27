@@ -1,51 +1,79 @@
 <ion-content class="login-bg">
+  <div class="login-theme-toggle">
+    <button
+      type="button"
+      class="theme-toggle"
+      (click)="theme.toggle()"
+      [attr.aria-label]="theme.mode() === 'dark' ? 'Activar tema claro' : 'Activar tema oscuro'"
+      [attr.aria-pressed]="theme.mode() === 'dark'"
+      [title]="theme.mode() === 'dark' ? 'Tema claro' : 'Tema oscuro'"
+    >
+      <span aria-hidden="true">{{ theme.mode() === 'dark' ? '☀' : '☾' }}</span>
+    </button>
+  </div>
   <div class="flex-center">
     <ion-card class="login-card">
       <ion-grid class="ion-no-padding">
         <ion-row>
           <ion-col size="12" size-md="6" class="form-col">
             <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="form-wrapper">
-              
-              <h1 class="title">Login</h1>
-              
+              <h1 class="title">Ingresar</h1>
+
               <div class="input-group">
                 <div class="label-split">
-                  <ion-label class="custom-label">Username</ion-label>
+                  <label for="login-user" class="custom-label">Usuario</label>
                 </div>
                 <div class="custom-input">
-                  <input type="text" formControlName="username" placeholder="Ingrese su usuario" autocomplete="username">
+                  <input
+                    id="login-user"
+                    type="text"
+                    formControlName="username"
+                    placeholder="Ingrese su usuario"
+                    autocomplete="username"
+                  />
                 </div>
 
-                <div class="label-split" style="margin-top: 15px;">
-                  <ion-label class="custom-label">Password</ion-label>
+                <div class="label-split" style="margin-top: 15px">
+                  <label for="login-password" class="custom-label">Contraseña</label>
                 </div>
                 <div class="custom-input password-input">
-                  <input [type]="showPassword ? 'text' : 'password'"
-                         formControlName="password"
-                         placeholder="••••••••"
-                         autocomplete="current-password">
-                  <ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"
-                            (click)="togglePassword()"
-                            class="password-icon">
-                  </ion-icon>
+                  <input
+                    id="login-password"
+                    [type]="showPassword ? 'text' : 'password'"
+                    formControlName="password"
+                    placeholder="••••••••"
+                    autocomplete="current-password"
+                  />
+                  <button
+                    type="button"
+                    class="password-toggle"
+                    (click)="togglePassword()"
+                    [attr.aria-label]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+                  >
+                    <ion-icon
+                      [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"
+                      aria-hidden="true"
+                    ></ion-icon>
+                  </button>
                 </div>
               </div>
 
-              <ion-button expand="block" 
-                          class="login-btn" 
-                          mode="ios" 
-                          type="submit"
-                          [disabled]="loginForm.invalid || isLoading()">
+              <ion-button
+                expand="block"
+                class="login-btn"
+                mode="ios"
+                type="submit"
+                [disabled]="loginForm.invalid || isLoading()"
+              >
                 <ion-spinner *ngIf="isLoading()" name="crescent"></ion-spinner>
-                <span *ngIf="!isLoading()">Login</span>
+                <span *ngIf="!isLoading()">Ingresar</span>
               </ion-button>
-
             </form>
           </ion-col>
 
           <ion-col size="12" size-md="6" class="image-col ion-hide-md-down">
             <div class="image-content">
-              <img class="app-log" src="assets/logo_almacen.png" alt="logo">
+              <img class="app-log" src="assets/logo_almacen.png" alt="logo" />
               <h3>Metas Perú Inventario</h3>
               <div class="slider-dots">
                 <span class="dot active"></span>

@@ -1,6 +1,6 @@
 :host {
   display: inline-flex;
-  color: #25302c;
+  color: var(--inv-ink);
   font-size: 14px;
 }
 
@@ -26,7 +26,7 @@ button:disabled {
   margin-bottom: 0;
   border-radius: 6px;
   color: #fff;
-  background: #6155f5;
+  background: #173e76;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
@@ -60,8 +60,8 @@ button:disabled {
   max-width: min(330px, calc(100vw - 32px));
   padding: 10px 12px;
   border-radius: 8px;
-  background: #fff;
-  color: #1f2937;
+  background: var(--inv-surface);
+  color: var(--inv-ink);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.22);
 }
 
@@ -77,8 +77,8 @@ button:disabled {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  color: #27272a;
-  background: #ffffff;
+  color: var(--inv-ink);
+  background: var(--inv-surface);
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   box-shadow: 0 18px 45px rgba(0, 0, 0, 0.35);
@@ -96,7 +96,7 @@ button:disabled {
 }
 
 .chat-panel.has-attention.minimized .chat-header {
-  background: #f0edff;
+  background: #eaf0f8;
 }
 
 .chat-header {
@@ -140,7 +140,7 @@ button:disabled {
 .chat-title small {
   max-width: none;
   margin-top: 1px;
-  color: #6b7280;
+  color: var(--inv-muted);
   font-size: 11px;
   display: block;
   overflow: hidden;
@@ -164,7 +164,7 @@ button:disabled {
 }
 
 .has-attention .chat-title small {
-  color: #5144da;
+  color: #123260;
   font-weight: 700;
 }
 
@@ -183,7 +183,7 @@ button:disabled {
   justify-content: center;
   padding: 0;
   border-radius: 50%;
-  color: #6b7280;
+  color: var(--inv-muted);
   background: transparent;
 }
 
@@ -198,7 +198,7 @@ button:disabled {
   flex: 0 0 auto;
   padding: 10px;
   border-bottom: 1px solid #e5e7eb;
-  background: #ffffff;
+  background: var(--inv-surface);
 }
 
 .recipient-picker mat-icon {
@@ -216,7 +216,7 @@ textarea {
   border: 1px solid transparent;
   border-radius: 18px;
   background: #e5e7eb;
-  color: #27272a;
+  color: var(--inv-ink);
   font: inherit;
   outline: none;
 }
@@ -248,7 +248,7 @@ textarea:focus {
   align-self: center;
   padding: 6px 10px;
   border-radius: 999px;
-  color: #52525b;
+  color: var(--inv-muted);
   background: #e5e7eb;
 }
 
@@ -260,14 +260,14 @@ article {
   border-radius: 18px 18px 18px 4px;
   overflow-wrap: anywhere;
   white-space: pre-wrap;
-  color: #27272a;
-  background: #eeecff;
+  color: var(--inv-ink);
+  background: #eaf0f8;
 }
 
 article.mine {
   align-self: flex-end;
   border-radius: 18px 18px 4px 18px;
-  background: #6155f5;
+  background: #173e76;
   color: white;
 }
 
@@ -285,7 +285,7 @@ form {
   flex: 0 0 auto;
   padding: 10px;
   border-top: 1px solid #e5e7eb;
-  background: #ffffff;
+  background: var(--inv-surface);
 }
 
 textarea {
@@ -305,12 +305,12 @@ form button {
   padding: 0;
   border-radius: 50%;
   color: #fff;
-  background: #6155f5;
+  background: #173e76;
 }
 
 .empty,
 .empty-state {
-  color: #6b7280;
+  color: var(--inv-muted);
   text-align: center;
 }
 
@@ -408,7 +408,7 @@ form button {
   height: min(560px, calc(var(--chat-viewport-height, 100dvh) - 32px));
 }
 button:focus-visible {
-  outline: 2px solid #6155f5;
+  outline: 2px solid #173e76;
   outline-offset: 2px;
 }
 @media (max-width: 600px), (max-height: 640px) {
@@ -444,7 +444,7 @@ article.mine small {
   color: #ffffffb8;
 }
 .chat-title > mat-icon {
-  color: #6155f5;
+  color: #173e76;
 }
 .recipient-picker input,
 .recipient-picker select,

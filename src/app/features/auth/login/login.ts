@@ -1,3 +1,4 @@
+import { ThemeService } from '../../../shared/services/theme.service';
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -10,27 +11,24 @@ import { eyeOutline, eyeOffOutline } from 'ionicons/icons';
 @Component({
   selector: 'mt-login',
   standalone: true,
-  imports: [
-    CommonModule, IonicModule, ReactiveFormsModule,
-    FormsModule,
-    IonicModule
-  ],
+  imports: [CommonModule, IonicModule, ReactiveFormsModule, FormsModule, IonicModule],
   templateUrl: './login.html',
   styleUrl: './login.scss',
 })
 export default class LoginPage {
+  readonly theme = inject(ThemeService);
   private fb = inject(NonNullableFormBuilder);
   private authService = inject(AuthService);
   private toastCtrl = inject(ToastController);
 
   isLoading = signal(false);
   showPassword = false;
-  userName: string = "";
-  password: string = "";
+  userName: string = '';
+  password: string = '';
 
   loginForm = this.fb.group({
     username: ['', [Validators.required]],
-    password: ['', [Validators.required, Validators.minLength(4)]]
+    password: ['', [Validators.required, Validators.minLength(4)]],
   });
 
   constructor() {
@@ -55,7 +53,7 @@ export default class LoginPage {
       error: (err) => {
         this.isLoading.set(false);
         this.presentToast('Usuario o contraseña incorrectos', 'danger');
-      }
+      },
     });
   }
 
@@ -64,10 +62,8 @@ export default class LoginPage {
       message,
       duration: 2000,
       color,
-      position: 'bottom'
+      position: 'bottom',
     });
     toast.present();
   }
-
-
 }

@@ -13,13 +13,13 @@
   margin: 0;
   border: 1px solid #d1d5db;
   border-radius: 4px;
-  background: white;
+  background: var(--inv-surface);
   box-sizing: border-box;
 }
 .compact-field > span {
   font-size: 11px;
   line-height: 13px;
-  color: #6b7280;
+  color: var(--inv-muted);
 }
 .compact-field input {
   display: block;
@@ -33,11 +33,11 @@
   font: inherit;
   font-size: 13px;
   line-height: 18px;
-  color: #18181b;
+  color: var(--inv-ink);
 }
 .compact-field:focus-within {
-  border-color: var(--inv-blue, #6155f5);
-  outline: 1px solid var(--inv-blue, #6155f5);
+  border-color: var(--inv-blue, #173e76);
+  outline: 1px solid var(--inv-blue, #173e76);
 }
 @media (max-width: 600px) {
   .compact-field input {

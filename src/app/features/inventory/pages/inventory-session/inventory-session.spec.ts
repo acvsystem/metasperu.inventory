@@ -39,4 +39,11 @@ describe('Inventory session search', () => {
     page.applyFilter({ value: 'Miraflores' });
     expect(page.dataSource.filteredData.length).toBe(0);
   });
+  it('reports an unavailable store instead of crashing when opening a session', async () => {
+    const notify = spyOn(page, 'onNotification');
+    await expectAsync(
+      page.onNavigatorDashboard({ codigo_sesion: 'TEST', nombre_tienda: 'Missing' }),
+    ).toBeResolved();
+    expect(notify).toHaveBeenCalled();
+  });
 });

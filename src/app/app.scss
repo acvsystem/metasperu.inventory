@@ -1,184 +1,183 @@
 // Variables de colores basadas en la imagen
-$primary-blue: #3d5af1; // Azul del botón
+$primary-blue: #173e76; // Azul del botón
 $bg-blue: #ebf2ff; // Azul muy claro del fondo o grisaceo
 $input-bg: #eff1f5; // Gris claro de los inputs
 $text-dark: #1f2937;
 $text-light: #6b7280;
 
 .login-bg {
-    // Un degradado suave azulado para el fondo general de la página
-    --background: linear-gradient(135deg, #4f90ff 0%, #5c80b3 100%);
+  // Un degradado suave azulado para el fondo general de la página
+  --background: linear-gradient(135deg, #4f90ff 0%, #5c80b3 100%);
 }
 
 .flex-center {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 100%;
-    padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  padding: 20px;
 }
 
 .login-card {
-    width: 100%;
-    max-width: 900px; // Ancho máximo similar a la imagen
-    border-radius: 30px; // Bordes muy redondeados
-    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    margin: 0;
-    background: white;
+  width: 100%;
+  max-width: 900px; // Ancho máximo similar a la imagen
+  border-radius: 30px; // Bordes muy redondeados
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  margin: 0;
+  background: var(--inv-surface);
 }
 
 // --- Columna del Formulario ---
 .form-col {
-    padding: 40px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 
-    .form-wrapper {
-        max-width: 360px;
-        margin: 0 auto;
-        width: 100%;
-    }
+  .form-wrapper {
+    max-width: 360px;
+    margin: 0 auto;
+    width: 100%;
+  }
 }
 
 .title {
-    font-weight: 700;
-    color: $text-dark;
-    font-size: 28px;
-    margin-bottom: 30px;
-    text-align: left;
+  font-weight: 700;
+  color: $text-dark;
+  font-size: 28px;
+  margin-bottom: 30px;
+  text-align: left;
 }
 
 .input-group {
-    margin-bottom: 20px;
+  margin-bottom: 20px;
 
-    .custom-label {
-        font-size: 14px;
-        color: $text-light;
-        margin-bottom: 8px;
-        display: block;
+  .custom-label {
+    font-size: 14px;
+    color: $text-light;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .label-split {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+
+    .forgot-link {
+      font-size: 13px;
+      text-decoration: none;
+      color: $primary-blue;
+      font-weight: 600;
     }
-
-    .label-split {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 8px;
-
-        .forgot-link {
-            font-size: 13px;
-            text-decoration: none;
-            color: $primary-blue;
-            font-weight: 600;
-        }
-    }
+  }
 }
 
 .custom-input {
-    --background: #{$input-bg};
-    border-radius: 12px;
-    --padding-start: 15px;
-    --inner-padding-end: 10px;
-    height: 50px;
+  --background: #{$input-bg};
+  border-radius: 12px;
+  --padding-start: 15px;
+  --inner-padding-end: 10px;
+  height: 50px;
 
-    ion-input {
-        --padding-top: 0;
-        --padding-bottom: 0;
-    }
+  ion-input {
+    --padding-top: 0;
+    --padding-bottom: 0;
+  }
 
-    .password-icon {
-        color: $text-light;
-        cursor: pointer;
-    }
+  .password-icon {
+    color: $text-light;
+    cursor: pointer;
+  }
 }
 
 .remember-container {
-    margin-bottom: 30px;
+  margin-bottom: 30px;
 
-    ion-checkbox {
-        --size: 18px;
-        --checkbox-background-checked: #{$primary-blue};
-        --border-color-checked: #{$primary-blue};
-        font-size: 14px;
-        color: $text-dark;
-    }
+  ion-checkbox {
+    --size: 18px;
+    --checkbox-background-checked: #{$primary-blue};
+    --border-color-checked: #{$primary-blue};
+    font-size: 14px;
+    color: $text-dark;
+  }
 }
 
 .login-btn {
-    --background: #{$primary-blue};
-    --border-radius: 12px;
-    --box-shadow: 0 4px 12px rgba(61, 90, 241, 0.3);
-    font-weight: 600;
-    height: 50px;
-    margin-bottom: 20px;
-    text-transform: none;
-    font-size: 16px;
+  --background: #{$primary-blue};
+  --border-radius: 12px;
+  --box-shadow: 0 4px 12px rgba(61, 90, 241, 0.3);
+  font-weight: 600;
+  height: 50px;
+  margin-bottom: 20px;
+  text-transform: none;
+  font-size: 16px;
 }
 
 .signup-text {
-    text-align: center;
-    font-size: 14px;
-    color: $text-light;
+  text-align: center;
+  font-size: 14px;
+  color: $text-light;
 
-    a {
-        color: $primary-blue;
-        text-decoration: none;
-        font-weight: 600;
-    }
+  a {
+    color: $primary-blue;
+    text-decoration: none;
+    font-weight: 600;
+  }
 }
 
 // --- Columna de la Imagen (Derecha) ---
 .image-col {
-    background-color: #f8faff; // Un fondo muy sutil para la derecha
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 40px;
-    text-align: center;
+  background-color: #f8faff; // Un fondo muy sutil para la derecha
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  text-align: center;
 
-    .image-content {
-        max-width: 350px;
+  .image-content {
+    max-width: 350px;
 
-        img {
-            width: 100%;
-            height: auto;
-            object-fit: contain;
-            margin-bottom: 20px;
-            // Efecto flotante
-            filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.1));
-        }
-
-        h3 {
-            font-weight: 700;
-            color: $text-dark;
-            margin-bottom: 10px;
-        }
-
-        p {
-            color: $text-light;
-            font-size: 14px;
-            line-height: 1.5;
-            margin-bottom: 30px;
-        }
+    img {
+      width: 100%;
+      height: auto;
+      object-fit: contain;
+      margin-bottom: 20px;
+      // Efecto flotante
+      filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.1));
     }
+
+    h3 {
+      font-weight: 700;
+      color: $text-dark;
+      margin-bottom: 10px;
+    }
+
+    p {
+      color: $text-light;
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 30px;
+    }
+  }
 }
 
 // Dots del slider decorativo
 .slider-dots {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
 
-    .dot {
-        width: 30px;
-        height: 4px;
-        background: #e5e7eb;
-        border-radius: 2px;
+  .dot {
+    width: 30px;
+    height: 4px;
+    background: #e5e7eb;
+    border-radius: 2px;
 
-        &.active {
-            background: $primary-blue;
-        }
+    &.active {
+      background: $primary-blue;
     }
+  }
 }
-

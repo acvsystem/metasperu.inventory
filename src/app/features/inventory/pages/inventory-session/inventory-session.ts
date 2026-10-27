@@ -311,9 +311,19 @@ export default class InventorySession {
   }
 
   async onNavigatorDashboard(element: any) {
-    const store = this.stores.find((s) => s.value === element?.nombre_tienda);
+    const store =
+      this.stores.find((s) => String(s.key) === String(element?.tienda_id)) ||
+      this.stores.find((s) => s.value === element?.nombre_tienda);
 
-    if (!element?.codigo_sesion || !store!.serie) return;
+    if (!element?.codigo_sesion) return;
+    if (!store?.serie) {
+      this.onNotification({
+        error: 'error',
+        message:
+          'No se encontró la tienda del inventario. Actualiza la lista e intenta nuevamente.',
+      });
+      return;
+    }
 
     localStorage.removeItem('offline_inventory');
     this.store.setStore('storeName', element.nombre_tienda || '');
