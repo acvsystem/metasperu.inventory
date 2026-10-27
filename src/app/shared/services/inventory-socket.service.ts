@@ -8,16 +8,16 @@ export class InventorySocketService implements OnDestroy {
   public isConnected = signal(false);
 
   // ===== Señales que usa el Dashboard =====
-  public syncNotification = signal<any>(null);          // se mantiene por compatibilidad
+  public syncNotification = signal<any>(null); // se mantiene por compatibilidad
   public syncInventarioStore = signal<any>(null);
-  public pendingCount = signal(0);                      // ← NUEVO: cantidad de escaneos pendientes
+  public pendingCount = signal(0); // ← NUEVO: cantidad de escaneos pendientes
   public chatMessage$ = new Subject<any>();
   public chatRead$ = new Subject<any>();
   public socketMonitor$ = new Subject<any>();
 
   // Cache interno de escaneos pendientes
   private pendingScans: any[] = [];
-  private readonly maxPending = 600;                    // límite de seguridad
+  private readonly maxPending = 600; // límite de seguridad
 
   // Guardamos el código por si hay que reintentar al conectar
   private pendingSessionCode: string | null = null;
@@ -30,7 +30,7 @@ export class InventorySocketService implements OnDestroy {
       path: socketPath,
       transports: ['websocket', 'polling'],
       withCredentials: true,
-      auth: { token: localStorage.getItem('auth_token') || '' },
+      autoConnect: false,
       reconnection: true,
       reconnectionAttempts: Infinity,
       reconnectionDelay: 1000,
@@ -39,7 +39,7 @@ export class InventorySocketService implements OnDestroy {
     // Evento cuando conectamos con el servidor
     this.socket.on('connect', () => {
       console.log('✅ Conectado al servidor de Sockets');
-      this.socket.auth = { token: localStorage.getItem('auth_token') || '' };
+
       this.isConnected.set(true);
 
       // SI HABÍA UN CÓDIGO ESPERANDO, NOS UNIMOS AHORA
@@ -176,6 +176,15 @@ export class InventorySocketService implements OnDestroy {
   // =====================================================
   //  CICLO DE VIDA
   // =====================================================
+  connect() {
+    if (!this.socket.connected) this.socket.connect();
+  }
+  disconnect() {
+    this.socket.disconnect();
+    this.pendingSessionCode = null;
+    this.clearPending();
+    this.isConnected.set(false);
+  }
   ngOnDestroy() {
     if (this.socket) {
       this.socket.disconnect();

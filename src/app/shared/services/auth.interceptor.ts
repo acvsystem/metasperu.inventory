@@ -1,20 +1,17 @@
-// auth.interceptor.ts
-import { HttpInterceptorFn, HttpRequest, HttpHandlerFn } from '@angular/common/http';
-
-export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, next: HttpHandlerFn) => {
-  // 1. Obtener el token de localStorage
-  const token = localStorage.getItem('auth_token');
-
-  // 2. Si existe, clonar la petición y añadir el header Authorization
-  if (token) {
-    const cloned = req.clone({
-      setHeaders: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-    return next(cloned); // <-- Aquí es donde estaba el error, se llama como función
-  }
-
-  // 3. Si no hay token, pasar la petición original
-  return next(req);
+import { HttpInterceptorFn } from '@angular/common/http';
+import { inject } from '@angular/core';
+import { catchError, throwError } from 'rxjs';
+import { AuthService } from '../../core/auth/auth.service';
+export const authInterceptor: HttpInterceptorFn = (req, next) => {
+  const url = new URL(req.url, window.location.origin);
+  const inventoryApi =
+    url.origin === 'https://api.metasperu.net.pe' &&
+    (url.pathname.startsWith('/s2/auth/') || url.pathname.startsWith('/s3/inventory/'));
+  // Credentials are sent only to the inventory API; never to third parties.
+  if (!inventoryApi) return next(req);
+  const auth = inject(AuthService);
+  return next(req.clone({ withCredentials: true })).pipe(catchError(error => {
+    if (error.status === 401 && url.pathname.startsWith('/s3/inventory/')) auth.expireSession();
+    return throwError(() => error);
+  }));
 };

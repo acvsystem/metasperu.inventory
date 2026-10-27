@@ -1,90 +1,100 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { tap, catchError, of, Observable, map } from 'rxjs';
+import { tap, catchError, of, Observable, map, firstValueFrom } from 'rxjs';
 import { InventoryService } from '@metasperu/services/inventory.service';
-import { db, ScanEntry } from '../../core/db/offline-db';
-
-// Definimos la interfaz del usuario para tipado fuerte
+import { InventorySocketService } from '@metasperu/services/inventory-socket.service';
+import { db } from '../../core/db/offline-db';
 export interface User {
-  id: string;
-  usuario: string;
-  rol: string;
-  nombre: string;
+  id: number | string;
+  username: string;
+  role: 'administrador' | 'auditor' | 'pocket';
+  perfilname?: string;
 }
-
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class AuthService {
   private http = inject(HttpClient);
   private router = inject(Router);
-  private readonly API_URL = 'https://api.metasperu.net.pe/s2/auth'; // Ajusta a tu URL
   private invService = inject(InventoryService);
-  // 1. Estado reactivo con Signals
+  private sockets = inject(InventorySocketService);
+  private readonly API_URL = 'https://api.metasperu.net.pe/s2/auth';
   #user = signal<User | null>(null);
-
-  // 2. Selectores públicos (solo lectura)
   user = this.#user.asReadonly();
   isAuthenticated = computed(() => !!this.#user());
-  currentUser = signal<any | null>(null);
-  /**
-   * Intenta recuperar la sesión al cargar la PWA (evita logout al refrescar)
-   */
+  currentUser = signal<string | null>(null);
+  private acceptUser(user: User) {
+    if (!user || !['administrador', 'auditor', 'pocket'].includes(user.role))
+      throw new Error('Sesión inválida.');
+    localStorage.removeItem('auth_token');
+    localStorage.setItem('role', user.role); // Display cache; authorization uses the server-verified user.
+    this.#user.set(user);
+    this.currentUser.set(user.username);
+    this.invService.onMenu.emit(user.role);
+    this.sockets.connect();
+  }
   checkSession(): Observable<boolean> {
-    return this.http.get<User>(`${this.API_URL}/check-session`).pipe(
-      tap((user) => this.#user.set(user)), // Guardamos el usuario en el Signal
-      map(() => true), // <--- Transformamos el flujo a boolean (ÉXITO)
-      catchError((err) => {
+    return this.http.get<User>(this.API_URL + '/check-session').pipe(
+      tap((user) => this.acceptUser(user)),
+      map(() => true),
+      catchError(() => {
         this.#user.set(null);
-        return of(false); // <--- En caso de error, devolvemos false
+        this.currentUser.set(null);
+        this.sockets.disconnect();
+        return of(false);
       }),
     );
   }
-
-  login(credentials: any): Observable<any> {
-    // 1. Eliminamos withCredentials porque ya no usaremos cookies para la sesión
-    return this.http.post<any>(`${this.API_URL}/login`, credentials).pipe(
+  login(credentials: { username: string; password: string }): Observable<{ user: User }> {
+    return this.http.post<{ user: User }>(this.API_URL + '/login', credentials).pipe(
       tap((response) => {
-        // 2. Guardamos el token en localStorage para que el Interceptor lo use
-        if (response.token) {
-          localStorage.setItem('auth_token', response.token);
-          localStorage.setItem('role', response.user.role);
-          this.invService.onMenu.emit(response.user.role);
-          var userRole = response.user.role;
-          this.currentUser.set(response.user.username);
-        }
-
-        // 3. Actualizamos el estado del usuario y navegamos
-        // Nota: Ajusta 'response.user' según cómo devuelva los datos tu API
-        this.#user.set(response.user || response);
-        if (userRole == 'administrador' || userRole == 'auditor') {
-          this.router.navigate(['/inventory/session']);
-        } else if (userRole == 'pocket') {
-          this.router.navigate(['/inventory/pocket']);
-        }
+        this.acceptUser(response.user);
+        this.router.navigate([
+          response.user.role === 'pocket' ? '/inventory/pocket' : '/inventory/session',
+        ]);
       }),
     );
   }
-
   async logout() {
-    const pendientes = await db.scans.where('synced').equals(0).count();
-
-    if (pendientes > 0) {
-      const confirmar = confirm(
-        `Tienes ${pendientes} escaneos sin subir al servidor. Si cierras sesión se perderán. ¿Cerrar de todos modos?`,
-      );
-      if (!confirmar) return;
+    const pending = await db.scans.where('synced').equals(0).count();
+    if (
+      pending &&
+      !confirm(
+        'Tienes ' +
+          pending +
+          ' escaneos sin subir al servidor. Si cierras sesión se perderán. ¿Cerrar de todos modos?',
+      )
+    )
+      return;
+    try {
+      await firstValueFrom(this.http.post(this.API_URL + '/logout', {}));
+    } catch (error: any) {
+      if (error.status !== 401) {
+        alert('No se pudo cerrar la sesión en el servidor. Reintenta con conexión.');
+        return;
+      }
     }
-
+    this.sockets.disconnect();
     await db.scans.clear();
-    const theme = localStorage.getItem('metas-inventory-theme');
-    localStorage.clear();
-    if (theme) localStorage.setItem('metas-inventory-theme', theme);
-    localStorage.removeItem('auth_token'); // Limpiar el token
-    localStorage.removeItem('codeSession');
-    localStorage.removeItem('pocketCode');
-    this.#user.set(null); // Limpiar el estado
-    this.router.navigate(['/login']); // Redirigir
+    for (const key of [
+      'auth_token',
+      'role',
+      'codeSession',
+      'pocketCode',
+      'offline_inventory',
+      'serieStore',
+    ])
+      localStorage.removeItem(key);
+    this.#user.set(null);
+    this.currentUser.set(null);
+    this.router.navigate(['/login']);
+  }
+
+  expireSession() {
+    // Pending offline scans survive an expired network session.
+    this.#user.set(null);
+    this.currentUser.set(null);
+    localStorage.removeItem('role');
+    this.sockets.disconnect();
+    this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
   }
 }
