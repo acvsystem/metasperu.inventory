@@ -169,7 +169,7 @@ export default class DashboardComponent implements OnInit, OnDestroy {
   conteoTotalRows = 0;
   conteoPageSizeOptions = [10, 20, 50, 100, 250, 500];
   inventoryPage = 1;
-  inventoryPageSize = 50;
+  inventoryPageSize = 10;
   inventoryTotalRows = 0;
   inventoryPageSizeOptions = [10, 20, 50, 100, 500, 1000];
   inventorySummary: any = null;

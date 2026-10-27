@@ -42,7 +42,7 @@ export class View3Inventario {
 
   dataProcess: Array<any> = [];
   page = 1;
-  pageSize = 50;
+  pageSize = 10;
   totalRows = 0;
   pageSizeOptions = [10, 20, 50, 100, 250, 500];
   isLoading = false;
