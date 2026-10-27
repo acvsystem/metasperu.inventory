@@ -2,7 +2,7 @@
   <mt-loader [title]="titleLoader"></mt-loader>
 }
 
-<mat-drawer-container class="example-container" [hasBackdrop]="true" style="height: 100%">
+<mat-drawer-container class="example-container" [hasBackdrop]="true">
   <mat-drawer #drawer [mode]="'over'" position="end">
     <ion-row>
       <ion-col size="12" size-md="12">
@@ -52,7 +52,7 @@
 
         <ion-row>
           <ion-col sizeXs="12" sizeSm="12" sizeMd="6" sizeLg="6">
-            <div style="display: flex; align-items: end; height: 100%">
+            <div class="stock-toolbar-actions">
               <button
                 mat-raised-button
                 class="btn-update-inventory"
@@ -65,10 +65,11 @@
               <button
                 (click)="loadStoreStatistics(); drawer.toggle()"
                 matTooltip="Estadisticas"
+                aria-label="Estadísticas de stock"
                 type="button"
                 class="btn-stadistics"
               >
-                <i class="fa fa-bar-chart" aria-hidden="true"></i>
+                <mat-icon aria-hidden="true">bar_chart</mat-icon>
               </button>
               @if (auth.canAdminister()) {
 <input
@@ -94,7 +95,7 @@
                 <span class="record-count">Exportar informe</span>
               </button>
 
-              <div style="margin-bottom: 4px; display: flex; align-items: center; width: 20%">
+              <div class="stock-report-type">
                 <mt-select
                   style="width: 100%"
                   [data]="arTipoExport"
@@ -199,7 +200,7 @@
           ></mt-datatable>
         }
 
-        <br /><br /><br />
+        <ng-content select="[stockPagination]"></ng-content>
       </ion-col>
     </ion-row>
   </mat-drawer-content>

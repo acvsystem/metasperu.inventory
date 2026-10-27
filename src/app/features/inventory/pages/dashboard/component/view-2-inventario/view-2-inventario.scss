@@ -77,6 +77,7 @@
 }
 
 .btn-stadistics {
+  min-height: 40px;
   background-color: #0d6efd !important; // Verde Excel oficial
   color: white !important;
   line-height: 40px !important;
@@ -156,7 +157,8 @@
 
 .example-container {
   max-width: 100%;
-  overflow: auto;
+  overflow: hidden;
+  padding-bottom: 64px;
 }
 
 table {
@@ -342,3 +344,8 @@ tr.example-element-row:not(.example-expanded-row):active {
   width: 60% !important;
   border-radius: 0px !important;
 }
+:host { display: block; min-width: 0; }
+mat-drawer-content { height: auto; overflow: visible; }
+mat-drawer { max-height: calc(100dvh - 100px); }
+.stock-toolbar-actions { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px; min-width: 0; }
+.stock-report-type { flex: 0 1 180px; min-width: 140px; max-width: 100%; margin-bottom: 10px; }

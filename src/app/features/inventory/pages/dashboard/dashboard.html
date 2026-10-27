@@ -293,19 +293,19 @@
                 [onDataView]="dataInventario"
                 [onDataConteo]="dataExportar"
               >
-              </view-2-inventario>
-              <mat-paginator
-                [length]="inventoryTotalRows"
-                [disabled]="isLoading2()"
-                [pageIndex]="inventoryPage - 1"
-                [pageSize]="inventoryPageSize"
-                [pageSizeOptions]="inventoryPageSizeOptions"
-                (page)="onInventoryPageChange($event)"
-                showFirstLastButtons
-                aria-label="Paginación inventario tienda al final"
+                <mat-paginator stockPagination
+                  [length]="inventoryTotalRows"
+                  [disabled]="isLoading2()"
+                  [pageIndex]="inventoryPage - 1"
+                  [pageSize]="inventoryPageSize"
+                  [pageSizeOptions]="inventoryPageSizeOptions"
+                  (page)="onInventoryPageChange($event)"
+                  showFirstLastButtons
+                  aria-label="Paginación inventario tienda al final"
                   class="inventory-pagination-end"
-              >
-              </mat-paginator>
+                >
+                </mat-paginator>
+              </view-2-inventario>
             }
           </ng-template>
         </mat-tab>

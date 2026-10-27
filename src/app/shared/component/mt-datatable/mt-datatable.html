@@ -1,5 +1,5 @@
-<section class="example-container mat-elevation-z8" tabindex="0" style="overflow: auto">
-  <div class="mat-elevation-z8" style="max-height: 604px">
+<section class="example-container mat-elevation-z8" tabindex="0" [class.server-table]="serverMode">
+  <div [class.mat-elevation-z8]="!serverMode" [style.max-height]="serverMode ? null : '604px'">
     <table mat-table [dataSource]="dataSource">
       @for (col of dataColumns; track col.matColumnDef) {
         @if (col.matColumnDef == 'checking') {

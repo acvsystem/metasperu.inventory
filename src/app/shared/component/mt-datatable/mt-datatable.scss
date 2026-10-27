@@ -342,3 +342,5 @@ tr.example-element-row:not(.example-expanded-row):active {
   width: 60% !important;
   border-radius: 0px !important;
 }
+:host { display: block; min-width: 0; }
+.server-table { overflow-x: auto; overflow-y: hidden; }
