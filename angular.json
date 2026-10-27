@@ -49,6 +49,12 @@
           },
           "configurations": {
             "production": {
+              "fileReplacements": [
+                {
+                  "replace": "src/app/core/config/service-mode.ts",
+                  "with": "src/app/core/config/service-mode.production.ts"
+                }
+              ],
               "budgets": [
                 {
                   "type": "initial",

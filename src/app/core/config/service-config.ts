@@ -1,6 +1,5 @@
-// true: APIs locales para pruebas. false: servidor de METAS Perú.
-// Reinicia ng serve o recompila después de cambiar este valor.
-export const isLocalService = true;
+import { isLocalService } from './service-mode';
+export { isLocalService } from './service-mode';
 
 export function createServiceConfig(local: boolean, hostname = 'localhost') {
   const localHost = hostname === '127.0.0.1' ? '127.0.0.1' : 'localhost';
