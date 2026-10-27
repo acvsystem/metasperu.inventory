@@ -13,7 +13,7 @@
     [style.--chat-viewport-top]="viewportTop + 'px'"
     class="chat-panel"
     [class.minimized]="minimized"
-    [class.is-dragging]="dragOffset > 0"
+    [class.is-dragging]="dragOffset !== 0"
     [style.transform]="dragOffset ? 'translateY(' + dragOffset + 'px)' : null"
     [class.has-attention]="attention || activeUnread"
     role="dialog"

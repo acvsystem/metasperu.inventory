@@ -49,7 +49,7 @@ export class PocketChat implements OnInit, OnDestroy {
   opened = false;
   minimized = false;
   dragOffset = 0;
-  private drag?: { id: number; x: number; y: number };
+  private drag?: { id: number; x: number; y: number; minimized: boolean };
   sending = false;
   loading = false;
   viewportHeight = window.visualViewport?.height ?? window.innerHeight;
@@ -153,21 +153,23 @@ export class PocketChat implements OnInit, OnDestroy {
     }
   }
   startDrag(event: PointerEvent) {
-    if (!this.opened || this.minimized || !window.matchMedia('(max-width: 600px)').matches ||
+    if (!this.opened || this.drag || !window.matchMedia('(max-width: 600px)').matches ||
       event.pointerType === 'mouse' ||
       (event.target as Element).closest('button, input, select, textarea, a')) return;
-    this.drag = { id: event.pointerId, x: event.clientX, y: event.clientY };
+    this.drag = { id: event.pointerId, x: event.clientX, y: event.clientY, minimized: this.minimized };
     (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
   }
   moveDrag(event: PointerEvent) {
     if (this.drag?.id !== event.pointerId) return;
     const dy = event.clientY - this.drag.y;
-    this.dragOffset = dy > Math.abs(event.clientX - this.drag.x) * 1.3 ? Math.min(dy, 180) : 0;
+    const vertical = Math.abs(dy) > Math.abs(event.clientX - this.drag.x) * 1.3;
+    this.dragOffset = !vertical ? 0 : this.drag.minimized ? Math.max(-180, Math.min(0, dy)) : Math.min(180, Math.max(0, dy));
   }
   finishDrag(event: PointerEvent, cancelled = false) {
     if (this.drag?.id !== event.pointerId) return;
     const dy = event.clientY - this.drag.y;
-    if (!cancelled && dy >= 64 && dy > Math.abs(event.clientX - this.drag.x) * 1.3 && !this.minimized)
+    const intendedDirection = this.drag.minimized ? dy <= -48 : dy >= 64;
+    if (!cancelled && intendedDirection && Math.abs(dy) > Math.abs(event.clientX - this.drag.x) * 1.3 && this.minimized === this.drag.minimized)
       this.toggleMinimize();
     this.drag = undefined;
     this.dragOffset = 0;

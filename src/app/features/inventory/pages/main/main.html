@@ -34,7 +34,9 @@
         }
       </nav>
       <div class="sidebar-note">
-        <span class="sidebar-dot"></span>
+        <span class="sidebar-dot" [class.offline]="!isOnline()" role="img"
+          [attr.aria-label]="isOnline() ? 'Con conexión' : 'Sin conexión'"
+          [attr.title]="isOnline() ? 'Con conexión' : 'Sin conexión'"></span>
         <div><strong>METAS PERÚ</strong><span>Control de inventarios</span></div>
       </div>
     </ion-content>
@@ -65,12 +67,6 @@
             [title]="theme.mode() === 'dark' ? 'Tema claro' : 'Tema oscuro'"
           >
             <span aria-hidden="true">{{ theme.mode() === 'dark' ? '☀' : '☾' }}</span></button
-          ><span class="toolbar-connection" [class.offline]="!isOnline()"
-            ><ion-icon
-              [name]="isOnline() ? 'wifi-outline' : 'cloud-offline-outline'"
-              aria-hidden="true"
-            ></ion-icon
-            ><span>{{ isOnline() ? 'Con conexión' : 'Sin conexión' }}</span></span
           ><ion-button
             id="profile-popover-trigger"
             class="profile-button"

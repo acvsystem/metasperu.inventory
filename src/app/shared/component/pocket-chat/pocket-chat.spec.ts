@@ -36,6 +36,18 @@ describe('Minimized chat', () => {
       expect(chat.dragOffset).toBe(0);
     }
   });
+  it('restores a minimized chat with an upward drag without losing its draft', () => {
+    const { chat, event } = gestureChat();
+    chat.minimized = true;
+    chat.startDrag(event(120, 700));
+    chat.moveDrag(event(125, 600));
+    expect(chat.dragOffset).toBeLessThan(0);
+    chat.finishDrag(event(125, 600));
+    expect(chat.minimized).toBeFalse();
+    expect(chat.opened).toBeTrue();
+    expect(chat.draft).toBe('Pendiente de enviar');
+    expect(chat.dragOffset).toBe(0);
+  });
   it('leaves action buttons and desktop interactions outside the drag gesture', () => {
     const { chat, header, event } = gestureChat();
     const button = document.createElement('button');

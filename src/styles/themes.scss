@@ -69,12 +69,6 @@ html[data-theme='dark'] {
     ) {
     color: var(--inv-muted);
   }
-  .inventory-ui .toolbar-connection {
-    color: var(--inv-success);
-  }
-  .inventory-ui .toolbar-connection.offline {
-    color: var(--inv-warning);
-  }
   .inventory-ui .profile-initial {
     background: var(--inv-blue-soft);
     color: var(--inv-link);

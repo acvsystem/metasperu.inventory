@@ -3,12 +3,12 @@ import {
   Component,
   EventEmitter,
   Input,
-  input,
   Output,
-  signal,
+  ViewChild,
   SimpleChanges,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { CdkVirtualScrollViewport, ScrollingModule } from '@angular/cdk/scrolling';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import {
@@ -27,6 +27,7 @@ import {
   selector: 'mt-select',
   standalone: true,
   imports: [
+    ScrollingModule,
     MatInputModule,
     MatFormFieldModule,
     FormsModule,
@@ -45,6 +46,8 @@ import {
   styleUrl: './mt-select.scss',
 })
 export class MtSelect {
+  @ViewChild(CdkVirtualScrollViewport) viewport?: CdkVirtualScrollViewport;
+  readonly trackOption = (_index: number, item: any) => item;
   @Output() selectdOption: EventEmitter<any> = new EventEmitter();
   @Input() data: Array<any> = []; // Signal para la lista de tiendas
   @Input() isMultiselect: boolean = false;
@@ -138,9 +141,14 @@ export class MtSelect {
     this.selectionSnapshot = this.isMultiselect
       ? this.data.map((item) => ({ item, selected: !!item.selected }))
       : null;
-    this.filteredData = [...this.data]; // Mostramos todo al inicio
+    this.filteredData = this.data;
     this.checkMasterState();
     this.isModalOpen = true;
+  }
+
+  onModalPresented() {
+    this.viewport?.scrollToIndex(0);
+    this.viewport?.checkViewportSize();
   }
 
   cancelSelection() {
@@ -201,7 +209,7 @@ export class MtSelect {
   }
 
   handleFilter(event: any) {
-    const query = event.target.value.toLowerCase();
+    const query = String(event.detail?.value ?? event.target?.value ?? '').trim().toLowerCase();
 
     if (query && query.trim() !== '') {
       this.filteredData = this.data.filter((tienda) => {
@@ -212,6 +220,7 @@ export class MtSelect {
       this.filteredData = this.data;
     }
     this.checkMasterState();
+    this.viewport?.scrollToIndex(0);
   }
 
   // Alternar selección al hacer clic en cualquier parte del item
@@ -234,7 +243,8 @@ export class MtSelect {
 
   checkMasterState() {
     const totalItems = this.filteredData.length;
-    const selectedItems = this.filteredData.filter((i) => i.selected).length;
+    let selectedItems = 0;
+    for (const item of this.filteredData) if (item.selected) selectedItems++;
 
     if (selectedItems > 0 && selectedItems < totalItems) {
       this.isIndeterminate = true;
@@ -255,7 +265,7 @@ export class MtSelect {
     if (this.isMultiselect) {
       // Actualizamos el texto que se ve en el botón principal
       if (selectedItems.length > 0) {
-        this.selectedText = selectedItems.length + ' items seletionados';
+        this.selectedText = selectedItems.length + ' seleccionados';
       } else {
         this.selectedText = '';
       }

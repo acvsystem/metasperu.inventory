@@ -75,7 +75,9 @@
   flex: 1 1 auto;
   min-height: 0;
   max-height: 350px;
-  overflow: auto;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   padding: 0 8px;
   overscroll-behavior: contain;
 }
@@ -111,3 +113,9 @@
   text-align: center;
   color: var(--inv-muted);
 }
+
+.section-options { width: 100%; min-height: 44px; max-height: calc(100dvh - 240px); flex: 1 1 auto; }
+.virtual-option-row, .virtual-option-row ion-item { height: 44px; }
+.virtual-option-row ion-label { white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+.virtual-option-row ion-checkbox::part(label) { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.option-count { display: block; margin-top: 6px; color: var(--inv-muted); font-size: 11px; }

@@ -20,6 +20,7 @@
   [isOpen]="isModalOpen"
   class="custom-dialog-modal mt-select"
   (didDismiss)="cancelSelection()"
+  (didPresent)="onModalPresented()"
 >
   <ng-template>
     <div class="dialog-container">
@@ -27,11 +28,14 @@
         <h2>{{ label }}</h2>
         <ion-searchbar
           placeholder="Filtrar..."
+          aria-label="Buscar opciones"
+          [debounce]="120"
           (ionInput)="handleFilter($event)"
           mode="md"
           class="custom-searchbar"
         >
         </ion-searchbar>
+        <small class="option-count">{{ filteredData.length | number }} opciones</small>
       </div>
 
       <div class="dialog-body">
@@ -51,28 +55,25 @@
             </ion-item>
           }
 
-          <div class="separator"></div>
-          @for (item of filteredData; track item.value) {
-            @if (isMultiselect) {
-              <ion-item class="selectable-item">
-                <ion-checkbox
-                  justify="start"
-                  labelPlacement="end"
-                  [checked]="item.selected"
-                  (ionChange)="onCheckboxChange($event, item)"
-                  mode="md"
-                  >{{ item.value }}</ion-checkbox
-                >
-              </ion-item>
-            } @else {
-              <ion-item button (click)="selectItem(item)" class="selectable-item notMultiselect">
-                <ion-label>{{ item.value }}</ion-label>
-              </ion-item>
-            }
-          } @empty {
-            <div class="no-results">No se encontraron resultados</div>
-          }
         </ion-list>
+        @if (filteredData.length) {
+          <cdk-virtual-scroll-viewport class="section-options" [itemSize]="44" [minBufferPx]="176" [maxBufferPx]="352"
+            [style.height.px]="filteredData.length < 7 ? filteredData.length * 44 : 308" role="group" aria-label="Opciones disponibles">
+            <div *cdkVirtualFor="let item of filteredData; trackBy: trackOption" class="virtual-option-row">
+              @if (isMultiselect) {
+                <ion-item class="selectable-item">
+                  <ion-checkbox justify="start" labelPlacement="end" [checked]="!!item.selected"
+                    (ionChange)="onCheckboxChange($event, item)" mode="md">{{ item.value }}</ion-checkbox>
+                </ion-item>
+              } @else {
+                <ion-item button (click)="selectItem(item)" class="selectable-item notMultiselect">
+                  <ion-label>{{ item.value }}</ion-label>
+                </ion-item>
+              }
+            </div>
+          </cdk-virtual-scroll-viewport>
+        } @else { <div class="no-results">No se encontraron resultados</div> }
+
       </div>
 
       <div class="dialog-footer">
