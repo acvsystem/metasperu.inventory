@@ -33,6 +33,9 @@
           >
         }
       </nav>
+      <button type="button" class="navigation-item" [class.selected]="isRouteActive('inventory/updates')" (click)="openUpdates()">
+        <ion-icon name="cloud-download-outline" aria-hidden="true"></ion-icon><span>Actualizaciones</span>
+      </button>
       <div class="sidebar-note">
         <span class="sidebar-dot" [class.offline]="!isOnline()" role="img"
           [attr.aria-label]="isOnline() ? 'Con conexión' : 'Sin conexión'"
@@ -56,7 +59,12 @@
           }
         </div>
         <ion-buttons slot="end"
-          ><button
+          ><button type="button" class="update-toggle" [class.available]="updates.hasUpdate()"
+            (click)="openUpdates()" [attr.aria-label]="updates.hasUpdate() ? 'Nueva versión disponible. Ver actualizaciones' : 'Ver actualizaciones'"
+            [title]="updates.hasUpdate() ? 'Hay una nueva versión' : 'Actualizaciones'">
+            <ion-icon name="cloud-download-outline" aria-hidden="true"></ion-icon>
+            @if (updates.hasUpdate()) { <span class="update-dot" aria-hidden="true"></span> }
+          </button><button
             type="button"
             class="theme-toggle"
             (click)="theme.toggle()"
@@ -78,6 +86,12 @@
             ><ion-icon name="chevron-down-outline" aria-hidden="true"></ion-icon></ion-button
         ></ion-buttons> </ion-toolbar
     ></ion-header>
+    @if (updates.noticeVisible()) {
+      <aside class="update-notice" aria-label="Aviso de actualización" role="status">
+        <button class="update-notice-link" type="button" (click)="openUpdates(); updates.dismissNotice()"><ion-icon name="cloud-download-outline" aria-hidden="true"></ion-icon><span><strong>Hay una nueva versión</strong><small>Ver novedades y actualizar cuando estés listo</small></span><span aria-hidden="true">→</span></button>
+        <button class="notice-dismiss" type="button" aria-label="Recordar la actualización después" (click)="updates.dismissNotice()">×</button>
+      </aside>
+    }
     <ion-content><router-outlet></router-outlet></ion-content>
   </div>
 </ion-split-pane>

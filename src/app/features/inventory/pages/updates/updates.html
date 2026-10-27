@@ -1,0 +1,28 @@
+<main class="updates-page" [attr.aria-busy]="updates.applying()">
+  <a class="back-link" [routerLink]="backUrl"><mat-icon aria-hidden="true">arrow_back</mat-icon>Volver al trabajo</a>
+  <header><span class="eyebrow">METAS PERÚ · VERSIONES</span><h1>Actualizaciones</h1><p>Las mejoras de tu sistema, listas cuando tú decidas.</p></header>
+  <section class="release-card" aria-labelledby="release-title">
+    <div class="release-heading"><span class="release-icon"><mat-icon aria-hidden="true">system_update_alt</mat-icon></span><div>
+      <span class="status-chip">{{ updates.available() ? 'Lista para instalar' : updates.downloading() ? 'Descargando mejoras' : 'Tu versión actual' }}</span>
+      <h2 id="release-title">{{ (updates.available() || updates.current).title }}</h2>
+      <p>Versión instalada {{ updates.current.version }} @if (updates.available()) { <span aria-hidden="true">→</span> {{ updates.available()!.version }} }</p>
+    </div></div>
+    @if (updates.downloading()) { <p class="download-state" role="status"><mat-icon aria-hidden="true">downloading</mat-icon>Preparando la nueva versión. Puedes seguir trabajando.</p> }
+    <h3>{{ updates.available() ? 'Esto es lo que se actualizará' : 'Novedades de esta versión' }}</h3>
+    <ul class="release-notes">@for (change of (updates.available() || updates.current).changes; track $index) { <li><mat-icon aria-hidden="true">check_circle</mat-icon><span>{{ change }}</span></li> }</ul>
+    @if (!(updates.available() || updates.current).changes.length) { <p>Esta publicación incluye mejoras de funcionamiento.</p> }
+    <div class="safety-note"><mat-icon aria-hidden="true">verified_user</mat-icon><div><strong>Tus conteos permanecen en este dispositivo</strong><p>Actualizar no borra pendientes, inventarios, ajustes ni tu sesión de Pocket. Solo se vuelve a cargar la aplicación.</p>
+      @if (pending() !== null) { <span>{{ pending() }} {{ pending() === 1 ? 'registro pendiente guardado' : 'registros pendientes guardados' }} localmente.</span> }
+      @if (storageError()) { <span role="alert">No se pudo verificar el almacenamiento. Revisa Pocket antes de actualizar.</span> }
+    </div></div>
+    @if (updates.error()) { <p class="update-error" role="alert">{{ updates.error() }}</p> }
+    @if (!updates.supported) { <p class="update-error">Las actualizaciones administradas están disponibles en la aplicación publicada, usando un navegador compatible con service workers.</p> }
+    <footer>
+      <button class="primary" type="button" (click)="updates.applyUpdate()" [disabled]="!updates.available() || updates.applying() || updates.downloading() || storageError()">
+        <mat-icon aria-hidden="true">{{ updates.applying() ? 'hourglass_top' : 'system_update_alt' }}</mat-icon>{{ updates.applying() ? 'Protegiendo datos y actualizando…' : 'Actualizar ahora' }}
+      </button>
+      <button class="secondary" type="button" (click)="updates.check()" [disabled]="!updates.supported || updates.checking() || updates.applying() || updates.downloading()">{{ updates.checking() ? 'Buscando…' : 'Buscar actualizaciones' }}</button>
+    </footer>
+    <p class="footnote">Puedes continuar con tu versión y actualizar después. Si hay un envío en curso, esperaremos a que termine.</p>
+  </section>
+</main>

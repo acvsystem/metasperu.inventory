@@ -43,3 +43,4 @@ Thumbs.db
 
 # Local development TLS material
 *.pem
+/ngsw.release.json

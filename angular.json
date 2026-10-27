@@ -68,7 +68,7 @@
                 }
               ],
               "outputHashing": "all",
-              "serviceWorker": "ngsw-config.json"
+              "serviceWorker": "ngsw.release.json"
             },
             "development": {
               "optimization": false,

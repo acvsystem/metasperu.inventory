@@ -32,12 +32,14 @@ import {
   listOutline,
   scanOutline,
   cubeOutline,
+  cloudDownloadOutline,
 } from 'ionicons/icons';
 import { PocketInventoryService } from '../../../../shared/services/pocket-inventory.service';
 import { AuthService } from '../../../../core/auth/auth.service';
 import { StorageService } from '@metasperu/services/store.service';
 import { ToasNotification } from '@metasperu/component/toas-notification/toas-notification';
 import { InventoryService } from '@metasperu/services/inventory.service';
+import { AppUpdateService } from '../../../../shared/services/app-update.service';
 
 @Component({
   selector: 'main-layout',
@@ -70,6 +72,7 @@ import { InventoryService } from '@metasperu/services/inventory.service';
 export default class MainComponent implements OnInit, OnDestroy {
   @ViewChild('accountPopover') accountPopover?: IonPopover;
   readonly theme = inject(ThemeService);
+  readonly updates = inject(AppUpdateService);
   readonly pocketSettings = inject(PocketInventoryService);
   readonly isOnline = signal(navigator.onLine);
   private authService = inject(AuthService);
@@ -108,6 +111,11 @@ export default class MainComponent implements OnInit, OnDestroy {
     },
   ];
   menuFiltrado = this.arMenuList.slice(0, 0);
+  openUpdates() {
+    const returnUrl = this.router.url.split('?')[0];
+    void this.menuCtrl.close('inventory-menu');
+    void this.router.navigate(['/inventory/updates'], { queryParams: { returnUrl } });
+  }
   constructor() {
     addIcons({
       chevronDownOutline,
@@ -117,6 +125,7 @@ export default class MainComponent implements OnInit, OnDestroy {
       listOutline,
       scanOutline,
       cubeOutline,
+      cloudDownloadOutline,
     });
   }
   ngOnInit() {
@@ -168,6 +177,7 @@ export default class MainComponent implements OnInit, OnDestroy {
       : '';
   }
   get pageLabel() {
+    if (this.currentRoute().includes('/updates')) return 'Actualizaciones';
     if (this.currentRoute().includes('/pocket')) return 'Conteo Pocket';
     if (this.currentRoute().includes('/dashboard')) return 'Supervisión de inventario';
     if (this.currentRoute().includes('/maintenance')) return 'Configuración';

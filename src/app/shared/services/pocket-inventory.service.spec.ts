@@ -43,6 +43,30 @@ describe('Pocket pending synchronization', () => {
     }
     throw Error('No upload request after IndexedDB transaction');
   }
+
+  it('checks update readiness without removing or uploading any pending counts', async () => {
+    const before = await db.scans.toArray();
+    expect(await service.prepareForAppUpdate()).toBe(1);
+    expect(await db.scans.toArray()).toEqual(before);
+    http.expectNone(endpoint);
+  });
+
+  it('blocks an update while a local write is in progress', async () => {
+    const saving = service.saveScanLocally(1, 'TEST', 'PRESERVED', 3);
+    await expectAsync(service.prepareForAppUpdate()).toBeRejectedWithError(/guardado/);
+    await saving;
+    expect(await service.prepareForAppUpdate()).toBe(2);
+  });
+
+  it('blocks an update during an upload and preserves unacknowledged counts', async () => {
+    const sending = service.syncWithBackend('TEST');
+    const req = await request();
+    await expectAsync(service.prepareForAppUpdate()).toBeRejectedWithError(/envío/);
+    req.flush({}, { status: 500, statusText: 'Error' });
+    await sending;
+    expect(await service.prepareForAppUpdate()).toBe(1);
+    expect((await db.scans.toArray())[0].sku).toBe('00123');
+  });
   function acknowledge(req: TestRequest) {
     req.flush({ acknowledged: req.request.body.scans.map((scan: any) => scan.client_scan_id) });
   }

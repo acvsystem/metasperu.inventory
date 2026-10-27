@@ -20,7 +20,13 @@ export const routes: Routes = [
       },
       {
         path: 'pocket',
+        canDeactivate: [(component: { prepareToLeave(): boolean }) => component.prepareToLeave()],
         loadComponent: () => import('./features/inventory/pages/pocket/pocket'),
+        data: { roles: ['administrador', 'auditor', 'pocket'] }
+      },
+      {
+        path: 'updates',
+        loadComponent: () => import('./features/inventory/pages/updates/updates'),
         data: { roles: ['administrador', 'auditor', 'pocket'] }
       },
       {

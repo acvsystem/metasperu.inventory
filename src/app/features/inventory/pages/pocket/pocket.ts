@@ -101,6 +101,45 @@ export default class Pocket implements AfterViewInit, OnDestroy {
   private readonly cameraReader = new BrowserMultiFormatReader(undefined, 250);
   private cameraHandled = false;
 
+  prepareToLeave(): boolean {
+    if (this.pocketService.isBusy) {
+      this.onNotification({ error: 'error', message: 'Espera a que termine el guardado o envío antes de salir de Pocket.' });
+      return false;
+    }
+    try {
+      if (this.sessionCode()) localStorage.setItem('pocketDraft:' + this.sessionCode(), JSON.stringify({
+        sku: this.skuInput(), quantity: this.inCantidad, section: this.selectedSectionId,
+        scanType: this.OptionTypeScan, stripZeros: this.isckeckedSku,
+        editingId: this.editingId, editSku: this.editSku, editQuantity: this.editQuantity,
+      }));
+      return true;
+    } catch {
+      this.onNotification({ error: 'error', message: 'No se pudo conservar el borrador. Guarda el conteo antes de salir.' });
+      return false;
+    }
+  }
+
+  private async restoreDraft() {
+    try {
+      const draft = JSON.parse(localStorage.getItem('pocketDraft:' + this.sessionCode()) || 'null');
+      if (!draft || typeof draft !== 'object') return;
+      this.skuInput.set(typeof draft.sku === 'string' ? draft.sku : '');
+      this.inCantidad = typeof draft.quantity === 'string' || typeof draft.quantity === 'number' ? draft.quantity : '';
+      this.OptionTypeScan = draft.scanType === 'cantidad' ? 'cantidad' : 'pistola';
+      this.isckeckedSku = draft.stripZeros === true;
+      const section = this.arAsignatedSections.find(s => s.key === draft.section);
+      if (section) await this.onChangeSelect(section);
+      if (Number.isSafeInteger(draft.editingId)) {
+        const row = await db.scans.get(draft.editingId);
+        if (row && row.session_code === this.sessionCode() && !row.synced && !row.upload_attempted) {
+          this.editingId = row.id!;
+          this.editSku = typeof draft.editSku === 'string' ? draft.editSku : row.sku;
+          this.editQuantity = Number.isSafeInteger(draft.editQuantity) ? draft.editQuantity : row.quantity;
+        }
+      }
+    } catch { /* A malformed draft must never prevent access to the durable counts. */ }
+  }
+
   ngOnDestroy() {
     this.stopCameraScan(false);
     this.modeSubscription?.unsubscribe();
@@ -269,7 +308,8 @@ export default class Pocket implements AfterViewInit, OnDestroy {
     });
     const codePocket = this.store.getStore('pocketCode');
     const valueCode = codePocket?.value === 'undefined' ? '' : codePocket?.value;
-    this.asignedSections(valueCode).then(() => {
+    this.asignedSections(valueCode).then(async () => {
+      await this.restoreDraft();
       this.onDataTable(valueCode);
 
       this.loadHistory();

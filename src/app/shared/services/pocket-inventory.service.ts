@@ -44,23 +44,42 @@ export class PocketInventoryService {
   private readonly API_URL = serviceConfig.inventoryApiUrl;
   private invService = inject(InventoryService);
   private syncing = new Set<string>();
+  private localWrites = 0;
+  get isBusy() { return this.localWrites > 0 || this.syncing.size > 0; }
+
+  private async persist<T>(write: () => Promise<T>): Promise<T> {
+    this.localWrites++;
+    try { return await write(); } finally { this.localWrites--; }
+  }
+
+  async prepareForAppUpdate(): Promise<number> {
+    const ensureIdle = () => {
+      if (this.localWrites || this.syncing.size) throw new Error('Espera a que termine el guardado o envío de Pocket y vuelve a actualizar.');
+    };
+    ensureIdle();
+    // Wait for previously queued IndexedDB writes; never clear, upload or migrate counts here.
+    return db.transaction('rw', db.scans, async () => {
+      ensureIdle();
+      return db.scans.where('synced').equals(0).count();
+    });
+  }
 
   async updatePending(id: number, sessionCode: string, sku: string, quantity: number) {
     if (this.syncing.has(sessionCode)) throw new Error('Sincronizacion en curso');
-    await db.transaction('rw', db.scans, async () => {
+    await this.persist(() => db.transaction('rw', db.scans, async () => {
       const scan = await db.scans.get(id);
       if (!scan || scan.synced || scan.upload_attempted || scan.session_code !== sessionCode) throw new Error('Confirme el envio antes de modificar este registro');
       await db.scans.update(id, { sku, quantity });
-    });
+    }));
   }
 
   async deletePending(id: number, sessionCode: string) {
     if (this.syncing.has(sessionCode)) throw new Error('Sincronizacion en curso');
-    await db.transaction('rw', db.scans, async () => {
+    await this.persist(() => db.transaction('rw', db.scans, async () => {
       const scan = await db.scans.get(id);
       if (!scan || scan.synced || scan.upload_attempted || scan.session_code !== sessionCode) throw new Error('Confirme el envio antes de eliminar este registro');
       await db.scans.delete(id);
-    });
+    }));
   }
 
   // Guardar escaneo en LocalStorage (IndexedDB)
@@ -74,7 +93,7 @@ export class PocketInventoryService {
       synced: 0, // Estado: Pendiente
       seccion_id: seccion_id
     };
-    return await db.scans.add(newScan);
+    return await this.persist(() => db.scans.add(newScan));
   }
 
   async getHistoryScans(sessionCode: string): Promise<ScanEntry[]> {
