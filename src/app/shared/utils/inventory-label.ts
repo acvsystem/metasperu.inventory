@@ -17,41 +17,41 @@ export function drawInventoryLabel(
   pdf.line(x, y + 13, x + w, y + 13);
 
   pdf.setFontSize(7);
-  pdf.text('Sub-Zona #', x + 3, y + 22);
+  pdf.text('Sub-Zona #', x + 3, y + 18);
+  pdf.setFillColor('#fff200');
+  pdf.rect(x + 3, y + 21, 24, 10, 'FD');
+  pdf.setTextColor('#111111');
+  pdf.setFontSize(16);
+  const codeWidth = pdf.getTextWidth(code);
+  if (codeWidth > 21) pdf.setFontSize(16 * 21 / codeWidth);
+  pdf.text(code, x + 15, y + 27.8, { align: 'center' });
   // Draw vector runs instead of allocating a 320px PNG for every label.
   const matrix = QRCode.create(code, { errorCorrectionLevel: 'M' }).modules;
-  const cell = 19 / (matrix.size + 8); // Four-module quiet zone on every side.
+  const qrSize = 23;
+  const cell = qrSize / (matrix.size + 8); // Four-module quiet zone on every side.
   pdf.setFillColor('#000000');
   for (let row = 0; row < matrix.size; row++) {
     for (let col = 0; col < matrix.size;) {
       if (!matrix.data[row * matrix.size + col]) { col++; continue; }
       const start = col;
       while (col < matrix.size && matrix.data[row * matrix.size + col]) col++;
-      pdf.rect(x + w - 23 + (start + 4) * cell, y + 15 + (row + 4) * cell, (col - start) * cell, cell, 'F');
+      pdf.rect(x + w - qrSize - 1 + (start + 4) * cell, y + 13 + (row + 4) * cell, (col - start) * cell, cell, 'F');
     }
   }
 
   const fields = ['Conteo:', 'Reconteo:', 'Contado por:', 'Recontado por:'];
+  pdf.setTextColor(blue);
+  pdf.setFontSize(7);
   fields.forEach((field, i) => {
     const top = y + 36 + i * 6.5;
     pdf.line(x, top, x + w, top);
     pdf.text(field, x + 2, top + 4.5);
   });
   pdf.line(x, y + 62, x + w, y + 62);
-  pdf.addImage(logo, 'PNG', x + 3, y + 65, 5, 5, 'metas-logo');
+  pdf.addImage(logo, 'PNG', x + 15, y + h - 7, 5, 5, 'metas-logo');
   pdf.setTextColor('#657280');
   pdf.setFontSize(6);
-  pdf.text('METAS PERU', x + 10, y + 68.5);
-
-  pdf.setDrawColor(blue);
-  pdf.setFillColor('#fff200');
-  pdf.rect(x + w - 22, y + h - 9, 20, 8, 'FD');
-  pdf.setTextColor('#111111');
-  // Fit long section names without overflowing the yellow identification box.
-  pdf.setFontSize(13);
-  const width = pdf.getTextWidth(code);
-  if (width > 18) pdf.setFontSize(Math.max(5, 13 * 18 / width));
-  pdf.text(code, x + w - 12, y + h - 3.4, { align: 'center', maxWidth: 18 });
+  pdf.text('METAS PERU', x + 22, y + h - 3.5);
 }
 
 export function createInventoryLabelPdf(
