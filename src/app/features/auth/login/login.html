@@ -1,87 +1,35 @@
 <ion-content class="login-bg">
-  <div class="login-theme-toggle">
-    <button
-      type="button"
-      class="theme-toggle"
-      (click)="theme.toggle()"
-      [attr.aria-label]="theme.mode() === 'dark' ? 'Activar tema claro' : 'Activar tema oscuro'"
-      [attr.aria-pressed]="theme.mode() === 'dark'"
-      [title]="theme.mode() === 'dark' ? 'Tema claro' : 'Tema oscuro'"
-    >
-      <span aria-hidden="true">{{ theme.mode() === 'dark' ? '☀' : '☾' }}</span>
-    </button>
-  </div>
-  <div class="flex-center">
-    <ion-card class="login-card">
-      <ion-grid class="ion-no-padding">
-        <ion-row>
-          <ion-col size="12" size-md="6" class="form-col">
-            <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="form-wrapper">
-              <h1 class="title">Ingresar</h1>
-
-              <div class="input-group">
-                <div class="label-split">
-                  <label for="login-user" class="custom-label">Usuario</label>
-                </div>
-                <div class="custom-input">
-                  <input
-                    id="login-user"
-                    type="text"
-                    formControlName="username"
-                    placeholder="Ingrese su usuario"
-                    autocomplete="username"
-                  />
-                </div>
-
-                <div class="label-split" style="margin-top: 15px">
-                  <label for="login-password" class="custom-label">Contraseña</label>
-                </div>
-                <div class="custom-input password-input">
-                  <input
-                    id="login-password"
-                    [type]="showPassword ? 'text' : 'password'"
-                    formControlName="password"
-                    placeholder="••••••••"
-                    autocomplete="current-password"
-                  />
-                  <button
-                    type="button"
-                    class="password-toggle"
-                    (click)="togglePassword()"
-                    [attr.aria-label]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
-                  >
-                    <ion-icon
-                      [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"
-                      aria-hidden="true"
-                    ></ion-icon>
-                  </button>
-                </div>
-              </div>
-
-              <ion-button
-                expand="block"
-                class="login-btn"
-                mode="ios"
-                type="submit"
-                [disabled]="loginForm.invalid || isLoading()"
-              >
-                <ion-spinner *ngIf="isLoading()" name="crescent"></ion-spinner>
-                <span *ngIf="!isLoading()">Ingresar</span>
-              </ion-button>
-            </form>
-          </ion-col>
-
-          <ion-col size="12" size-md="6" class="image-col ion-hide-md-down">
-            <div class="image-content">
-              <img class="app-log" src="assets/logo_almacen.png" alt="logo" />
-              <h3>Metas Perú Inventario</h3>
-              <div class="slider-dots">
-                <span class="dot active"></span>
-              </div>
-            </div>
-          </ion-col>
-        </ion-row>
-      </ion-grid>
-    </ion-card>
-  </div>
+  <main class="login-page">
+    <section class="login-shell" aria-label="Acceso a Metas Perú Inventario">
+      <aside class="brand-panel">
+        <div class="brand-lockup"><span class="brand-icon"><img src="assets/metasicon.png" alt="" /></span><div><strong>METAS PERÚ</strong><span>Gestión de inventarios</span></div></div>
+        <div class="brand-message"><h2>Cada conteo cuenta.</h2><p>Organiza tus inventarios y sigue el trabajo de tu equipo desde un solo lugar.</p><img class="warehouse-image" src="assets/logo_almacen.png" alt="" /></div>
+        <div class="brand-footer">Inventarios · Tiendas · Equipo</div>
+      </aside>
+      <div class="access-panel">
+        <header class="access-header">
+          <div class="mobile-brand"><img src="assets/metasicon.png" alt="" /><strong>METAS PERÚ</strong></div>
+          <button type="button" class="theme-toggle" (click)="theme.toggle()" [attr.aria-label]="theme.mode() === 'dark' ? 'Activar tema claro' : 'Activar tema oscuro'" [attr.aria-pressed]="theme.mode() === 'dark'"><span aria-hidden="true">{{ theme.mode() === 'dark' ? '☀' : '☾' }}</span></button>
+        </header>
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form" [attr.aria-busy]="isLoading()">
+          <h1>Bienvenido de nuevo</h1><p class="form-description">Ingresa a tu espacio de inventarios.</p>
+          <div class="field-group"><label for="login-user">Usuario</label><div class="input-frame">
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.5" /><path d="M5 21v-2a7 7 0 0 1 14 0v2" /></svg>
+            <input id="login-user" type="text" formControlName="username" placeholder="Tu usuario" autocomplete="username" autocapitalize="none" spellcheck="false" />
+          </div></div>
+          <div class="field-group"><label for="login-password">Contraseña</label><div class="input-frame">
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><rect x="5" y="10" width="14" height="11" rx="2" /><path d="M8 10V6a4 4 0 0 1 8 0v4m-4 5v2" /></svg>
+            <input id="login-password" [type]="showPassword ? 'text' : 'password'" formControlName="password" placeholder="Tu contraseña" autocomplete="current-password" />
+            <button type="button" class="password-toggle" (click)="togglePassword()" [attr.aria-label]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'" [attr.aria-pressed]="showPassword"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" />@if (showPassword) { <path d="m3 3 18 18" /> }</svg></button>
+          </div></div>
+          <button class="login-btn" type="submit" [disabled]="loginForm.invalid || isLoading()">
+            @if (isLoading()) { <ion-spinner name="crescent" aria-hidden="true"></ion-spinner><span>Ingresando…</span> }
+            @else { <span>Ingresar</span><svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M5 12h14m-6-6 6 6-6 6" /></svg> }
+          </button>
+          <p class="access-help">¿Necesitas acceso? Solicita tu cuenta al administrador.</p>
+        </form>
+        <footer class="access-footer">Metas Perú · Control de inventarios</footer>
+      </div>
+    </section>
+  </main>
 </ion-content>
