@@ -1,8 +1,9 @@
 {
-  "version": "1.1.1",
-  "title": "Menú de administración alineado",
+  "version": "1.1.2",
+  "title": "Conteos negativos y exportación completa",
   "changes": [
-    "Actualizaciones se integra en el mismo bloque del menú que Configuración, con los mismos márgenes, ancho y alineación.",
-    "La opción conserva el indicador de selección y cierra el menú al abrirse en móvil."
+    "Editar conteo permite cantidades negativas, cero y positivas, con validación de números enteros.",
+    "Productos sin exhibir muestra un único paginador con el total real de productos.",
+    "La exportación Excel incluye todos los productos del resultado o del filtro aplicado, no solo la página visible."
   ]
 }
