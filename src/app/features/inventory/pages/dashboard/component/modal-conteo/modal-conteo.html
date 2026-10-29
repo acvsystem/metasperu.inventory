@@ -2,13 +2,16 @@
 <mat-dialog-content>
     <mt-input 
         (afterChange)="onChangeInput($event)" 
-        [autoText]="data.nombre_seccion" 
+        [autoText]="quantityText"
         label="Cantidad"
         placeholder="Cantidad">
     </mt-input>
-
+    <p class="small text-muted">Se permiten cantidades negativas, cero y positivas.</p>
+    @if (!validQuantity) {
+        <p class="small text-danger" role="alert">Ingresa un número entero entre -999999999 y 999999999.</p>
+    }
 </mat-dialog-content>
 <mat-dialog-actions align="end">
     <button type="button" class="btn btn-light btn-sm" style="margin-right: 10px;" (click)="onNoClick()">Cancelar</button>
-    <button type="button" class="btn btn-primary btn-sm" [mat-dialog-close]="data">Guardar</button>
+    <button type="button" class="btn btn-primary btn-sm" [disabled]="!validQuantity" [mat-dialog-close]="data">Guardar</button>
 </mat-dialog-actions>

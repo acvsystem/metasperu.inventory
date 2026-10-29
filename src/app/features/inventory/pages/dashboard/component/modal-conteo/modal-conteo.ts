@@ -18,9 +18,19 @@ export class ModalConteo {
     @Inject(MAT_DIALOG_DATA) public data: any,
   ) { }
 
+  get quantityText(): string {
+    return String(this.data.cantidad ?? '');
+  }
+
+  get validQuantity(): boolean {
+    const value = this.quantityText.trim();
+    return /^-?\d+$/.test(value) && Number.isSafeInteger(Number(value)) &&
+      Math.abs(Number(value)) <= 999999999;
+  }
+
   onChangeInput(data: any) {
     if (!data) return;
-    const { id, value } = data;
+    const { value } = data;
     this.data.cantidad = value ?? "";
   }
 
