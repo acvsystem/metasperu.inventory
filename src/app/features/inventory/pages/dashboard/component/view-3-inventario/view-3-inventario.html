@@ -15,15 +15,15 @@
             title="Departamento"></mt-select>
     </ion-col>
     <ion-col sizeXs="12" sizeSm="12" sizeMd="1" sizeLg="1" style="justify-content: center;align-items: center;display: flex;">
-        <button mat-raised-button class="btn-excel-upload" (click)="onProcessDiff()">
+        <button mat-raised-button class="btn-excel-upload" [disabled]="isLoading" (click)="onProcessDiff()">
             <span>Procesar</span>
         </button>
     </ion-col>
     <ion-col sizeXs="12" sizeSm="12" sizeMd="2" sizeLg="2" style="justify-content: center;align-items: center;display: flex;">
-        <button mat-raised-button class=" btn-excel" (click)="exportarExcel()">
+        <button mat-raised-button class=" btn-excel" [disabled]="isLoading || !exportRows.length" (click)="exportarExcel()">
             <mat-icon>file_download</mat-icon>
             <span>Exportar Excel</span>
-            <span class="record-count">{{ dataProcess.length | number }} items</span>
+            <span class="record-count">{{ exportRows.length | number }} items</span>
         </button>
     </ion-col>
 </ion-row>
@@ -32,10 +32,13 @@
         @if (isLoading) {
         <p style="padding: 8px 0;">Cargando productos sin exhibir...</p>
         }
-        <mat-paginator [length]="totalRows" [pageSize]="pageSize" [pageSizeOptions]="pageSizeOptions"
-            (page)="onPageChange($event)" showFirstLastButtons aria-label="Paginación productos sin exhibir">
-        </mat-paginator>
+        @if (loadError) {
+        <p role="alert">{{ loadError }}</p>
+        }
+        @if (!isLoading) {
         <mt-datatable [dataIn]="dataProcess" [dataColumnsIn]="dataColumns"
+            (currentDataFilter)="onTableFilter($event)"
             [extraColumns]="displayedColumns"></mt-datatable>
+        }
     </ion-col>
 </ion-row>

@@ -1,26 +1,22 @@
-import { Component, inject, Input, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, Input, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonRow, IonCol, IonIcon, IonCardContent, IonCard, IonGrid } from '@ionic/angular/standalone';
 import { MtSelect } from '@metasperu/component/mt-select/mt-select';
 import { InventoryService } from '@metasperu/services/inventory.service';
-import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
-import { PageEvent } from '@angular/material/paginator';
-import { MatSort } from '@angular/material/sort';
+import { firstValueFrom } from 'rxjs';
 import { MtDatatable } from '@metasperu/component/mt-datatable/mt-datatable';
 import * as XLSX from 'xlsx';
 import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'view-3-inventario',
-  imports: [IonRow, IonCol, MtSelect, CommonModule, MtDatatable, MatIconModule, MatPaginatorModule],
+  imports: [IonRow, IonCol, MtSelect, CommonModule, MtDatatable, MatIconModule],
   templateUrl: './view-3-inventario.html',
   styleUrl: './view-3-inventario.scss',
 })
 export class View3Inventario {
   @Input() sessionCode = '';
   @Input() onDataView: Array<any> = [];
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
-  @ViewChild(MatSort) sort!: MatSort;
   cbo_1: string = "";
   cbo_2: string = "";
   dataParse: any = {};
@@ -41,11 +37,23 @@ export class View3Inventario {
     'stock'];
 
   dataProcess: Array<any> = [];
-  page = 1;
-  pageSize = 10;
   totalRows = 0;
-  pageSizeOptions = [10, 20, 50, 100, 250, 500];
   isLoading = false;
+  loadError = '';
+  private productsRequestId = 0;
+  private filteredProducts: any[] | null = null;
+
+  get exportRows(): any[] {
+    return this.filteredProducts ?? this.dataProcess;
+  }
+
+  onTableFilter(rows: any[]) {
+    this.filteredProducts = rows;
+  }
+
+  ngOnDestroy() {
+    this.productsRequestId++;
+  }
 
   cboArea: Array<any> = [
     { key: 'Almacén', value: 'Almacén', isDefault: true },
@@ -181,51 +189,62 @@ export class View3Inventario {
 
   onProcessDiff() {
     if (this.sessionCode) {
-      this.loadProductsWithoutDisplay(1, this.pageSize);
+      void this.loadProductsWithoutDisplay();
       return;
     }
 
-    const diferencia = this.obtenerCodigosFaltantes(this.dataParse[this.cbo_1], this.dataParse[this.cbo_2]);
-    if (diferencia.length) {
-      const diferenciaSet = new Set(diferencia);
-      const dataTable = this.dataIn.filter((d) => diferenciaSet.has(d.cCodigoBarra));
-
-      this.dataProcess = dataTable;
-      console.log(this.dataProcess);
-    }
+    const diferencia = this.obtenerCodigosFaltantes(this.dataParse[this.cbo_1] || [], this.dataParse[this.cbo_2] || []);
+    const diferenciaSet = new Set(diferencia);
+    this.dataProcess = this.dataIn.filter((d) => diferenciaSet.has(d.cCodigoBarra));
+    this.totalRows = this.dataProcess.length;
+    this.filteredProducts = null;
   }
 
-  loadProductsWithoutDisplay(page = this.page, pageSize = this.pageSize) {
+  async loadProductsWithoutDisplay(): Promise<void> {
+    const requestId = ++this.productsRequestId;
+    const sessionCode = this.sessionCode;
     const sourceArea = this.cbo_1 || 'Almacén';
     const targetArea = this.cbo_2 || 'Venta';
-
     this.isLoading = true;
-    this.page = page;
-    this.pageSize = pageSize;
+    this.loadError = '';
+    this.dataProcess = [];
+    this.totalRows = 0;
+    this.filteredProducts = null;
 
-    this.invService.getProductsWithoutDisplay({
-      session_code: this.sessionCode,
-      sourceArea,
-      targetArea,
-      page,
-      pageSize
-    }).subscribe({
-      next: (res: any) => {
-        this.dataProcess = res?.products || [];
-        this.totalRows = res?.pagination?.totalRows || this.dataProcess.length;
-        this.isLoading = false;
-      },
-      error: (error) => {
-        console.error('Error al obtener productos sin exhibir:', error);
-        this.dataProcess = [];
-        this.totalRows = 0;
-        this.isLoading = false;
+    try {
+      const products: any[] = [];
+      let expectedTotal: number | undefined;
+      let pageSize = 500;
+      for (let page = 1; ; page++) {
+        const res: any = await firstValueFrom(this.invService.getProductsWithoutDisplay({
+          session_code: sessionCode, sourceArea, targetArea, page, pageSize,
+        }));
+        if (requestId !== this.productsRequestId) return;
+        const total = Number(res?.pagination?.totalRows);
+        const batchSize = Number(res?.pagination?.pageSize);
+        const rows = res?.products;
+        if (!Array.isArray(rows) || !Number.isSafeInteger(total) || total < 0 ||
+            !Number.isSafeInteger(batchSize) || batchSize < 1 || batchSize > 1000 ||
+            Number(res?.pagination?.page) !== page ||
+            (expectedTotal !== undefined && total !== expectedTotal) ||
+            products.length + rows.length > total ||
+            (products.length + rows.length < total && rows.length !== batchSize)) {
+          throw new Error('La respuesta no contiene el resultado completo. Vuelve a procesar.');
+        }
+        expectedTotal = total;
+        products.push(...rows);
+        if (products.length === total) break;
+        pageSize = batchSize;
       }
-    });
-  }
-
-  onPageChange(event: PageEvent) {
-    this.loadProductsWithoutDisplay(event.pageIndex + 1, event.pageSize);
+      this.dataProcess = products;
+      this.totalRows = products.length;
+    } catch (error) {
+      if (requestId !== this.productsRequestId) return;
+      console.error('Error al obtener productos sin exhibir:', error);
+      this.loadError = 'No se pudieron cargar todos los productos. Vuelve a presionar Procesar.';
+    } finally {
+      if (requestId === this.productsRequestId) this.isLoading = false;
+    }
   }
 
   async onChangeSelect(data: any) {
@@ -240,8 +259,9 @@ export class View3Inventario {
   }
 
   exportarExcel() {
+    if (this.isLoading || !this.exportRows.length) return;
     // 1. Mapeamos los datos (Tu lógica se mantiene igual)
-    const dataParaExportar = this.dataProcess.map(item => {
+    const dataParaExportar = this.exportRows.map(item => {
       const objReturn: Record<string, any> = {
         cCodigoTienda: item.cCodigoTienda,
         cCodigoArticulo: item.cCodigoArticulo,
