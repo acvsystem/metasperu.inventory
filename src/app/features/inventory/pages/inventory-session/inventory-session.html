@@ -12,7 +12,7 @@
     <section class="inventory-panel session-create" aria-labelledby="new-inventory-heading">
       <div class="panel-heading">
         <div>
-          <h2 id="new-inventory-heading">Abrir un inventario</h2>
+          <h2 id="new-inventory-heading">Creacion de sesion</h2>
           <p>Elige la tienda y las secciones que se van a contar.</p>
         </div>
         <mat-icon aria-hidden="true">inventory_2</mat-icon>
@@ -42,7 +42,7 @@
           [disabled]="!selectedStoreId || isLoading() || !sectionsSelected.length"
         >
           <mat-icon aria-hidden="true">add</mat-icon
-          >{{ isLoading() ? 'Abriendo…' : 'Abrir inventario' }}
+          >{{ isLoading() ? 'Creando…' : 'Crear sesion' }}
         </button>
       </div>
     </section>
